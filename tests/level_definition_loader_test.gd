@@ -26,6 +26,13 @@ func _initialize() -> void:
 	if third_level.rooms.size() != 3 or third_level.connections.size() != 2:
 		_fail("The loader should preserve Nivel 3 rooms and connections.")
 		return
+	var fourth_level := LevelDefinitionLoader.load_level("res://level-designs/levels/nivel-4.json")
+	if fourth_level.is_empty() or str(fourth_level.id) != "nivel-4":
+		_fail("Nivel 4 should have a valid identity matching the sequence catalog.")
+		return
+	if fourth_level.rooms.size() != 3 or fourth_level.connections.size() != 2:
+		_fail("The loader should preserve Nivel 4 rooms and connections.")
+		return
 	print("Level definition loader test passed.")
 	quit()
 

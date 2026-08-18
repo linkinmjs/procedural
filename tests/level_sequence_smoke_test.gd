@@ -8,8 +8,8 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var sequence = root.get_node("LevelSequence")
-	if sequence.get_level_count() != 3:
-		_fail("The level catalog should contain Nivel 1, Nivel 2 and Nivel 3.")
+	if sequence.get_level_count() != 4:
+		_fail("The level catalog should contain Nivel 1 through Nivel 4.")
 		return
 	sequence.select_first_level()
 	change_scene_to_file("res://scenes/levels/playable_level.tscn")
@@ -24,7 +24,7 @@ func _run() -> void:
 	if second_level == null or str(second_level.level_data.id) != "nivel-2" or second_level.level_data.rooms.size() != 5:
 		_fail("F7 should load Nivel 2 without evaluating victory conditions.")
 		return
-	if sequence.get_position_text() != "2 / 3":
+	if sequence.get_position_text() != "2 / 4":
 		_fail("The sequence position should reflect the second level.")
 		return
 	_send_key(KEY_F7)
@@ -33,11 +33,17 @@ func _run() -> void:
 	if third_level == null or str(third_level.level_data.id) != "nivel-3" or third_level.level_data.rooms.size() != 3:
 		_fail("F7 should continue from Nivel 2 to Nivel 3.")
 		return
+	_send_key(KEY_F7)
+	await _wait_for_scene()
+	var fourth_level := current_scene as PlayableLevel
+	if fourth_level == null or str(fourth_level.level_data.id) != "nivel-4" or fourth_level.level_data.rooms.size() != 3:
+		_fail("F7 should continue from Nivel 3 to Nivel 4.")
+		return
 	_send_key(KEY_F8)
 	await _wait_for_scene()
 	var returned_level := current_scene as PlayableLevel
-	if returned_level == null or str(returned_level.level_data.id) != "nivel-2":
-		_fail("F8 should return from Nivel 3 to Nivel 2.")
+	if returned_level == null or str(returned_level.level_data.id) != "nivel-3":
+		_fail("F8 should return from Nivel 4 to Nivel 3.")
 		return
 	sequence.select_first_level()
 	print("Level sequence smoke test passed.")

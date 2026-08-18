@@ -12,6 +12,10 @@
     {
       "id": "nivel-3",
       "path": "res://level-designs/levels/nivel-3.json"
+    },
+    {
+      "id": "nivel-4",
+      "path": "res://level-designs/levels/nivel-4.json"
     }
   ]
 }

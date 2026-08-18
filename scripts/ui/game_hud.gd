@@ -15,6 +15,7 @@ const LOG_COLORS := {
 @onready var accuracy_detail: Label = %AccuracyDetail
 @onready var health_value: Label = %HealthValue
 @onready var health_bar: ProgressBar = %HealthBar
+@onready var ammo_value: Label = %AmmoValue
 @onready var time_value: Label = %TimeValue
 @onready var status_value: Label = %StatusValue
 
@@ -33,12 +34,14 @@ func bind(controller: RoundController) -> void:
 	controller.health_changed.connect(_on_health_changed)
 	controller.time_changed.connect(_on_time_changed)
 	controller.accuracy_changed.connect(_on_accuracy_changed)
+	controller.ammo_changed.connect(_on_ammo_changed)
 	controller.log_added.connect(_on_log_added)
 	controller.round_started.connect(_on_round_started)
 	controller.round_ended.connect(_on_round_ended)
 	_on_health_changed(controller.current_health, controller.max_health)
 	_on_time_changed(controller.time_remaining)
 	_on_accuracy_changed(controller.hits, controller.attacks, controller.get_accuracy_percent())
+	_on_ammo_changed(controller.magazine_ammo, controller.reserve_ammo)
 	status_value.text = "ROUND // ACTIVE" if controller.is_running else "ROUND // STANDBY"
 	if controller.is_running and _logs.is_empty():
 		_on_log_added("ROUND STARTED", "system")
@@ -68,6 +71,11 @@ func _on_time_changed(seconds_remaining: float) -> void:
 func _on_accuracy_changed(hit_count: int, attack_count: int, percent: float) -> void:
 	accuracy_value.text = "%.1f%%" % percent
 	accuracy_detail.text = "%02d HIT / %02d SHOT" % [hit_count, attack_count]
+
+
+func _on_ammo_changed(magazine: int, reserve: int) -> void:
+	ammo_value.text = "%02d / %02d" % [magazine, reserve]
+	ammo_value.modulate = Color(1.0, 0.22, 0.3) if magazine <= 0 else Color.WHITE
 
 
 func _on_log_added(message: String, event_kind: String) -> void:

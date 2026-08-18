@@ -8,6 +8,7 @@ func _ready() -> void:
 	controller.report_attack_fired()
 	controller.report_attack_fired()
 	controller.report_attack_hit()
+	controller.report_ammo_changed([7, 24])
 	controller.report_target_hit("blue ball")
 	controller.report_target_left("blue ball", 15.0)
 	await get_tree().process_frame
@@ -18,6 +19,10 @@ func _ready() -> void:
 		if panel.global_position.x < 0.0 or panel.global_position.x + panel.size.x > get_viewport().get_visible_rect().size.x:
 			_fail("HUD panel %s is outside the reference viewport." % panel_name)
 			return
+	var ammo_value := $RoundHUD/GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/AmmoRow/AmmoValue as Label
+	if ammo_value.text != "07 / 24":
+		_fail("HUD should show magazine and reserve ammo counts.")
+		return
 	var image := get_viewport().get_texture().get_image()
 	if image == null:
 		_fail("The active renderer cannot capture the HUD preview image.")

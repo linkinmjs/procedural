@@ -190,6 +190,21 @@ show_percentage = false
 theme_override_styles/background = SubResource("HealthBackground")
 theme_override_styles/fill = SubResource("HealthFill")
 
+[node name="AmmoRow" type="HBoxContainer" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="AmmoLabel" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/AmmoRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "AMMO // MAG / STOCK"
+theme_override_colors/font_color = Color(0.1, 0.88, 1, 1)
+
+[node name="AmmoValue" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/AmmoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "00 / 00"
+label_settings = SubResource("ValueSettings")
+
 [node name="TimeRow" type="HBoxContainer" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox"]
 layout_mode = 2
 

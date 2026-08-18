@@ -20,6 +20,10 @@ func _run() -> void:
 	if not is_equal_approx(controller.get_accuracy_percent(), 50.0):
 		_fail("Expected 50 percent accuracy.")
 		return
+	controller.report_ammo_changed([7, 24])
+	if controller.magazine_ammo != 7 or controller.reserve_ammo != 24:
+		_fail("Ammo updates should track both magazine and reserve counts.")
+		return
 	controller.report_target_left("blue ball", 15.0)
 	if not is_equal_approx(controller.current_health, 85.0):
 		_fail("A missed penalty target should remove 15 HP.")

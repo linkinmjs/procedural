@@ -4,6 +4,7 @@ extends Node
 signal health_changed(current_health: float, max_health: float)
 signal time_changed(time_remaining: float)
 signal accuracy_changed(hits: int, attacks: int, accuracy_percent: float)
+signal ammo_changed(magazine_ammo: int, reserve_ammo: int)
 signal log_added(message: String, event_kind: String)
 signal round_started
 signal round_ended(reason: String)
@@ -16,6 +17,8 @@ var current_health := 100.0
 var time_remaining := 90.0
 var hits := 0
 var attacks := 0
+var magazine_ammo := 0
+var reserve_ammo := 0
 var is_running := false
 
 var _weapon_manager: Node
@@ -45,6 +48,7 @@ func start_round() -> void:
 	health_changed.emit(current_health, max_health)
 	time_changed.emit(time_remaining)
 	accuracy_changed.emit(hits, attacks, 0.0)
+	ammo_changed.emit(magazine_ammo, reserve_ammo)
 	round_started.emit()
 	add_log("ROUND STARTED", "system")
 
@@ -63,6 +67,20 @@ func register_player(player: Node) -> void:
 		manager.attack_fired.connect(report_attack_fired)
 	if manager.has_signal("target_hit"):
 		manager.target_hit.connect(report_attack_hit)
+	if manager.has_signal("update_ammo"):
+		manager.update_ammo.connect(report_ammo_changed)
+	var current_slot: Variant = manager.get("current_weapon_slot")
+	if current_slot != null:
+		report_ammo_changed([current_slot.current_ammo, current_slot.reserve_ammo])
+
+
+func report_ammo_changed(ammo: Array) -> void:
+	if ammo.size() < 2:
+		push_warning("RoundController received an invalid ammo update.")
+		return
+	magazine_ammo = maxi(int(ammo[0]), 0)
+	reserve_ammo = maxi(int(ammo[1]), 0)
+	ammo_changed.emit(magazine_ammo, reserve_ammo)
 
 
 func report_attack_fired() -> void:
@@ -134,3 +152,5 @@ func _disconnect_weapon_manager() -> void:
 		_weapon_manager.attack_fired.disconnect(report_attack_fired)
 	if _weapon_manager.target_hit.is_connected(report_attack_hit):
 		_weapon_manager.target_hit.disconnect(report_attack_hit)
+	if _weapon_manager.has_signal("update_ammo") and _weapon_manager.update_ammo.is_connected(report_ammo_changed):
+		_weapon_manager.update_ammo.disconnect(report_ammo_changed)

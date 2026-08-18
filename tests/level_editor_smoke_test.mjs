@@ -5,6 +5,7 @@ const html = fs.readFileSync("tools/level-editor/index.html", "utf8");
 const script = fs.readFileSync("tools/level-editor/app.js", "utf8");
 const schema = JSON.parse(fs.readFileSync("level-designs/schema.json", "utf8"));
 const example = JSON.parse(fs.readFileSync("level-designs/three-room-example.json", "utf8"));
+const levelOne = JSON.parse(fs.readFileSync("level-designs/levels/nivel-1.json", "utf8"));
 
 for (const id of [
   "level-canvas",
@@ -12,14 +13,21 @@ for (const id of [
   "connections-layer",
   "room-inspector",
   "block-editors",
+  "level-time-minutes",
+  "level-time-seconds",
   "import-file",
   "download-file"
 ]) {
   assert.match(html, new RegExp(`id=["']${id}["']`), `Falta el control #${id}`);
 }
 
-assert.equal(schema.properties.schemaVersion.const, 1);
-assert.equal(example.schemaVersion, 1);
+assert.equal(schema.properties.schemaVersion.const, 2);
+assert.equal(example.schemaVersion, 2);
+assert.equal(example.timeLimitSeconds, 90);
+assert.equal(schema.properties.timeLimitSeconds.minimum, 1);
+assert.equal(schema.properties.timeLimitSeconds.maximum, 3600);
+assert.equal(levelOne.timeLimitSeconds, 90);
+assert.equal(levelOne.schemaVersion, 2);
 assert.equal(example.rooms.length, 3);
 assert.equal(example.connections.length, 2);
 
@@ -38,5 +46,6 @@ for (const connection of example.connections) {
 assert.match(script, /localStorage\.setItem/, "El editor debe guardar el borrador automáticamente");
 assert.match(script, /showSaveFilePicker/, "El editor debe poder guardar un archivo JSON");
 assert.match(script, /createSVGPoint/, "El editor debe soportar arrastre sobre el plano SVG");
+assert.match(script, /refreshConnectionsForRoom\(dragState\.roomId\)/, "Mover una sala debe actualizar las paredes de sus conexiones");
 
 console.log("LEVEL EDITOR SMOKE TEST PASSED");

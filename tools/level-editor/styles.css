@@ -76,6 +76,9 @@ p { line-height: 1.45; }
 .sidebar section + section { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
 
 label { display: grid; gap: 6px; margin-bottom: 12px; color: var(--muted); font-size: 12px; }
+.time-limit { margin: 18px 0 0; padding: 14px 0 0; border: 0; border-top: 1px solid var(--line); }
+.time-limit legend { padding: 0; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+.time-limit .hint { margin: -4px 0 0; }
 input, textarea, select {
   width: 100%;
   padding: 8px 9px;

@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 2,
+  "id": "nivel-3",
+  "name": "Nivel 3",
+  "description": "",
+  "timeLimitSeconds": 10,
+  "gridSize": 1,
+  "rooms": [
+    {
+      "id": "54d91a11-30b9-4e34-9c26-ac1b6a01afa2",
+      "name": "Entrada",
+      "type": "small",
+      "position": {
+        "x": 0,
+        "z": 14
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "north",
+        "offset": 0
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        },
+        "front": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        },
+        "right": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        }
+      }
+    },
+    {
+      "id": "1f796f15-d751-4568-8322-9567d08cbab6",
+      "name": "Sala 1",
+      "type": "small",
+      "position": {
+        "x": 0,
+        "z": -3
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        },
+        "front": {
+          "enabled": true,
+          "targetCount": 15,
+          "movement": "static"
+        },
+        "right": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        }
+      }
+    },
+    {
+      "id": "d51fa838-a761-4bc9-9620-08904210084c",
+      "name": "Salida",
+      "type": "small",
+      "position": {
+        "x": 0,
+        "z": -20
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        },
+        "front": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        },
+        "right": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "47cbaa74-e683-4097-88b2-aa35dca9d82d",
+      "fromRoomId": "54d91a11-30b9-4e34-9c26-ac1b6a01afa2",
+      "toRoomId": "1f796f15-d751-4568-8322-9567d08cbab6",
+      "fromWall": "north",
+      "toWall": "south"
+    },
+    {
+      "id": "92270345-b673-4295-b948-a34686412130",
+      "fromRoomId": "1f796f15-d751-4568-8322-9567d08cbab6",
+      "toRoomId": "d51fa838-a761-4bc9-9620-08904210084c",
+      "fromWall": "north",
+      "toWall": "south"
+    }
+  ]
+}

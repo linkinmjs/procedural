@@ -39,6 +39,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			get_tree().change_scene_to_file("res://scenes/block_lab.tscn")
 		KEY_F5:
 			generate_new_dungeon()
+		KEY_F6:
+			get_tree().change_scene_to_file("res://scenes/levels/playable_level.tscn")
 
 
 func generate_new_dungeon() -> void:

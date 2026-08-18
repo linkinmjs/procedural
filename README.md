@@ -4,6 +4,7 @@ Prototipo para Godot 4.7 que integra SimpleDungeons y el FPS Template de Chaff G
 
 ## Escenas
 
+- `scenes/levels/playable_level.tscn`: nivel inicial jugable construido desde `level-designs/levels/nivel-1.json`.
 - `scenes/dungeon_test.tscn`: genera un dungeon recorrible y coloca al jugador en la sala de entrada.
 - `scenes/weapon_test.tscn`: poligono con pickups y blancos reutilizables.
 - `scenes/block_lab.tscn`: laboratorio configurable de habitaciones y bloques de objetivos.
@@ -15,7 +16,11 @@ Prototipo para Godot 4.7 que integra SimpleDungeons y el FPS Template de Chaff G
 - WASD: mover; Espacio: saltar; Shift: correr; C: agacharse; Q/E: inclinarse.
 - Mouse izquierdo: disparar; R: recargar; F: melee; G: soltar arma.
 - Rueda o teclas 1-4: cambiar arma.
-- F1: dungeon; F2: armas; F3: reiniciar escena; F4: laboratorio de bloques; F5: regenerar dungeon.
+- F1: dungeon; F2: armas; F3: reiniciar escena; F4: laboratorio de bloques; F5: regenerar dungeon; F6: nivel JSON actual; F7/F8: nivel siguiente/anterior.
+
+Al iniciar el proyecto se carga el nivel JSON configurado. Sus salas, puertas, conexiones, luces, bloques de objetivos y tiempo de ronda se construyen en runtime. Los encuentros aparecen al entrar en cada sala.
+
+El orden jugable se define en `level-designs/level-sequence.json`. Por ahora F7 y F8 cambian de nivel manualmente. El avance automático queda deliberadamente desacoplado hasta implementar la condición de victoria.
 
 Las pelotas del bloque celeste se destruyen con un impacto. Las variantes azules de penalizacion desaparecen a los 8 segundos y restan 15 HP si no son destruidas. En esta primera prueba no se mueven ni reaparecen.
 
@@ -32,6 +37,7 @@ Presiona F4 desde el dungeon o el poligono de armas. El menu inicial ofrece nive
 
 - [`docs/guia_simple_dungeons.md`](docs/guia_simple_dungeons.md): funcionamiento del generador, habitaciones, puertas y alternativas para niveles procedurales, predefinidos o mixtos.
 - [`docs/integration_notes.md`](docs/integration_notes.md): estado tecnico de la integracion y proximos pasos.
+- [`docs/niveles_json.md`](docs/niveles_json.md): puente entre el editor web, los JSON versionados y la escena jugable de Godot.
 
 ## Editor de niveles
 
@@ -40,6 +46,10 @@ Presiona F4 desde el dungeon o el poligono de armas. El menu inicial ofrece nive
 Prueba automatizada del sistema:
 
 `Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/target_system_smoke_test.gd`
+
+Prueba del nivel JSON inicial:
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/playable_level_smoke_test.gd`
 
 ## Direccion de desarrollo
 

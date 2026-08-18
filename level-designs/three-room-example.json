@@ -1,8 +1,9 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "f4-three-room-example",
   "name": "Circuito de tres salas",
   "description": "Ejemplo editable con sala pequeña, sala grande y pasillo.",
+  "timeLimitSeconds": 90,
   "gridSize": 1,
   "rooms": [
     {

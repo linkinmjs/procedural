@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="procedural-map"
-run/main_scene="res://scenes/dungeon_test.tscn"
+run/main_scene="res://scenes/levels/playable_level.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+LevelSequence="*res://scripts/levels/level_sequence.gd"
 
 [editor_plugins]
 

@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 2,
+  "id": "nivel-1",
+  "name": "Nivel 1",
+  "description": "",
+  "timeLimitSeconds": 90,
+  "gridSize": 1,
+  "rooms": [
+    {
+      "id": "c5ed6841-055e-4111-bad9-87542e3bc6ee",
+      "name": "Entrada",
+      "type": "small",
+      "position": {
+        "x": -17,
+        "z": -13
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        },
+        "front": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        },
+        "right": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        }
+      }
+    },
+    {
+      "id": "36ccfdaf-ad42-47ed-b2c3-7f7dbaafb7ac",
+      "name": "Salida",
+      "type": "small",
+      "position": {
+        "x": 20,
+        "z": -13
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        },
+        "front": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        },
+        "right": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        }
+      }
+    },
+    {
+      "id": "252e4253-f229-4a61-8cff-f91116f9696b",
+      "name": "Sala 1",
+      "type": "custom",
+      "position": {
+        "x": -17,
+        "z": 14
+      },
+      "size": {
+        "width": 24,
+        "depth": 18
+      },
+      "entry": {
+        "wall": "north",
+        "offset": 0
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        },
+        "front": {
+          "enabled": true,
+          "targetCount": 10,
+          "movement": "static"
+        },
+        "right": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        }
+      }
+    },
+    {
+      "id": "9bfa5e95-f162-45b9-8ebc-b4b593b741fb",
+      "name": "Sala 2",
+      "type": "custom",
+      "position": {
+        "x": 20,
+        "z": 14
+      },
+      "size": {
+        "width": 10,
+        "depth": 28
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "blocks": {
+        "left": {
+          "enabled": true,
+          "targetCount": 5,
+          "movement": "opposite"
+        },
+        "front": {
+          "enabled": false,
+          "targetCount": 0,
+          "movement": "static"
+        },
+        "right": {
+          "enabled": true,
+          "targetCount": 5,
+          "movement": "opposite"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "b9043af5-3f4b-40e0-9946-13477815de0e",
+      "fromRoomId": "c5ed6841-055e-4111-bad9-87542e3bc6ee",
+      "toRoomId": "252e4253-f229-4a61-8cff-f91116f9696b",
+      "fromWall": "south",
+      "toWall": "north"
+    },
+    {
+      "id": "22faab49-0479-432c-be6e-a52e52d18e91",
+      "fromRoomId": "252e4253-f229-4a61-8cff-f91116f9696b",
+      "toRoomId": "9bfa5e95-f162-45b9-8ebc-b4b593b741fb",
+      "fromWall": "east",
+      "toWall": "west"
+    },
+    {
+      "id": "595f6900-1fcc-42f4-b1a8-6aeb8e3620bb",
+      "fromRoomId": "9bfa5e95-f162-45b9-8ebc-b4b593b741fb",
+      "toRoomId": "36ccfdaf-ad42-47ed-b2c3-7f7dbaafb7ac",
+      "fromWall": "north",
+      "toWall": "south"
+    }
+  ]
+}

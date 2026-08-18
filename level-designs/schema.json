@@ -1,14 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://procedural-map.local/schemas/level-design-v1.json",
+  "$id": "https://procedural-map.local/schemas/level-design-v2.json",
   "title": "Procedural Map level design",
   "type": "object",
-  "required": ["schemaVersion", "id", "name", "gridSize", "rooms", "connections"],
+  "required": ["schemaVersion", "id", "name", "timeLimitSeconds", "gridSize", "rooms", "connections"],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "id": { "type": "string", "minLength": 1 },
     "name": { "type": "string", "minLength": 1 },
     "description": { "type": "string" },
+    "timeLimitSeconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3600,
+      "default": 90,
+      "description": "Duración total configurada para el nivel, en segundos."
+    },
     "gridSize": { "type": "number", "exclusiveMinimum": 0 },
     "rooms": {
       "type": "array",

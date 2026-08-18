@@ -89,6 +89,8 @@ func _input(event: InputEvent) -> void:
 			_navigate_to("res://scenes/weapon_test.tscn")
 		KEY_F3:
 			_navigate_to(scene_file_path)
+		KEY_F6:
+			_navigate_to("res://scenes/levels/playable_level.tscn")
 		_:
 			handled = false
 	if handled:

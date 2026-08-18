@@ -35,6 +35,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			get_tree().reload_current_scene()
 		KEY_F4:
 			get_tree().change_scene_to_file("res://scenes/block_lab.tscn")
+		KEY_F6:
+			get_tree().change_scene_to_file("res://scenes/levels/playable_level.tscn")
 
 
 func _spawn_player() -> void:

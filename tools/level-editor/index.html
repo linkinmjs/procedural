@@ -32,6 +32,14 @@
         <label>Descripción
           <textarea id="level-description" rows="3" maxlength="300"></textarea>
         </label>
+        <fieldset class="time-limit">
+          <legend>Tiempo límite</legend>
+          <div class="two-columns">
+            <label>Minutos<input id="level-time-minutes" type="number" min="0" max="60" step="1"></label>
+            <label>Segundos<input id="level-time-seconds" type="number" min="0" max="59" step="1"></label>
+          </div>
+          <p class="hint">Configuración global del nivel.</p>
+        </fieldset>
       </section>
 
       <section>

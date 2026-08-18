@@ -35,10 +35,11 @@
 
   function createEmptyLevel() {
     return {
-      schemaVersion: 1,
+      schemaVersion: 2,
       id: `level-${Date.now()}`,
       name: "Nivel sin título",
       description: "",
+      timeLimitSeconds: 90,
       gridSize: 1,
       rooms: [],
       connections: []
@@ -63,6 +64,7 @@
     result.id = "f4-three-room-example";
     result.name = "Circuito de tres salas";
     result.description = "Ejemplo editable con sala pequeña, sala grande y pasillo.";
+    result.timeLimitSeconds = 90;
     const a = createRoom("small", 1);
     Object.assign(a, { id: "room-entry", name: "Entrada", position: { x: -18, z: 8 } });
     a.blocks.front = { enabled: true, targetCount: 4, movement: "static" };
@@ -89,10 +91,13 @@
     if (!candidate || !Array.isArray(candidate.rooms) || !Array.isArray(candidate.connections)) {
       throw new Error("El archivo no contiene rooms y connections válidos.");
     }
-    candidate.schemaVersion = 1;
+    candidate.schemaVersion = 2;
     candidate.id ||= `level-${Date.now()}`;
     candidate.name ||= "Nivel importado";
     candidate.description ||= "";
+    candidate.timeLimitSeconds = Number.isFinite(Number(candidate.timeLimitSeconds))
+      ? Math.max(1, Math.min(3600, Math.round(Number(candidate.timeLimitSeconds))))
+      : 90;
     candidate.gridSize ||= 1;
     candidate.rooms.forEach((room, index) => {
       room.id ||= crypto.randomUUID();
@@ -271,8 +276,11 @@
   function render() {
     $("#level-name").value = level.name;
     $("#level-description").value = level.description;
+    $("#level-time-minutes").value = Math.floor(level.timeLimitSeconds / 60);
+    $("#level-time-seconds").value = level.timeLimitSeconds % 60;
     const targets = level.rooms.reduce((total, room) => total + Object.values(room.blocks).reduce((sum, block) => sum + (block.enabled ? block.targetCount : 0), 0), 0);
-    $("#level-stats").textContent = `${level.rooms.length} salas · ${level.connections.length} conexiones · ${targets} objetivos`;
+    const timeLabel = `${Math.floor(level.timeLimitSeconds / 60)}:${String(level.timeLimitSeconds % 60).padStart(2, "0")}`;
+    $("#level-stats").textContent = `${level.rooms.length} salas · ${level.connections.length} conexiones · ${targets} objetivos · ${timeLabel}`;
     renderConnections();
     renderRooms();
     renderInspector();
@@ -307,6 +315,19 @@
     const dz = to.position.z - from.position.z;
     const fromWall = Math.abs(dx) >= Math.abs(dz) ? (dx >= 0 ? "east" : "west") : (dz >= 0 ? "south" : "north");
     return { fromWall, toWall: OPPOSITE_WALL[fromWall] };
+  }
+
+  function refreshConnectionsForRoom(roomId) {
+    for (const connection of level.connections) {
+      if (connection.fromRoomId !== roomId && connection.toRoomId !== roomId) continue;
+      const from = level.rooms.find((room) => room.id === connection.fromRoomId);
+      const to = level.rooms.find((room) => room.id === connection.toRoomId);
+      if (!from || !to) continue;
+      const walls = chooseConnectionWalls(from, to);
+      connection.fromWall = walls.fromWall;
+      connection.toWall = walls.toWall;
+      to.entry.wall = walls.toWall;
+    }
   }
 
   function selectOrConnect(roomId) {
@@ -394,6 +415,14 @@
   function bindEvents() {
     $("#level-name").addEventListener("input", (event) => { level.name = event.target.value; commit(); });
     $("#level-description").addEventListener("input", (event) => { level.description = event.target.value; commit(); });
+    const updateTimeLimit = () => {
+      const minutes = Math.max(0, Math.min(60, Number($("#level-time-minutes").value) || 0));
+      const seconds = Math.max(0, Math.min(59, Number($("#level-time-seconds").value) || 0));
+      level.timeLimitSeconds = Math.max(1, Math.min(3600, Math.round(minutes * 60 + seconds)));
+      commit("Tiempo del nivel actualizado");
+    };
+    $("#level-time-minutes").addEventListener("change", updateTimeLimit);
+    $("#level-time-seconds").addEventListener("change", updateTimeLimit);
 
     document.querySelectorAll(".room-preset").forEach((button) => button.addEventListener("click", () => {
       const room = createRoom(button.dataset.roomType, level.rooms.length + 1);
@@ -473,6 +502,7 @@
 
     svg.addEventListener("pointerup", (event) => {
       if (!dragState) return;
+      refreshConnectionsForRoom(dragState.roomId);
       dragState = null;
       if (svg.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
       commit("Posición actualizada");

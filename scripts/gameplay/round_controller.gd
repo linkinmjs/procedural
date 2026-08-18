@@ -5,6 +5,7 @@ signal health_changed(current_health: float, max_health: float)
 signal time_changed(time_remaining: float)
 signal accuracy_changed(hits: int, attacks: int, accuracy_percent: float)
 signal log_added(message: String, event_kind: String)
+signal round_started
 signal round_ended(reason: String)
 
 @export_range(1.0, 1000.0, 1.0) var max_health := 100.0
@@ -44,6 +45,7 @@ func start_round() -> void:
 	health_changed.emit(current_health, max_health)
 	time_changed.emit(time_remaining)
 	accuracy_changed.emit(hits, attacks, 0.0)
+	round_started.emit()
 	add_log("ROUND STARTED", "system")
 
 
@@ -83,6 +85,12 @@ func report_target_hit(target_label: String) -> void:
 
 func report_target_left(target_label: String, damage: float) -> void:
 	add_log("%s LEFT // -%d HP" % [target_label.to_upper(), roundi(damage)], "miss")
+	if damage > 0.0:
+		apply_damage(damage)
+
+
+func report_block_crossed(block_label: String, damage: float) -> void:
+	add_log("CROSSED %s // -%d HP" % [block_label.to_upper(), roundi(damage)], "danger")
 	if damage > 0.0:
 		apply_damage(damage)
 

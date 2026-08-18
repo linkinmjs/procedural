@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/targets/target_block_3d.gd" id="1_block"]
+[ext_resource type="PackedScene" path="res://scenes/targets/target_spawn_volume_3d.tscn" id="2_volume"]
+
+[sub_resource type="StandardMaterial3D" id="BlockMaterial"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 0.16, 0.32, 0.2)
+emission_enabled = true
+emission = Color(0.65, 0.025, 0.08, 1)
+emission_energy_multiplier = 0.35
+
+[sub_resource type="BoxMesh" id="BlockMesh"]
+resource_local_to_scene = true
+material = SubResource("BlockMaterial")
+size = Vector3(8, 4, 0.28)
+
+[sub_resource type="BoxShape3D" id="BlockShape"]
+resource_local_to_scene = true
+size = Vector3(8, 4, 0.28)
+
+[node name="TargetBlock3D" type="Area3D"]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("1_block")
+
+[node name="BlockMesh" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("BlockMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BlockShape")
+
+[node name="TargetSpawnVolume3D" parent="." instance=ExtResource("2_volume")]
+spawn_on_ready = false
+debug_bounds_visible = false

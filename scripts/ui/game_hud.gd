@@ -34,6 +34,7 @@ func bind(controller: RoundController) -> void:
 	controller.time_changed.connect(_on_time_changed)
 	controller.accuracy_changed.connect(_on_accuracy_changed)
 	controller.log_added.connect(_on_log_added)
+	controller.round_started.connect(_on_round_started)
 	controller.round_ended.connect(_on_round_ended)
 	_on_health_changed(controller.current_health, controller.max_health)
 	_on_time_changed(controller.time_remaining)
@@ -80,3 +81,7 @@ func _on_log_added(message: String, event_kind: String) -> void:
 
 func _on_round_ended(reason: String) -> void:
 	status_value.text = "ROUND // FAILED" if reason == "health_depleted" else "ROUND // COMPLETE"
+
+
+func _on_round_started() -> void:
+	status_value.text = "ROUND // ACTIVE"

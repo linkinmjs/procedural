@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://tests/block_lab_visual_smoke_test.gd" id="1_test"]
+[ext_resource type="PackedScene" path="res://scenes/block_lab.tscn" id="2_lab"]
+
+[node name="BlockLabVisualSmokeTest" type="Node"]
+process_mode = 3
+script = ExtResource("1_test")
+
+[node name="BlockLab" parent="." instance=ExtResource("2_lab")]

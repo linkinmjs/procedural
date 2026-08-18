@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Level Workshop</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">PROCEDURAL MAP / TOOLS</p>
+      <h1>Level Workshop</h1>
+    </div>
+    <div class="file-actions" aria-label="Acciones de archivo">
+      <button id="new-level" type="button">Nuevo</button>
+      <button id="load-example" type="button">Cargar ejemplo</button>
+      <label class="button" for="import-file">Importar JSON</label>
+      <input id="import-file" type="file" accept="application/json,.json" hidden>
+      <button id="save-file" type="button">Guardar JSON</button>
+      <button id="download-file" class="primary" type="button">Descargar JSON</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar left-sidebar">
+      <section>
+        <h2>Nivel</h2>
+        <label>Nombre
+          <input id="level-name" type="text" maxlength="80">
+        </label>
+        <label>Descripción
+          <textarea id="level-description" rows="3" maxlength="300"></textarea>
+        </label>
+      </section>
+
+      <section>
+        <h2>Agregar sala</h2>
+        <div class="stack-actions">
+          <button class="room-preset" data-room-type="small" type="button">Habitación pequeña</button>
+          <button class="room-preset" data-room-type="large" type="button">Habitación grande</button>
+          <button class="room-preset" data-room-type="corridor" type="button">Pasillo</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Conexiones</h2>
+        <button id="connect-mode" type="button" aria-pressed="false">Unir dos salas</button>
+        <p id="connect-help" class="hint">Seleccioná una sala para editarla.</p>
+        <ul id="connection-list" class="connection-list"></ul>
+      </section>
+    </aside>
+
+    <section class="canvas-column" aria-label="Plano del nivel">
+      <div class="canvas-toolbar">
+        <span id="level-status">Borrador guardado localmente</span>
+        <span id="level-stats"></span>
+      </div>
+      <div class="canvas-frame">
+        <svg id="level-canvas" viewBox="-35 -28 70 56" role="img" aria-labelledby="canvas-title canvas-description">
+          <title id="canvas-title">Plano superior editable del nivel</title>
+          <desc id="canvas-description">Las salas se pueden seleccionar, arrastrar y conectar. Los bloques aparecen junto a sus paredes.</desc>
+          <defs>
+            <pattern id="minor-grid" width="1" height="1" patternUnits="userSpaceOnUse">
+              <path d="M 1 0 L 0 0 0 1" class="minor-grid-line"></path>
+            </pattern>
+            <pattern id="major-grid" width="5" height="5" patternUnits="userSpaceOnUse">
+              <rect width="5" height="5" fill="url(#minor-grid)"></rect>
+              <path d="M 5 0 L 0 0 0 5" class="major-grid-line"></path>
+            </pattern>
+          </defs>
+          <rect x="-100" y="-100" width="200" height="200" fill="url(#major-grid)"></rect>
+          <g id="connections-layer"></g>
+          <g id="rooms-layer"></g>
+        </svg>
+        <div class="legend" aria-label="Leyenda">
+          <span><i class="legend-room"></i>Sala</span>
+          <span><i class="legend-door"></i>Entrada</span>
+          <span><i class="legend-block"></i>Bloque</span>
+          <span><i class="legend-moving"></i>Bloque móvil</span>
+        </div>
+      </div>
+      <p class="canvas-tip">Arrastrá las salas para ordenarlas. El plano se ajusta a una grilla de 1 metro.</p>
+    </section>
+
+    <aside class="sidebar inspector">
+      <div id="empty-inspector" class="empty-state">
+        <h2>Sin selección</h2>
+        <p>Agregá o seleccioná una sala para configurar su forma, entrada y bloques.</p>
+      </div>
+
+      <div id="room-inspector" hidden>
+        <div class="section-heading">
+          <h2>Sala seleccionada</h2>
+          <button id="delete-room" class="danger subtle" type="button">Eliminar</button>
+        </div>
+        <label>Nombre
+          <input id="room-name" type="text" maxlength="60">
+        </label>
+        <label>Tipo
+          <select id="room-type">
+            <option value="small">Habitación pequeña</option>
+            <option value="large">Habitación grande</option>
+            <option value="corridor">Pasillo</option>
+            <option value="custom">Personalizada</option>
+          </select>
+        </label>
+        <div class="two-columns">
+          <label>Ancho (m)<input id="room-width" type="number" min="4" max="40" step="1"></label>
+          <label>Profundidad (m)<input id="room-depth" type="number" min="4" max="40" step="1"></label>
+          <label>X (m)<input id="room-x" type="number" min="-100" max="100" step="1"></label>
+          <label>Z (m)<input id="room-z" type="number" min="-100" max="100" step="1"></label>
+        </div>
+        <label>Pared de entrada
+          <select id="entry-wall">
+            <option value="north">Norte</option>
+            <option value="east">Este</option>
+            <option value="south">Sur</option>
+            <option value="west">Oeste</option>
+          </select>
+        </label>
+
+        <h2 class="blocks-title">Bloques relativos a la entrada</h2>
+        <div id="block-editors"></div>
+      </div>
+    </aside>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

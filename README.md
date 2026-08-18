@@ -33,6 +33,10 @@ Presiona F4 desde el dungeon o el poligono de armas. El menu inicial ofrece nive
 - [`docs/guia_simple_dungeons.md`](docs/guia_simple_dungeons.md): funcionamiento del generador, habitaciones, puertas y alternativas para niveles procedurales, predefinidos o mixtos.
 - [`docs/integration_notes.md`](docs/integration_notes.md): estado tecnico de la integracion y proximos pasos.
 
+## Editor de niveles
+
+`tools/level-editor/` contiene un editor web local para componer salas desde arriba, conectarlas y configurar los bloques y objetivos de cada una. Los diseños exportados se guardan en `level-designs/` como JSON versionable. Las instrucciones de uso están en [`tools/level-editor/README.md`](tools/level-editor/README.md).
+
 Prueba automatizada del sistema:
 
 `Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/target_system_smoke_test.gd`

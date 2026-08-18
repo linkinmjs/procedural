@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "f4-three-room-example",
+  "name": "Circuito de tres salas",
+  "description": "Ejemplo editable con sala pequeña, sala grande y pasillo.",
+  "gridSize": 1,
+  "rooms": [
+    {
+      "id": "room-entry",
+      "name": "Entrada",
+      "type": "small",
+      "position": { "x": -18, "z": 8 },
+      "size": { "width": 14, "depth": 14 },
+      "entry": { "wall": "south", "offset": 0 },
+      "blocks": {
+        "left": { "enabled": false, "targetCount": 0, "movement": "static" },
+        "front": { "enabled": true, "targetCount": 4, "movement": "static" },
+        "right": { "enabled": false, "targetCount": 0, "movement": "static" }
+      }
+    },
+    {
+      "id": "room-arena",
+      "name": "Arena",
+      "type": "large",
+      "position": { "x": 4, "z": 5 },
+      "size": { "width": 24, "depth": 18 },
+      "entry": { "wall": "west", "offset": 0 },
+      "blocks": {
+        "left": { "enabled": true, "targetCount": 5, "movement": "static" },
+        "front": { "enabled": true, "targetCount": 3, "movement": "opposite" },
+        "right": { "enabled": true, "targetCount": 5, "movement": "static" }
+      }
+    },
+    {
+      "id": "room-corridor",
+      "name": "Pasillo de salida",
+      "type": "corridor",
+      "position": { "x": 22, "z": -11 },
+      "size": { "width": 10, "depth": 28 },
+      "entry": { "wall": "north", "offset": 0 },
+      "blocks": {
+        "left": { "enabled": true, "targetCount": 4, "movement": "opposite" },
+        "front": { "enabled": false, "targetCount": 0, "movement": "static" },
+        "right": { "enabled": true, "targetCount": 4, "movement": "opposite" }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "connection-entry-arena",
+      "fromRoomId": "room-entry",
+      "toRoomId": "room-arena",
+      "fromWall": "east",
+      "toWall": "west"
+    },
+    {
+      "id": "connection-arena-corridor",
+      "fromRoomId": "room-arena",
+      "toRoomId": "room-corridor",
+      "fromWall": "south",
+      "toWall": "north"
+    }
+  ]
+}

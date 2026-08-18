@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/targets/target_spawn_volume_3d.gd" id="1_volume"]
+
+[sub_resource type="StandardMaterial3D" id="DebugMaterial"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.1, 0.85, 1, 0.12)
+emission_enabled = true
+emission = Color(0.04, 0.5, 0.8, 1)
+emission_energy_multiplier = 0.35
+
+[sub_resource type="BoxMesh" id="DebugBox"]
+resource_local_to_scene = true
+material = SubResource("DebugMaterial")
+size = Vector3(10, 4, 0.6)
+
+[node name="TargetSpawnVolume3D" type="Node3D"]
+script = ExtResource("1_volume")
+
+[node name="DebugBounds" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("DebugBox")
+
+[node name="Targets" type="Node3D" parent="."]

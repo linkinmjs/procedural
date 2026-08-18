@@ -14,10 +14,13 @@ const WEAPON_RESOURCES: Array[WeaponResource] = [
 	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterQ.tres"),
 ]
 
+@onready var round_controller: RoundController = $RoundHUD/RoundController
+
 
 func _ready() -> void:
 	_spawn_player()
 	_spawn_weapon_pickups()
+	round_controller.start_round()
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -36,6 +39,7 @@ func _spawn_player() -> void:
 	var player := PLAYER_SCENE.instantiate()
 	add_child(player)
 	player.global_position = %PlayerSpawn.global_position
+	round_controller.register_player(player)
 
 
 func _spawn_weapon_pickups() -> void:

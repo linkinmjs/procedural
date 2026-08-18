@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/dungeon_test.gd" id="1_main"]
 [ext_resource type="Script" path="res://addons/SimpleDungeons/DungeonGenerator3D.gd" id="2_generator"]
@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" path="res://addons/SimpleDungeons/sample_dungeons/with_dev_textures_rooms/living_room.tscn" id="4_living"]
 [ext_resource type="PackedScene" path="res://addons/SimpleDungeons/sample_dungeons/with_dev_textures_rooms/bridge_room.tscn" id="5_bridge"]
 [ext_resource type="PackedScene" path="res://addons/SimpleDungeons/sample_dungeons/with_dev_textures_rooms/corridor.tscn" id="6_corridor"]
+[ext_resource type="Script" path="res://scripts/targets/dungeon_target_populator_3d.gd" id="7_populator"]
+[ext_resource type="PackedScene" path="res://scenes/ui/round_hud.tscn" id="8_round_hud"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.06, 0.08, 0.14, 1)
@@ -58,13 +60,23 @@ max_safe_iterations = 500
 heuristic_scale = 3.0
 show_debug_in_editor = false
 
+[node name="TargetPopulator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("7_populator")
+
+[node name="RoundHUD" parent="." instance=ExtResource("8_round_hud")]
+
 [node name="Interface" type="CanvasLayer" parent="."]
 
 [node name="Panel" type="PanelContainer" parent="Interface"]
-offset_left = 18.0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -570.0
 offset_top = 18.0
-offset_right = 570.0
+offset_right = -18.0
 offset_bottom = 117.0
+grow_horizontal = 0
 theme_override_styles/panel = SubResource("PanelStyle")
 
 [node name="Margin" type="MarginContainer" parent="Interface/Panel"]

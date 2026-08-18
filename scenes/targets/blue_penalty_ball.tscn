@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/targets/target_ball.gd" id="1_ball"]
+
+[sub_resource type="StandardMaterial3D" id="BallMaterial"]
+albedo_color = Color(0.08, 0.24, 1, 1)
+metallic = 0.2
+roughness = 0.2
+emission_enabled = true
+emission = Color(0.02, 0.08, 0.8, 1)
+emission_energy_multiplier = 2.2
+
+[sub_resource type="SphereMesh" id="BallMesh"]
+material = SubResource("BallMaterial")
+radius = 0.38
+height = 0.76
+
+[sub_resource type="SphereShape3D" id="BallShape"]
+radius = 0.38
+
+[node name="BluePenaltyBall" type="StaticBody3D" groups=["Target"]]
+collision_layer = 32
+collision_mask = 16
+script = ExtResource("1_ball")
+target_label = "blue ball"
+lifetime_seconds = 8.0
+damage_on_leave = 15.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BallShape")

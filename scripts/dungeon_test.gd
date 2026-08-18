@@ -10,8 +10,10 @@ const DUNGEON_LOADOUT: Array[WeaponResource] = [
 ]
 
 @onready var generator: DungeonGenerator3D = %DungeonGenerator3D
+@onready var target_populator: DungeonTargetPopulator3D = %TargetPopulator
 @onready var status_label: Label = %StatusLabel
 @onready var seed_label: Label = %SeedLabel
+@onready var round_controller: RoundController = $RoundHUD/RoundController
 
 var current_seed: int
 var player: CharacterBody3D
@@ -51,6 +53,7 @@ func generate_new_dungeon() -> void:
 
 func _on_dungeon_generated() -> void:
 	_add_room_lights()
+	target_populator.populate(generator)
 	var spawn_points := get_tree().get_nodes_in_group("player_spawn_point")
 	if spawn_points.is_empty():
 		status_label.text = "Dungeon generado, pero no se encontro un spawn."
@@ -59,6 +62,8 @@ func _on_dungeon_generated() -> void:
 	_add_dungeon_loadout(player)
 	add_child(player)
 	player.global_transform = (spawn_points.back() as Node3D).global_transform
+	round_controller.register_player(player)
+	round_controller.start_round()
 	status_label.text = "Dungeon listo | F5: nueva semilla | F2: probar armas"
 
 

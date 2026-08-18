@@ -5,12 +5,15 @@ signal update_ammo
 signal update_weapon_stack
 signal hit_successfull
 signal add_signal_to_hud
+signal attack_fired
+signal target_hit
 
 signal connect_weapon_to_hud
 
 @export var animation_player: AnimationPlayer
 @export var melee_hitbox: ShapeCast3D
 @export var max_weapons: int
+@export var enable_weapon_spread := true
 @onready var bullet_point = get_node("%BulletPoint")
 @onready var debug_bullet = preload("res://Player_Controller/Spawnable_Objects/hit_debug.tscn")
 
@@ -131,7 +134,7 @@ func shoot() -> void:
 			
 			var Spread = Vector2.ZERO
 			
-			if current_weapon_slot.weapon.weapon_spray:
+			if enable_weapon_spread and current_weapon_slot.weapon.weapon_spray:
 				_count = _count + 1
 				Spread = spray_profiles[current_weapon_slot.weapon.weapon_name].Get_Spray(_count, current_weapon_slot.weapon.magazine)
 				
@@ -141,12 +144,16 @@ func shoot() -> void:
 		
 func load_projectile(_spread):
 	var _projectile:Projectile = current_weapon_slot.weapon.projectile_to_load.instantiate()
+	_projectile.aim_camera = get_parent() as Camera3D
 	
 	_projectile.position = bullet_point.global_position
 	_projectile.rotation = owner.rotation
 	
 	bullet_point.add_child(_projectile)
 	add_signal_to_hud.emit(_projectile)
+	if _projectile.has_signal("Hit_Successfull"):
+		_projectile.Hit_Successfull.connect(_on_projectile_target_hit)
+	attack_fired.emit()
 	var bullet_point_origin = bullet_point.global_position
 	_projectile._Set_Projectile(current_weapon_slot.weapon.damage,_spread,current_weapon_slot.weapon.fire_range, bullet_point_origin)
 
@@ -186,15 +193,21 @@ func melee() -> void:
 		
 	if Current_Anim != current_weapon_slot.weapon.melee_animation:
 		animation_player.play(current_weapon_slot.weapon.melee_animation)
+		attack_fired.emit()
 		if melee_hitbox.is_colliding():
 			var colliders = melee_hitbox.get_collision_count()
 			for c in colliders:
 				var Target = melee_hitbox.get_collider(c)
 				if Target.is_in_group("Target") and Target.has_method("Hit_Successful"):
 					hit_successfull.emit()
+					target_hit.emit()
 					var Direction = (Target.global_transform.origin - owner.global_transform.origin).normalized()
 					var Position =  melee_hitbox.get_collision_point(c)
 					Target.Hit_Successful(current_weapon_slot.weapon.melee_damage, Direction, Position)
+
+
+func _on_projectile_target_hit() -> void:
+	target_hit.emit()
 			
 func drop(_slot: WeaponSlot) -> void:
 	if _slot.weapon.can_be_dropped and weapon_stack.size() != 1:

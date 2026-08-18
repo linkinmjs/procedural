@@ -29,6 +29,32 @@ Eso permite separar dos capas: SimpleDungeons resuelve topologia y conexiones; u
 4. Agregar escaleras solo cuando el kit horizontal sea estable; SimpleDungeons exige un `DungeonRoom3D` de escalera con puertas en al menos dos alturas.
 5. Envolver el FPS template detras de una API propia de inventario/daño antes de extender armas. El template usa nombres de animacion y el metodo heredado `Hit_Successful`, que conviene adaptar para no acoplar enemigos futuros a detalles de terceros.
 
+## Blancos flotantes
+
+El sistema inicial esta dividido en tres responsabilidades:
+
+- `TargetBall` representa una pelota estatica y solo conoce cómo destruirse al recibir un impacto.
+- `TargetSpawnVolume3D` distribuye una cantidad configurable de pelotas dentro de un volumen, respeta una separación minima y dibuja el bloque de debug.
+- `EntryAwareTargetEncounter3D` decide qué volumen activar. En modo `OPPOSITE_ENTRY_WALL` elige el volumen mas lejano al punto por el que ingreso el jugador; en modo `ALL_VOLUMES` activa todos, que es la configuracion prevista para los dos laterales de un pasillo.
+
+Los prefabs futuros de habitación podrán colocar cuatro volúmenes junto a sus paredes y un trigger central. Los pasillos colocarán solamente los dos laterales. En esta iteración el polígono usa un único volumen con spawn inmediato; no hay movimiento, respawn, puntaje ni reglas de dificultad.
+
+El dungeon de prueba ya incorpora `DungeonTargetPopulator3D`: después de generar, añade encuentros a todas las habitaciones salvo la sala inicial. Una habitación activa el volumen más lejano al punto de entrada; un corredor activa los dos volúmenes perpendiculares al eje por el que entró el jugador. Cada encuentro es de una sola activación y las pelotas destruidas no reaparecen.
+
+Se revisó FlickSense como referencia externa. Su `TargetManager` descuenta el tamaño del blanco al muestrear el volumen, consulta solapamientos físicos y reutiliza blancos visibles; también separa VFX mediante un pool. Adoptamos únicamente el concepto de margen interior configurable (`edge_padding`) porque evita que una esfera sobresalga del bloque. Pooling y consultas físicas se evaluarán cuando existan respawn continuo, obstáculos internos o movimiento. No se incorporó código ni assets de FlickSense porque el repositorio no declara una licencia.
+
+## HUD de ronda
+
+`RoundController` mantiene el estado de la ronda sin depender de la interfaz: vida, tiempo restante, ataques, impactos y feed de eventos. `GameHUD` escucha sus señales y presenta tres paneles inferiores: logs, precisión y vitales. El mismo prefab `round_hud.tscn` se usa en el dungeon y en el polígono de armas.
+
+La precisión se calcula como impactos confirmados divididos por ataques realmente ejecutados. El `Weapons_Manager` expone `attack_fired` y `target_hit`, evitando que el HUD consulte input, munición o proyectiles directamente.
+
+Para el modo de entrenamiento, `enable_weapon_spread` está desactivado en el player: el rayo sale siempre por el centro de `MainCamera` y coincide con la mira. El template conserva el soporte de spray como opción exportada para armas o modos futuros.
+
+`TargetBall` admite `lifetime_seconds` y `damage_on_leave`. La variante `blue_penalty_ball.tscn` dura 8 segundos y resta 15 HP al desaparecer; ambos valores son configurables. El volumen de spawn decide cuántas variantes de penalización incluye mediante `penalty_target_count`.
+
+El diseño toma como referencia conceptual la composición del repositorio `hi-godot/cyberpunk-hud-demo`: paneles oscuros, acentos cian y feed reactivo por señales. No se copiaron scripts ni recursos porque el repositorio no publica una licencia visible.
+
 ## Riesgos observados
 
 - El generador puede fallar para algunas combinaciones de tamaño y rooms; por eso la escena permite varios reintentos y muestra estado.

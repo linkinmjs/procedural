@@ -2169,6 +2169,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="debug_hud" type="VBoxContainer" parent="CanvasLayer" unique_id=1273329344]
+visible = false
 anchors_preset = 9
 anchor_bottom = 1.0
 grow_vertical = 2
@@ -2204,9 +2205,15 @@ text = "Weapon Stack:"
 layout_mode = 2
 
 [node name="MainSight" type="TextureRect" parent="CanvasLayer" unique_id=1237019041]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -2215,9 +2222,15 @@ stretch_mode = 3
 
 [node name="HitSight" type="TextureRect" parent="CanvasLayer" unique_id=2016761054]
 visible = false
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -2235,8 +2248,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -150.0
-offset_top = -100.0
+offset_top = -232.0
 offset_right = 150.0
+offset_bottom = -220.0
 grow_horizontal = 2
 grow_vertical = 0
 size_flags_vertical = 8
@@ -2291,6 +2305,7 @@ omni_range = 2.5
 script = ExtResource("5_wuueu")
 animation_player = NodePath("Weapons_Models/AnimationPlayer")
 melee_hitbox = NodePath("Melee_Hitbox")
+enable_weapon_spread = false
 weapon_stack = Array[ExtResource("6_wj0qi")]([SubResource("Resource_4pcyg")])
 
 [node name="Weapons_Models" type="Node3D" parent="Camera/LeanPivot/MainCamera/Weapons_Manager" unique_id=79488914]

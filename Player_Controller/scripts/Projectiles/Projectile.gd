@@ -18,6 +18,7 @@ signal Hit_Successfull
 var damage: float = 0
 var Projectiles_Spawned = []
 var hit_objects: Array = []
+var aim_camera: Camera3D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -42,12 +43,14 @@ func _over_ride_collision(_camera_collision:Array, _damage: float) -> void:
 	pass
 
 func Camera_Ray_Cast(_spread: Vector2 = Vector2.ZERO, _range: float = 1000):
-	var _Camera = get_viewport().get_camera_3d()
-	var _Viewport = get_viewport().get_size()
-	
-	var Ray_Origin = _Camera.project_ray_origin(_Viewport/2)
-	var Ray_End = (Ray_Origin + _Camera.project_ray_normal((_Viewport/2)+Vector2i(_spread)) *_range)
-	var New_Intersection:PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(Ray_Origin,Ray_End)
+	var camera := aim_camera if is_instance_valid(aim_camera) else get_viewport().get_camera_3d()
+	if camera == null:
+		push_error("Projectile cannot calculate an aim ray without a Camera3D.")
+		return [null, global_position, null]
+	var viewport_center := camera.get_viewport().get_visible_rect().size * 0.5
+	var ray_origin := camera.project_ray_origin(viewport_center)
+	var ray_end := ray_origin + camera.project_ray_normal(viewport_center + _spread) * _range
+	var New_Intersection:PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
 	New_Intersection.set_collision_mask(0b11101101)
 	New_Intersection.set_hit_from_inside(false) # In Jolt this is set to true by defualt
 	
@@ -57,7 +60,7 @@ func Camera_Ray_Cast(_spread: Vector2 = Vector2.ZERO, _range: float = 1000):
 		var Collision = [Intersection.collider,Intersection.position,Intersection.normal]
 		return Collision
 	else:
-		return [null,Ray_End,null]
+		return [null,ray_end,null]
 
 func Hit_Scan_Collision(Collision: Array,_damage: float, origin_point: Vector3):
 	var Point = Collision[1]

@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/targets/entry_aware_target_encounter_3d.gd" id="1_encounter"]
+
+[sub_resource type="BoxShape3D" id="TriggerShape"]
+resource_local_to_scene = true
+size = Vector3(9, 9, 9)
+
+[node name="EntryAwareTargetEncounter3D" type="Area3D"]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("1_encounter")
+
+[node name="TriggerShape" type="CollisionShape3D" parent="."]
+shape = SubResource("TriggerShape")

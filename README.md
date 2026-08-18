@@ -21,7 +21,7 @@ Las pelotas del bloque celeste se destruyen con un impacto. Las variantes azules
 
 ## Laboratorio de bloques
 
-Presiona F4 desde el dungeon o el poligono de armas. El menu inicial permite elegir habitacion pequena, grande o pasillo y configurar independientemente los bloques izquierdo, frontal y derecho. Cada bloque admite entre 0 y 12 pelotitas y puede permanecer estatico o avanzar lentamente hacia el lado opuesto.
+Presiona F4 desde el dungeon o el poligono de armas. El menu inicial ofrece niveles predefinidos editables y tambien permite elegir manualmente habitacion pequena, grande o pasillo. Los bloques izquierdo, frontal y derecho se configuran de forma independiente. Cada uno admite entre 0 y 12 pelotitas y puede permanecer estatico o avanzar lentamente hacia el lado opuesto.
 
 - Al romper todas sus pelotitas, el bloque se cierra.
 - Con 0 pelotitas aparece un control rojo arriba a la derecha que permite cerrarlo de un disparo.

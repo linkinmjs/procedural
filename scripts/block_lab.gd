@@ -15,6 +15,38 @@ const ROOM_DIMENSIONS := {
 	RoomShape.CORRIDOR: Vector2(10.0, 28.0),
 }
 
+const LEVEL_PRESETS := [
+	{"name": "Personalizado"},
+	{
+		"name": "Pequena // tres bloques",
+		"shape": RoomShape.SMALL,
+		"left": {"enabled": true, "targets": 4, "moves": false},
+		"front": {"enabled": true, "targets": 0, "moves": true},
+		"right": {"enabled": true, "targets": 3, "moves": false},
+	},
+	{
+		"name": "Grande // laterales estaticos",
+		"shape": RoomShape.LARGE,
+		"left": {"enabled": true, "targets": 6, "moves": false},
+		"front": {"enabled": false, "targets": 0, "moves": false},
+		"right": {"enabled": true, "targets": 6, "moves": false},
+	},
+	{
+		"name": "Pasillo // laterales moviles",
+		"shape": RoomShape.CORRIDOR,
+		"left": {"enabled": true, "targets": 4, "moves": true},
+		"front": {"enabled": false, "targets": 0, "moves": false},
+		"right": {"enabled": true, "targets": 4, "moves": true},
+	},
+	{
+		"name": "Pequena // cierre frontal",
+		"shape": RoomShape.SMALL,
+		"left": {"enabled": false, "targets": 0, "moves": false},
+		"front": {"enabled": true, "targets": 0, "moves": false},
+		"right": {"enabled": false, "targets": 0, "moves": false},
+	},
+]
+
 @export_range(0.05, 5.0, 0.05) var moving_block_speed := 0.65
 @export_range(0.0, 100.0, 1.0) var block_crossing_damage := 15.0
 
@@ -23,16 +55,20 @@ const ROOM_DIMENSIONS := {
 @onready var room_light: OmniLight3D = %RoomLight
 @onready var round_controller: RoundController = $RoundHUD/RoundController
 @onready var config_panel: Control = %ConfigPanel
+@onready var preset_option: OptionButton = %PresetOption
 @onready var room_shape_option: OptionButton = %RoomShapeOption
 
 var player: CharacterBody3D
 var room_size := ROOM_DIMENSIONS[RoomShape.SMALL] as Vector2
 var _encounter_spawned := false
 var _configured_blocks: Dictionary = {}
+var _applying_preset := false
 
 
 func _ready() -> void:
 	_setup_room_options()
+	_setup_level_presets()
+	_connect_configuration_changes()
 	_build_room(RoomShape.SMALL)
 	_spawn_player()
 	%ApplyButton.pressed.connect(_apply_configuration)
@@ -40,22 +76,28 @@ func _ready() -> void:
 	_set_config_visible(true)
 
 
-func _unhandled_key_input(event: InputEvent) -> void:
-	if not event.pressed or event.echo:
+func _input(event: InputEvent) -> void:
+	if not event is InputEventKey or not event.pressed or event.echo:
 		return
+	var handled := true
 	match event.keycode:
 		KEY_TAB:
 			_set_config_visible(not config_panel.visible)
 		KEY_F1:
-			get_tree().paused = false
-			get_tree().change_scene_to_file("res://scenes/dungeon_test.tscn")
+			_navigate_to("res://scenes/dungeon_test.tscn")
 		KEY_F2:
-			get_tree().paused = false
-			get_tree().change_scene_to_file("res://scenes/weapon_test.tscn")
+			_navigate_to("res://scenes/weapon_test.tscn")
 		KEY_F3:
-			get_tree().paused = false
-			get_tree().reload_current_scene()
-	get_viewport().set_input_as_handled()
+			_navigate_to(scene_file_path)
+		_:
+			handled = false
+	if handled:
+		get_viewport().set_input_as_handled()
+
+
+func _navigate_to(path: String) -> void:
+	get_tree().paused = false
+	get_tree().call_deferred("change_scene_to_file", path)
 
 
 func _setup_room_options() -> void:
@@ -63,6 +105,46 @@ func _setup_room_options() -> void:
 	room_shape_option.add_item("Habitacion pequena", RoomShape.SMALL)
 	room_shape_option.add_item("Habitacion grande", RoomShape.LARGE)
 	room_shape_option.add_item("Pasillo", RoomShape.CORRIDOR)
+
+
+func _setup_level_presets() -> void:
+	preset_option.clear()
+	for index in LEVEL_PRESETS.size():
+		preset_option.add_item(LEVEL_PRESETS[index].name, index)
+	preset_option.item_selected.connect(_on_preset_selected)
+	preset_option.select(1)
+	_on_preset_selected(1)
+
+
+func _connect_configuration_changes() -> void:
+	room_shape_option.item_selected.connect(func(_index: int) -> void: _mark_configuration_custom())
+	for checkbox in [%LeftEnabled, %LeftMoves, %FrontEnabled, %FrontMoves, %RightEnabled, %RightMoves]:
+		checkbox.toggled.connect(func(_pressed: bool) -> void: _mark_configuration_custom())
+	for spinbox in [%LeftTargets, %FrontTargets, %RightTargets]:
+		spinbox.value_changed.connect(func(_value: float) -> void: _mark_configuration_custom())
+
+
+func _on_preset_selected(index: int) -> void:
+	if index <= 0 or index >= LEVEL_PRESETS.size():
+		return
+	_applying_preset = true
+	var preset: Dictionary = LEVEL_PRESETS[index]
+	room_shape_option.select(preset.shape)
+	_apply_block_preset(%LeftEnabled, %LeftTargets, %LeftMoves, preset.left)
+	_apply_block_preset(%FrontEnabled, %FrontTargets, %FrontMoves, preset.front)
+	_apply_block_preset(%RightEnabled, %RightTargets, %RightMoves, preset.right)
+	_applying_preset = false
+
+
+func _apply_block_preset(enabled: CheckBox, targets: SpinBox, moves: CheckBox, config: Dictionary) -> void:
+	enabled.button_pressed = config.enabled
+	targets.value = config.targets
+	moves.button_pressed = config.moves
+
+
+func _mark_configuration_custom() -> void:
+	if not _applying_preset and preset_option.selected != 0:
+		preset_option.select(0)
 
 
 func _apply_configuration() -> void:

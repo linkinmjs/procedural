@@ -14,7 +14,16 @@ func _run() -> void:
 	if lab == null:
 		_fail("Block lab scene did not load.")
 		return
+	var preset_option := lab.get_node("ConfigInterface/ConfigPanel/Margin/VBox/PresetRow/PresetOption") as OptionButton
 	var room_option := lab.get_node("ConfigInterface/ConfigPanel/Margin/VBox/RoomRow/RoomShapeOption") as OptionButton
+	if preset_option.item_count != 5:
+		_fail("Expected five editable level presets.")
+		return
+	lab._on_preset_selected(3)
+	if room_option.get_selected_id() != 2 or lab.get_node("ConfigInterface/ConfigPanel/Margin/VBox/FrontRow/FrontEnabled").button_pressed:
+		_fail("Corridor preset should select the corridor and disable the front block.")
+		return
+	lab._on_preset_selected(1)
 	room_option.select(1)
 	lab._apply_configuration()
 	if lab.room_size != Vector2(24.0, 18.0):

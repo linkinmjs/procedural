@@ -76,7 +76,7 @@ unique_name_in_owner = true
 offset_left = 22.0
 offset_top = 22.0
 offset_right = 660.0
-offset_bottom = 410.0
+offset_bottom = 446.0
 theme_override_styles/panel = SubResource("ConfigPanelStyle")
 
 [node name="Margin" type="MarginContainer" parent="ConfigInterface/ConfigPanel"]
@@ -99,6 +99,20 @@ label_settings = SubResource("TitleSettings")
 layout_mode = 2
 text = "Configura el recinto. Los bloques aparecen al cruzar la puerta."
 theme_override_colors/font_color = Color(0.65, 0.76, 0.84, 1)
+
+[node name="PresetRow" type="HBoxContainer" parent="ConfigInterface/ConfigPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="ConfigInterface/ConfigPanel/Margin/VBox/PresetRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "NIVEL PREDEFINIDO"
+
+[node name="PresetOption" type="OptionButton" parent="ConfigInterface/ConfigPanel/Margin/VBox/PresetRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
 
 [node name="RoomRow" type="HBoxContainer" parent="ConfigInterface/ConfigPanel/Margin/VBox"]
 layout_mode = 2

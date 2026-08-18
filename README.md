@@ -20,6 +20,8 @@ Prototipo para Godot 4.7 que integra SimpleDungeons y el FPS Template de Chaff G
 
 Al iniciar el proyecto se carga el nivel JSON configurado. Sus salas, puertas, conexiones, luces, bloques de objetivos y tiempo de ronda se construyen en runtime. Los encuentros aparecen al entrar en cada sala.
 
+Los bloques JSON admiten color, velocidad individual y múltiples oleadas. Al destruir la última esfera de una oleada aparece la siguiente; el bloque se cierra al completar todas.
+
 El orden jugable se define en `level-designs/level-sequence.json`. Por ahora F7 y F8 cambian de nivel manualmente. El avance automático queda deliberadamente desacoplado hasta implementar la condición de victoria.
 
 Las pelotas del bloque celeste se destruyen con un impacto. Las variantes azules de penalizacion desaparecen a los 8 segundos y restan 15 HP si no son destruidas. En esta primera prueba no se mueven ni reaparecen.

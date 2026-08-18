@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "id": "f4-three-room-example",
   "name": "Circuito de tres salas",
   "description": "Ejemplo editable con sala pequeña, sala grande y pasillo.",
@@ -10,39 +10,133 @@
       "id": "room-entry",
       "name": "Entrada",
       "type": "small",
-      "position": { "x": -18, "z": 8 },
-      "size": { "width": 14, "depth": 14 },
-      "entry": { "wall": "south", "offset": 0 },
+      "position": {
+        "x": -18,
+        "z": 8
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
       "blocks": {
-        "left": { "enabled": false, "targetCount": 0, "movement": "static" },
-        "front": { "enabled": true, "targetCount": 4, "movement": "static" },
-        "right": { "enabled": false, "targetCount": 0, "movement": "static" }
+        "left": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "front": {
+          "enabled": true,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": [
+            4
+          ]
+        },
+        "right": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        }
       }
     },
     {
       "id": "room-arena",
       "name": "Arena",
       "type": "large",
-      "position": { "x": 4, "z": 5 },
-      "size": { "width": 24, "depth": 18 },
-      "entry": { "wall": "west", "offset": 0 },
+      "position": {
+        "x": 4,
+        "z": 5
+      },
+      "size": {
+        "width": 24,
+        "depth": 18
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
       "blocks": {
-        "left": { "enabled": true, "targetCount": 5, "movement": "static" },
-        "front": { "enabled": true, "targetCount": 3, "movement": "opposite" },
-        "right": { "enabled": true, "targetCount": 5, "movement": "static" }
+        "left": {
+          "enabled": true,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#35d4c7",
+          "waves": [
+            5
+          ]
+        },
+        "front": {
+          "enabled": true,
+          "movement": "opposite",
+          "movementSpeed": 0.8,
+          "color": "#f4bc59",
+          "waves": [
+            3,
+            6
+          ]
+        },
+        "right": {
+          "enabled": true,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#35d4c7",
+          "waves": [
+            5
+          ]
+        }
       }
     },
     {
       "id": "room-corridor",
       "name": "Pasillo de salida",
       "type": "corridor",
-      "position": { "x": 22, "z": -11 },
-      "size": { "width": 10, "depth": 28 },
-      "entry": { "wall": "north", "offset": 0 },
+      "position": {
+        "x": 22,
+        "z": -11
+      },
+      "size": {
+        "width": 10,
+        "depth": 28
+      },
+      "entry": {
+        "wall": "north",
+        "offset": 0
+      },
       "blocks": {
-        "left": { "enabled": true, "targetCount": 4, "movement": "opposite" },
-        "front": { "enabled": false, "targetCount": 0, "movement": "static" },
-        "right": { "enabled": true, "targetCount": 4, "movement": "opposite" }
+        "left": {
+          "enabled": true,
+          "movement": "opposite",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": [
+            4
+          ]
+        },
+        "front": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "right": {
+          "enabled": true,
+          "movement": "opposite",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": [
+            4
+          ]
+        }
       }
     }
   ],

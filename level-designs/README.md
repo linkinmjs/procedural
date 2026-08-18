@@ -11,4 +11,4 @@ Esta carpeta contiene las definiciones versionadas creadas con `tools/level-edit
 
 Los bloques `left`, `front` y `right` son relativos a la pared por la que entra el jugador a cada sala. Por ejemplo, con una entrada `south`, el bloque `front` se dibuja sobre la pared `north`.
 
-El formato actual usa `schemaVersion: 2`, que incorpora el tiempo límite. Al importar un archivo de la versión anterior, el editor lo migra automáticamente y aplica el valor inicial de 90 segundos.
+El formato actual usa `schemaVersion: 3`. Cada bloque define color, velocidad y una lista ordenada de oleadas. Al importar un archivo anterior, el editor migra `targetCount` a una primera oleada y conserva los valores existentes.

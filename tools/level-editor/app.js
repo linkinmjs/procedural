@@ -30,12 +30,16 @@
   let toastTimer = null;
 
   function blankBlock() {
-    return { enabled: false, targetCount: 0, movement: "static" };
+    return { enabled: false, movement: "static", movementSpeed: 0.65, color: "#2ed5c5", waves: [] };
+  }
+
+  function configuredBlock(waves, movement = "static", color = "#2ed5c5", movementSpeed = 0.65) {
+    return { enabled: true, movement, movementSpeed, color, waves };
   }
 
   function createEmptyLevel() {
     return {
-      schemaVersion: 2,
+      schemaVersion: 3,
       id: `level-${Date.now()}`,
       name: "Nivel sin título",
       description: "",
@@ -67,18 +71,18 @@
     result.timeLimitSeconds = 90;
     const a = createRoom("small", 1);
     Object.assign(a, { id: "room-entry", name: "Entrada", position: { x: -18, z: 8 } });
-    a.blocks.front = { enabled: true, targetCount: 4, movement: "static" };
+    a.blocks.front = configuredBlock([4]);
     const b = createRoom("large", 2);
     Object.assign(b, { id: "room-arena", name: "Arena", position: { x: 4, z: 5 } });
     b.entry.wall = "west";
-    b.blocks.left = { enabled: true, targetCount: 5, movement: "static" };
-    b.blocks.front = { enabled: true, targetCount: 3, movement: "opposite" };
-    b.blocks.right = { enabled: true, targetCount: 5, movement: "static" };
+    b.blocks.left = configuredBlock([5], "static", "#35d4c7");
+    b.blocks.front = configuredBlock([3, 6], "opposite", "#f4bc59", 0.8);
+    b.blocks.right = configuredBlock([5], "static", "#35d4c7");
     const c = createRoom("corridor", 3);
     Object.assign(c, { id: "room-corridor", name: "Pasillo de salida", position: { x: 22, z: -11 } });
     c.entry.wall = "north";
-    c.blocks.left = { enabled: true, targetCount: 4, movement: "opposite" };
-    c.blocks.right = { enabled: true, targetCount: 4, movement: "opposite" };
+    c.blocks.left = configuredBlock([4], "opposite", "#2ed5c5", 0.65);
+    c.blocks.right = configuredBlock([4], "opposite", "#2ed5c5", 0.65);
     result.rooms = [a, b, c];
     result.connections = [
       { id: "connection-entry-arena", fromRoomId: a.id, toRoomId: b.id, fromWall: "east", toWall: "west" },
@@ -91,7 +95,7 @@
     if (!candidate || !Array.isArray(candidate.rooms) || !Array.isArray(candidate.connections)) {
       throw new Error("El archivo no contiene rooms y connections válidos.");
     }
-    candidate.schemaVersion = 2;
+    candidate.schemaVersion = 3;
     candidate.id ||= `level-${Date.now()}`;
     candidate.name ||= "Nivel importado";
     candidate.description ||= "";
@@ -107,7 +111,17 @@
       room.size ||= { width: 14, depth: 14 };
       room.entry ||= { wall: "south", offset: 0 };
       room.blocks ||= {};
-      for (const slot of Object.keys(SLOT_LABELS)) room.blocks[slot] = { ...blankBlock(), ...(room.blocks[slot] || {}) };
+      for (const slot of Object.keys(SLOT_LABELS)) {
+        const source = room.blocks[slot] || {};
+        const legacyTargetCount = Math.max(0, Math.round(Number(source.targetCount) || 0));
+        const waves = Array.isArray(source.waves)
+          ? source.waves.map((count) => Math.max(1, Math.min(64, Math.round(Number(count) || 1))))
+          : (legacyTargetCount > 0 ? [legacyTargetCount] : []);
+        room.blocks[slot] = { ...blankBlock(), ...source, waves };
+        room.blocks[slot].movementSpeed = Math.max(0.05, Math.min(5, Number(room.blocks[slot].movementSpeed) || 0.65));
+        room.blocks[slot].color = /^#[0-9a-f]{6}$/i.test(room.blocks[slot].color) ? room.blocks[slot].color : "#2ed5c5";
+        delete room.blocks[slot].targetCount;
+      }
     });
     return candidate;
   }
@@ -188,7 +202,8 @@
     const point = wallPoint(room, wall);
     const horizontal = wall === "north" || wall === "south";
     const maxLength = horizontal ? room.size.width - 2 : room.size.depth - 2;
-    const length = Math.max(2, Math.min(maxLength, 3 + config.targetCount * 1.1));
+    const largestWave = config.waves.length ? Math.max(...config.waves) : 0;
+    const length = Math.max(2, Math.min(maxLength, 3 + largestWave * .72));
     const rect = svgElement("rect", {
       x: point.x - (horizontal ? length / 2 : .3),
       y: point.y - (horizontal ? .3 : length / 2),
@@ -197,8 +212,9 @@
       rx: .22,
       class: `target-block${config.movement === "opposite" ? " moving" : ""}`
     });
+    rect.style.fill = config.color;
     const count = svgElement("text", { x: point.x, y: point.y, class: "block-count" });
-    count.textContent = String(config.targetCount);
+    count.textContent = config.waves.length ? config.waves.join("›") : "×";
     group.append(rect, count);
   }
 
@@ -245,9 +261,55 @@
       const config = room.blocks[slot];
       $(`[data-block-enabled="${slot}"]`).checked = config.enabled;
       $(`[data-block-fields="${slot}"]`).hidden = !config.enabled;
-      $(`[data-block-targets="${slot}"]`).value = config.targetCount;
       $(`[data-block-movement="${slot}"]`).value = config.movement;
+      $(`[data-block-speed="${slot}"]`).value = config.movementSpeed;
+      $(`[data-block-speed-field="${slot}"]`).hidden = config.movement !== "opposite";
+      $(`[data-block-color="${slot}"]`).value = config.color;
+      renderWaveEditor(slot, config);
     }
+  }
+
+  function renderWaveEditor(slot, config) {
+    const list = $(`[data-block-waves="${slot}"]`);
+    list.replaceChildren();
+    if (!config.waves.length) {
+      const empty = document.createElement("p");
+      empty.className = "hint wave-empty";
+      empty.textContent = "Sin oleadas: el bloque usa el control de cierre.";
+      list.append(empty);
+      return;
+    }
+    config.waves.forEach((targetCount, index) => {
+      const row = document.createElement("div");
+      row.className = "wave-row";
+      const label = document.createElement("label");
+      label.textContent = `Oleada ${index + 1}`;
+      const input = document.createElement("input");
+      input.type = "number";
+      input.min = "1";
+      input.max = "64";
+      input.step = "1";
+      input.value = String(targetCount);
+      input.addEventListener("change", () => {
+        const room = selectedRoom();
+        if (!room) return;
+        room.blocks[slot].waves[index] = Math.max(1, Math.min(64, Math.round(Number(input.value) || 1)));
+        commit("Oleada actualizada");
+      });
+      label.append(input);
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "danger subtle";
+      remove.textContent = "Quitar";
+      remove.addEventListener("click", () => {
+        const room = selectedRoom();
+        if (!room) return;
+        room.blocks[slot].waves.splice(index, 1);
+        commit("Oleada eliminada");
+      });
+      row.append(label, remove);
+      list.append(row);
+    });
   }
 
   function renderConnectionList() {
@@ -278,7 +340,7 @@
     $("#level-description").value = level.description;
     $("#level-time-minutes").value = Math.floor(level.timeLimitSeconds / 60);
     $("#level-time-seconds").value = level.timeLimitSeconds % 60;
-    const targets = level.rooms.reduce((total, room) => total + Object.values(room.blocks).reduce((sum, block) => sum + (block.enabled ? block.targetCount : 0), 0), 0);
+    const targets = level.rooms.reduce((total, room) => total + Object.values(room.blocks).reduce((sum, block) => sum + (block.enabled ? block.waves.reduce((waveTotal, count) => waveTotal + count, 0) : 0), 0), 0);
     const timeLabel = `${Math.floor(level.timeLimitSeconds / 60)}:${String(level.timeLimitSeconds % 60).padStart(2, "0")}`;
     $("#level-stats").textContent = `${level.rooms.length} salas · ${level.connections.length} conexiones · ${targets} objetivos · ${timeLabel}`;
     renderConnections();
@@ -298,13 +360,16 @@
           <label class="switch"><input type="checkbox" data-block-enabled="${slot}"> Activo</label>
         </div>
         <div class="block-fields" data-block-fields="${slot}" hidden>
-          <label>Objetivos<input type="number" min="0" max="24" step="1" data-block-targets="${slot}"></label>
+          <label>Color<input type="color" data-block-color="${slot}"></label>
           <label>Movimiento
             <select data-block-movement="${slot}">
               <option value="static">Estático</option>
               <option value="opposite">Hacia el lado contrario</option>
             </select>
           </label>
+          <label data-block-speed-field="${slot}">Velocidad (m/s)<input type="number" min="0.05" max="5" step="0.05" data-block-speed="${slot}"></label>
+          <div class="waves-heading"><strong>Oleadas</strong><button type="button" class="subtle" data-add-wave="${slot}">Agregar oleada</button></div>
+          <div class="wave-list" data-block-waves="${slot}"></div>
         </div>`;
       container.append(editor);
     }
@@ -550,17 +615,29 @@
         room.blocks[slot].enabled = event.target.checked;
         commit("Bloque actualizado");
       });
-      $(`[data-block-targets="${slot}"]`).addEventListener("input", (event) => {
+      $(`[data-block-speed="${slot}"]`).addEventListener("change", (event) => {
         const room = selectedRoom();
         if (!room) return;
-        room.blocks[slot].targetCount = Math.max(0, Math.min(24, Number(event.target.value)));
-        commit();
+        room.blocks[slot].movementSpeed = Math.max(0.05, Math.min(5, Number(event.target.value) || 0.65));
+        commit("Velocidad actualizada");
+      });
+      $(`[data-block-color="${slot}"]`).addEventListener("change", (event) => {
+        const room = selectedRoom();
+        if (!room) return;
+        room.blocks[slot].color = event.target.value;
+        commit("Color actualizado");
       });
       $(`[data-block-movement="${slot}"]`).addEventListener("change", (event) => {
         const room = selectedRoom();
         if (!room) return;
         room.blocks[slot].movement = event.target.value;
         commit("Movimiento actualizado");
+      });
+      $(`[data-add-wave="${slot}"]`).addEventListener("click", () => {
+        const room = selectedRoom();
+        if (!room) return;
+        room.blocks[slot].waves.push(5);
+        commit("Oleada agregada");
       });
     }
   }

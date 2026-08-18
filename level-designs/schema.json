@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://procedural-map.local/schemas/level-design-v2.json",
+  "$id": "https://procedural-map.local/schemas/level-design-v3.json",
   "title": "Procedural Map level design",
   "type": "object",
   "required": ["schemaVersion", "id", "name", "timeLimitSeconds", "gridSize", "rooms", "connections"],
   "properties": {
-    "schemaVersion": { "const": 2 },
+    "schemaVersion": { "const": 3 },
     "id": { "type": "string", "minLength": 1 },
     "name": { "type": "string", "minLength": 1 },
     "description": { "type": "string" },
@@ -31,11 +31,16 @@
     "wall": { "enum": ["north", "east", "south", "west"] },
     "block": {
       "type": "object",
-      "required": ["enabled", "targetCount", "movement"],
+      "required": ["enabled", "movement", "movementSpeed", "color", "waves"],
       "properties": {
         "enabled": { "type": "boolean" },
-        "targetCount": { "type": "integer", "minimum": 0, "maximum": 24 },
-        "movement": { "enum": ["static", "opposite"] }
+        "movement": { "enum": ["static", "opposite"] },
+        "movementSpeed": { "type": "number", "minimum": 0.05, "maximum": 5.0 },
+        "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "waves": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1, "maximum": 64 }
+        }
       },
       "additionalProperties": false
     },

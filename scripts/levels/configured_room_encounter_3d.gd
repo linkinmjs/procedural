@@ -64,9 +64,14 @@ func _spawn_block(slot: String, config: Dictionary) -> void:
 	var absolute_wall: String = RELATIVE_WALLS[entry_wall][slot]
 	var block := TARGET_BLOCK_SCENE.instantiate() as TargetBlock3D
 	block.block_label = "%s // %s" % [room_label, slot]
-	block.target_count = int(config.get("targetCount", 0))
+	var configured_waves: Array[int] = []
+	for count_variant in config.get("waves", []):
+		configured_waves.append(int(count_variant))
+	block.waves = configured_waves
+	block.target_count = configured_waves[0] if not configured_waves.is_empty() else 0
+	block.block_color = Color.from_string(str(config.get("color", "#2ed5c5")), Color(0.08, 0.78, 1.0, 1.0))
 	block.moves_to_opposite_side = str(config.get("movement", "static")) == "opposite"
-	block.movement_speed = movement_speed
+	block.movement_speed = float(config.get("movementSpeed", movement_speed))
 	block.crossing_damage = crossing_damage
 	var wall_setup := _get_wall_setup(absolute_wall)
 	block.position = wall_setup.position

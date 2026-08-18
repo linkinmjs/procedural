@@ -16,7 +16,8 @@ Abrir `http://localhost:8080` en el navegador.
 - Arrastrarlas sobre la grilla.
 - Activar **Unir dos salas** y seleccionar origen y destino.
 - Configurar la entrada y los bloques izquierdo, frontal y derecho de cada sala.
-- Elegir cantidad de objetivos y si el bloque es estático o avanza hacia el lado contrario.
+- Elegir color, velocidad y si el bloque es estático o avanza hacia el lado contrario.
+- Configurar una o más oleadas de objetivos; la siguiente aparece al destruir la anterior.
 - Definir el tiempo límite global del nivel en minutos y segundos.
 - Guardar con el selector de archivos del navegador o descargar el JSON.
 - Colocar los archivos definitivos en `level-designs/`.

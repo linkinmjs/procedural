@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "id": "nivel-1",
   "name": "Nivel 1",
   "description": "",
@@ -25,18 +25,24 @@
       "blocks": {
         "left": {
           "enabled": false,
-          "targetCount": 0,
-          "movement": "static"
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
         },
         "front": {
           "enabled": false,
-          "targetCount": 0,
-          "movement": "static"
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
         },
         "right": {
           "enabled": false,
-          "targetCount": 0,
-          "movement": "static"
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
         }
       }
     },
@@ -59,18 +65,24 @@
       "blocks": {
         "left": {
           "enabled": false,
-          "targetCount": 0,
-          "movement": "static"
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
         },
         "front": {
           "enabled": false,
-          "targetCount": 0,
-          "movement": "static"
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
         },
         "right": {
           "enabled": false,
-          "targetCount": 0,
-          "movement": "static"
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
         }
       }
     },
@@ -93,18 +105,26 @@
       "blocks": {
         "left": {
           "enabled": false,
-          "targetCount": 0,
-          "movement": "static"
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
         },
         "front": {
           "enabled": true,
-          "targetCount": 10,
-          "movement": "static"
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": [
+            10
+          ]
         },
         "right": {
           "enabled": false,
-          "targetCount": 0,
-          "movement": "static"
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
         }
       }
     },
@@ -127,18 +147,28 @@
       "blocks": {
         "left": {
           "enabled": true,
-          "targetCount": 5,
-          "movement": "opposite"
+          "movement": "opposite",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": [
+            5
+          ]
         },
         "front": {
           "enabled": false,
-          "targetCount": 0,
-          "movement": "static"
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
         },
         "right": {
           "enabled": true,
-          "targetCount": 5,
-          "movement": "opposite"
+          "movement": "opposite",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": [
+            5
+          ]
         }
       }
     }

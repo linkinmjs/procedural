@@ -4,7 +4,9 @@ extends Area3D
 signal closed(block: TargetBlock3D)
 
 @export var block_label := "front block"
-@export_range(0, 32, 1) var target_count := 4
+@export_range(0, 64, 1) var target_count := 4
+@export var waves: Array[int] = []
+@export var block_color := Color(0.08, 0.78, 1.0, 1.0)
 @export var moves_to_opposite_side := false
 @export_range(0.05, 5.0, 0.05) var movement_speed := 0.65
 @export_range(0.0, 100.0, 0.1) var travel_distance := 10.0
@@ -19,18 +21,23 @@ signal closed(block: TargetBlock3D)
 var _distance_travelled := 0.0
 var _closing := false
 var _bodies_inside: Array[Node3D] = []
+var _wave_counts: Array[int] = []
+var _current_wave_index := 0
 
 
 func _ready() -> void:
 	_update_geometry()
+	_update_appearance()
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
-	if target_count > 0:
-		spawn_volume.target_count = target_count
+	_wave_counts.assign(waves)
+	if _wave_counts.is_empty() and target_count > 0:
+		_wave_counts.append(target_count)
+	if not _wave_counts.is_empty():
 		spawn_volume.penalty_target_count = 0
 		spawn_volume.spawn_on_ready = false
-		spawn_volume.all_targets_destroyed.connect(_close)
-		spawn_volume.spawn_targets()
+		spawn_volume.all_targets_destroyed.connect(_on_wave_cleared)
+		_spawn_current_wave()
 	else:
 		spawn_volume.visible = false
 		_spawn_close_control()
@@ -55,6 +62,39 @@ func _update_geometry() -> void:
 	spawn_volume.position = Vector3(0.0, 0.0, 0.5)
 	spawn_volume.size = Vector3(maxf(block_size.x - 1.0, 0.5), maxf(block_size.y - 1.0, 0.5), 0.1)
 	spawn_volume.edge_padding = Vector3(0.35, 0.35, 0.0)
+
+
+func _update_appearance() -> void:
+	var mesh := block_mesh.mesh as BoxMesh
+	if mesh != null and mesh.material is StandardMaterial3D:
+		var material := mesh.material.duplicate() as StandardMaterial3D
+		var panel_color := block_color
+		panel_color.a = 0.2
+		material.albedo_color = panel_color
+		material.emission = block_color.darkened(0.45)
+		mesh.material = material
+	spawn_volume.target_color = block_color
+
+
+func _spawn_current_wave() -> void:
+	if _closing or _current_wave_index >= _wave_counts.size():
+		return
+	spawn_volume.target_count = _wave_counts[_current_wave_index]
+	spawn_volume.spawn_targets()
+	if spawn_volume.active_targets.is_empty():
+		push_warning("%s wave %d could not place any targets; skipping it." % [block_label, _current_wave_index + 1])
+		call_deferred("_on_wave_cleared")
+	var controller := _get_round_controller()
+	if controller != null:
+		controller.add_log("%s // WAVE %d/%d // %d TARGETS" % [block_label.to_upper(), _current_wave_index + 1, _wave_counts.size(), spawn_volume.target_count], "info")
+
+
+func _on_wave_cleared() -> void:
+	_current_wave_index += 1
+	if _current_wave_index >= _wave_counts.size():
+		_close()
+		return
+	call_deferred("_spawn_current_wave")
 
 
 func _spawn_close_control() -> void:

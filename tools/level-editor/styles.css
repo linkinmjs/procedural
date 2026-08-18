@@ -113,7 +113,7 @@ textarea { resize: vertical; }
 .room-meta { fill: var(--muted); font-size: .7px; text-anchor: middle; pointer-events: none; }
 .door-mark { stroke: var(--door); stroke-width: .6; stroke-linecap: square; pointer-events: none; }
 .target-block { fill: var(--accent); opacity: .82; pointer-events: none; }
-.target-block.moving { fill: var(--moving); }
+.target-block.moving { stroke: var(--moving); stroke-width: .18; }
 .block-count { fill: var(--bg); font-size: .66px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 
 .legend {
@@ -146,6 +146,12 @@ textarea { resize: vertical; }
 .switch { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
 .switch input { width: auto; }
 .block-fields[hidden] { display: none; }
+.waves-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 14px 0 8px; }
+.waves-heading strong { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.wave-list { display: grid; gap: 7px; }
+.wave-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; }
+.wave-row label { margin: 0; }
+.wave-empty { margin: 2px 0 8px; }
 .empty-state { padding-top: 4px; }
 
 .toast {

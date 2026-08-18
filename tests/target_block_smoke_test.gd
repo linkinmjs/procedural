@@ -16,9 +16,22 @@ func _run() -> void:
 	var player := CharacterBody3D.new()
 	root.add_child(player)
 	var target_block := BLOCK_SCENE.instantiate() as TargetBlock3D
-	target_block.target_count = 2
+	target_block.target_count = 0
+	target_block.waves.assign([2, 3])
+	target_block.block_color = Color("d84cff")
 	target_block.crossing_damage = 15.0
 	root.add_child(target_block)
+	if target_block.spawn_volume.active_targets.size() != 2:
+		_fail("The first wave should spawn two targets.")
+		return
+	if target_block.spawn_volume.active_targets[0].display_color.to_html(false) != "d84cff":
+		_fail("Normal targets should inherit the configured block color.")
+		return
+	var target_mesh := target_block.spawn_volume.active_targets[0].get_node("MeshInstance3D") as MeshInstance3D
+	var target_material := (target_mesh.mesh as SphereMesh).material as StandardMaterial3D
+	if target_material.albedo_color.to_html(false) != "d84cff":
+		_fail("The configured color should be applied to the target material.")
+		return
 	target_block._on_body_entered(player)
 	if not is_equal_approx(controller.current_health, 85.0):
 		_fail("Crossing a target block should remove configured HP.")
@@ -26,8 +39,15 @@ func _run() -> void:
 	for target in target_block.spawn_volume.active_targets.duplicate():
 		target.Hit_Successful(1.0)
 	await process_frame
+	await process_frame
+	if not is_instance_valid(target_block) or target_block.spawn_volume.active_targets.size() != 3:
+		_fail("Clearing the first wave should spawn the second wave with three targets.")
+		return
+	for target in target_block.spawn_volume.active_targets.duplicate():
+		target.Hit_Successful(1.0)
+	await process_frame
 	if is_instance_valid(target_block):
-		_fail("A target block should close after all targets are destroyed.")
+		_fail("A target block should close only after every wave is destroyed.")
 		return
 	var empty_block := BLOCK_SCENE.instantiate() as TargetBlock3D
 	empty_block.target_count = 0

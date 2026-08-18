@@ -9,6 +9,7 @@ signal all_targets_destroyed
 @export var penalty_target_scene: PackedScene = preload("res://scenes/targets/blue_penalty_ball.tscn")
 @export_range(1, 64, 1) var target_count := 8
 @export_range(0, 64, 1) var penalty_target_count := 0
+@export var target_color := Color(0.08, 0.78, 1.0, 1.0)
 @export var size := Vector3(10.0, 4.0, 0.6):
 	set(value):
 		size = value.max(Vector3(0.1, 0.1, 0.1))
@@ -54,6 +55,9 @@ func spawn_targets() -> void:
 		if target == null:
 			push_error("TargetSpawnVolume3D requires a scene with TargetBall as its root.")
 			continue
+		if scene_to_spawn == target_scene:
+			target.display_color = target_color
+			target.use_custom_display_color = true
 		targets_container.add_child(target)
 		target.position = positions[index]
 		target.destroyed.connect(_on_target_destroyed)

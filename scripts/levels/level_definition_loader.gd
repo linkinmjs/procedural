@@ -1,7 +1,7 @@
 class_name LevelDefinitionLoader
 extends RefCounted
 
-const SUPPORTED_SCHEMA_VERSION := 2
+const SUPPORTED_SCHEMA_VERSION := 3
 const VALID_ROOM_TYPES := ["small", "large", "corridor", "custom"]
 const VALID_WALLS := ["north", "east", "south", "west"]
 const VALID_BLOCK_SLOTS := ["left", "front", "right"]
@@ -85,11 +85,23 @@ static func _validate_room(room: Dictionary, room_id: String) -> bool:
 			push_error("Room %s is missing its %s block." % [room_id, slot])
 			return false
 		var block := room.blocks[slot] as Dictionary
-		var target_count := int(block.get("targetCount", -1))
-		if target_count < 0 or target_count > 24:
-			push_error("Room %s has an invalid target count." % room_id)
-			return false
 		if not ["static", "opposite"].has(str(block.get("movement", ""))):
 			push_error("Room %s has an invalid block movement." % room_id)
 			return false
+		var movement_speed := float(block.get("movementSpeed", 0.0))
+		if movement_speed < 0.05 or movement_speed > 5.0:
+			push_error("Room %s has an invalid block movement speed." % room_id)
+			return false
+		var block_color := str(block.get("color", ""))
+		if block_color.length() != 7 or not block_color.begins_with("#") or not Color.html_is_valid(block_color):
+			push_error("Room %s has an invalid block color." % room_id)
+			return false
+		if not block.get("waves", null) is Array:
+			push_error("Room %s needs a block waves array." % room_id)
+			return false
+		for count_variant in block.waves:
+			var wave_count := int(count_variant)
+			if wave_count < 1 or wave_count > 64:
+				push_error("Room %s has an invalid wave target count." % room_id)
+				return false
 	return true

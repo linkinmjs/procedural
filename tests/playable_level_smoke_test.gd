@@ -42,8 +42,11 @@ func _run() -> void:
 	first_encounter.activate()
 	await process_frame
 	var first_blocks := _direct_blocks(first_encounter)
-	if first_blocks.size() != 1 or first_blocks[0].target_count != 10 or first_blocks[0].moves_to_opposite_side:
+	if first_blocks.size() != 1 or first_blocks[0].waves != [10] or first_blocks[0].moves_to_opposite_side:
 		_fail("Sala 1 should deploy one static block with ten targets.")
+		return
+	if first_blocks[0].block_color.to_html(false) != "2ed5c5":
+		_fail("Sala 1 should use its JSON block color.")
 		return
 	if first_blocks[0].position.z <= 0.0:
 		_fail("Sala 1 front block should be opposite its north entry, on the south wall.")
@@ -56,7 +59,7 @@ func _run() -> void:
 		_fail("Sala 2 should deploy its left and right blocks.")
 		return
 	for block in second_blocks:
-		if block.target_count != 5 or not block.moves_to_opposite_side:
+		if block.waves != [5] or not block.moves_to_opposite_side or not is_equal_approx(block.movement_speed, 0.65):
 			_fail("Sala 2 blocks should move and contain five targets each.")
 			return
 	if ProjectSettings.get_setting("application/run/main_scene") != "res://scenes/levels/playable_level.tscn":

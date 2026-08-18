@@ -6,8 +6,8 @@ func _initialize() -> void:
 	if level.is_empty():
 		_fail("The saved level definition should load.")
 		return
-	if int(level.schemaVersion) != 2 or int(level.timeLimitSeconds) != 90:
-		_fail("The loader should preserve schema version 2 and the 90 second limit.")
+	if int(level.schemaVersion) != 3 or int(level.timeLimitSeconds) != 90:
+		_fail("The loader should preserve schema version 3 and the 90 second limit.")
 		return
 	if level.rooms.size() != 4 or level.connections.size() != 3:
 		_fail("The loader should preserve all rooms and connections.")

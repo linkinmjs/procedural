@@ -56,3 +56,24 @@ Prueba del nivel JSON inicial:
 ## Direccion de desarrollo
 
 Las habitaciones de `addons/SimpleDungeons/sample_dungeons` son material de prototipo. Para convertir el generador en una base del juego conviene crear un kit propio de `DungeonRoom3D` con conectores coherentes y usar `dungeon_done_generating` para poblar enemigos, objetivos, loot y encuentros despues de cerrar el layout.
+
+## Despliegue automatico a itch.io
+
+El workflow [`.github/workflows/deploy-to-itch.yml`](.github/workflows/deploy-to-itch.yml) exporta el preset `Web` y lo publica en itch.io en cada push a `main`. Los pull requests solo exportan (no publican).
+
+### Configuracion inicial
+
+1. Crear el proyecto en itch.io con **Kind of project: HTML**.
+2. Cargar estos secretos en `Settings > Secrets and variables > Actions` del repositorio:
+   - `BUTLER_API_KEY`: se obtiene en https://itch.io/user/settings/api-keys
+   - `ITCHIO_GAME`: nombre del juego en itch (el de la URL)
+   - `ITCHIO_USERNAME`: usuario de itch
+3. Hacer push a `main`. La accion exporta el juego y lo sube.
+4. Tras la primera subida, marcar en itch la opcion **This file will be played in the browser** y guardar.
+
+### Notas tecnicas del export Web
+
+- El proyecto corre en **Forward+** en escritorio, pero el export a Web solo soporta el renderer **Compatibility (WebGL2)**. Por eso `project.godot` define `renderer/rendering_method.web="gl_compatibility"`. Los efectos exclusivos de Forward+ (SDFGI, niebla volumetrica, SSAO/SSIL) no se ven en el build web.
+- `export_presets.cfg` usa `include_filter="*.json"` porque los niveles de `level-designs/` se leen en runtime con `FileAccess` y no son recursos importados: sin ese filtro no viajarian dentro del `.pck`.
+- El preset exporta sin soporte de hilos (`variant/thread_support=false`), que es la variante mas compatible con itch.io.
+- La version de Godot del pipeline se controla con `GODOT_VERSION` / `GODOT_STATUS` en el workflow y debe coincidir con la del editor (hoy `4.7-stable`).

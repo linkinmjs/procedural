@@ -1,3 +1,10 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Exports locales (el pipeline los genera en CI)
+/builds/*
+!/builds/.gitkeep
+
+# Assets crudos descargados (zips sin procesar, no se versionan)
+/assets/_raw/

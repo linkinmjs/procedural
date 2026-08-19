@@ -1,0 +1,33 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://tests/window_visual_smoke_test.gd" id="1_test"]
+[ext_resource type="PackedScene" path="res://scenes/windows/shutdown_window.tscn" id="2_window"]
+[ext_resource type="PackedScene" path="res://scenes/windows/close_window.tscn" id="3_close"]
+[ext_resource type="PackedScene" path="res://scenes/windows/download_window.tscn" id="4_download"]
+
+[sub_resource type="Environment" id="PreviewEnvironment"]
+background_mode = 1
+background_color = Color(0.09, 0.35, 0.6, 1)
+ambient_light_source = 1
+ambient_light_color = Color(1, 1, 1, 1)
+
+[sub_resource type="CameraAttributesPractical" id="PreviewCamera"]
+
+[node name="WindowVisualSmokeTest" type="Node"]
+script = ExtResource("1_test")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("PreviewEnvironment")
+camera_attributes = SubResource("PreviewCamera")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.1)
+
+[node name="ShutdownWindow" parent="." instance=ExtResource("2_window")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.78, 0, 0)
+
+[node name="CloseWindow" parent="." instance=ExtResource("3_close")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72, 0.32, 0)
+
+[node name="DownloadWindow" parent="." instance=ExtResource("4_download")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72, -0.35, 0)

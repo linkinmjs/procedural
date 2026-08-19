@@ -1,18 +1,8 @@
 extends Node3D
 
 const PLAYER_SCENE := preload("res://Player_Controller/player_character.tscn")
-const PICKUP_SCENES: Array[PackedScene] = [
-	preload("res://Player_Controller/Spawnable_Objects/Weapons/blaster_n.tscn"),
-	preload("res://Player_Controller/Spawnable_Objects/Weapons/blaster_L.tscn"),
-	preload("res://Player_Controller/Spawnable_Objects/Weapons/blaster_m.tscn"),
-	preload("res://Player_Controller/Spawnable_Objects/Weapons/blasterQ.tscn"),
-]
-const WEAPON_RESOURCES: Array[WeaponResource] = [
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterN.tres"),
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterL.tres"),
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterM.tres"),
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterQ.tres"),
-]
+## El jugador solo usa la Glock, asi que los pickups del poligono son municion.
+const AMMO_PICKUP_SCENE := preload("res://Player_Controller/Spawnable_Objects/Weapons/glock_ammo_pickup.tscn")
 
 @onready var round_controller: RoundController = $RoundHUD/RoundController
 
@@ -47,13 +37,7 @@ func _spawn_player() -> void:
 
 
 func _spawn_weapon_pickups() -> void:
-	var markers := %PickupMarkers.get_children()
-	for index in mini(markers.size(), PICKUP_SCENES.size()):
-		var pickup: WeaponPickUp = PICKUP_SCENES[index].instantiate()
-		var slot := WeaponSlot.new()
-		slot.weapon = WEAPON_RESOURCES[index]
-		slot.current_ammo = slot.weapon.magazine
-		slot.reserve_ammo = slot.weapon.max_ammo
-		pickup.weapon = slot
+	for marker in %PickupMarkers.get_children():
+		var pickup: WeaponPickUp = AMMO_PICKUP_SCENE.instantiate()
 		add_child(pickup)
-		pickup.global_position = (markers[index] as Node3D).global_position
+		pickup.global_position = (marker as Node3D).global_position

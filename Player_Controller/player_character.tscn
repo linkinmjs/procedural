@@ -8,6 +8,10 @@
 [ext_resource type="Resource" uid="uid://yc1f2j7pl4vr" path="res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterI.tres" id="6_tpjp5"]
 [ext_resource type="Script" uid="uid://bw4j1fbww4k8s" path="res://Player_Controller/scripts/Weapon_State_Machine/WeaponSlot.gd" id="6_wj0qi"]
 [ext_resource type="AnimationLibrary" uid="uid://uybino34n0sj" path="res://Player_Controller/weapon_animation.res" id="13_lmhsg"]
+[ext_resource type="Resource" uid="uid://vh8a8w8srify" path="res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/glock.tres" id="14_glock"]
+[ext_resource type="PackedScene" uid="uid://fv0b2l37e4jy" path="res://Player_Controller/Spawnable_Objects/Weapons/glock_view_model.tscn" id="15_glock_view"]
+[ext_resource type="AnimationLibrary" uid="uid://b0n2onpky4ko7" path="res://Player_Controller/glock_animation.tres" id="16_glock_anim"]
+[ext_resource type="Script" path="res://Player_Controller/scripts/Player_Character/dynamic_crosshair.gd" id="17_crosshair"]
 
 [sub_resource type="ImageTexture" id="ImageTexture_rj3p7"]
 
@@ -24,7 +28,8 @@ thickness = 10
 
 [sub_resource type="Resource" id="Resource_4pcyg"]
 script = ExtResource("6_wj0qi")
-weapon = ExtResource("6_tpjp5")
+weapon = ExtResource("14_glock")
+current_ammo = 10
 reserve_ammo = 60
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ifhgq"]
@@ -2220,6 +2225,15 @@ mouse_filter = 2
 texture = ExtResource("3_7f0mw")
 stretch_mode = 3
 
+[node name="SpreadSight" type="Control" parent="CanvasLayer" unique_id=2016761055]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("17_crosshair")
+
 [node name="HitSight" type="TextureRect" parent="CanvasLayer" unique_id=2016761054]
 visible = false
 anchors_preset = 8
@@ -2301,11 +2315,13 @@ light_cull_mask = 524288
 shadow_enabled = false
 omni_range = 2.5
 
-[node name="Weapons_Manager" type="Node3D" parent="Camera/LeanPivot/MainCamera" unique_id=1982237883 node_paths=PackedStringArray("animation_player", "melee_hitbox")]
+[node name="Weapons_Manager" type="Node3D" parent="Camera/LeanPivot/MainCamera" unique_id=1982237883 node_paths=PackedStringArray("animation_player", "melee_hitbox", "fire_audio")]
 script = ExtResource("5_wuueu")
 animation_player = NodePath("Weapons_Models/AnimationPlayer")
 melee_hitbox = NodePath("Melee_Hitbox")
+max_weapons = 1
 enable_weapon_spread = false
+fire_audio = NodePath("FireAudio")
 weapon_stack = Array[ExtResource("6_wj0qi")]([SubResource("Resource_4pcyg")])
 
 [node name="Weapons_Models" type="Node3D" parent="Camera/LeanPivot/MainCamera/Weapons_Manager" unique_id=79488914]
@@ -2358,10 +2374,15 @@ layers = 524288
 mesh = SubResource("ArrayMesh_xefgr")
 skeleton = NodePath("")
 
+[node name="Glock" parent="Camera/LeanPivot/MainCamera/Weapons_Manager/Weapons_Models" instance=ExtResource("15_glock_view")]
+transform = Transform3D(0.99875, 0, -0.0499792, 0, 1, 0, 0.0499792, 0, 0.99875, 0.135, 1.38419, -0.42)
+visible = false
+
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Camera/LeanPivot/MainCamera/Weapons_Manager/Weapons_Models" unique_id=190666]
 unique_name_in_owner = true
 libraries/ = SubResource("AnimationLibrary_ys4uk")
 libraries/Global = ExtResource("13_lmhsg")
+libraries/Glock = ExtResource("16_glock_anim")
 
 [node name="blasterQ2" type="Node3D" parent="Camera/LeanPivot/MainCamera/Weapons_Manager/Weapons_Models" unique_id=1793390834]
 transform = Transform3D(-1, 0, 2.5351817e-06, 0, 1, 0, -2.5351817e-06, 0, -1, 0, 0, 0)
@@ -2374,8 +2395,13 @@ skeleton = NodePath("")
 
 [node name="BulletPoint" type="Marker3D" parent="Camera/LeanPivot/MainCamera/Weapons_Manager" unique_id=785176848]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.266143, -0.288234, -0.779217)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.135, -0.117, -0.532)
 gizmo_extents = 0.21
+
+[node name="FireAudio" type="AudioStreamPlayer3D" parent="Camera/LeanPivot/MainCamera/Weapons_Manager" unique_id=785176849]
+unit_size = 14.0
+max_db = 0.0
+panning_strength = 0.0
 
 [node name="Melee_Hitbox" type="ShapeCast3D" parent="Camera/LeanPivot/MainCamera/Weapons_Manager" unique_id=51698041]
 shape = SubResource("BoxShape3D_to3sp")
@@ -2437,6 +2463,7 @@ one_shot = true
 [connection signal="connect_weapon_to_hud" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_connect_weapon_to_hud"]
 [connection signal="hit_successfull" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_hit_successfull"]
 [connection signal="update_ammo" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_update_ammo"]
+[connection signal="spread_changed" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_spread_changed"]
 [connection signal="update_weapon_stack" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_update_weapon_stack"]
 [connection signal="weapon_changed" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_weapon_changed"]
 [connection signal="body_entered" from="PickUpDetection" to="Camera/LeanPivot/MainCamera/Weapons_Manager" method="_on_pick_up_detection_body_entered"]

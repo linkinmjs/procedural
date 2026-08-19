@@ -3,13 +3,6 @@ extends Node3D
 
 const PLAYER_SCENE := preload("res://Player_Controller/player_character.tscn")
 const ROOM_LIGHT_SCENE := preload("res://scenes/room_light.tscn")
-const LEVEL_LOADOUT: Array[WeaponResource] = [
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterN.tres"),
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterL.tres"),
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterM.tres"),
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterQ.tres"),
-]
-
 const WALL_HEIGHT := 6.0
 const WALL_THICKNESS := 0.35
 const DOOR_WIDTH := 3.5
@@ -204,7 +197,6 @@ func _spawn_player() -> void:
 	var spawn_position := _room_center(start_room) + Vector3(0.0, 0.05, 0.0)
 	var look_target := _connected_room_center(str(start_room.id))
 	player = PLAYER_SCENE.instantiate()
-	_add_level_loadout(player)
 	player.position = spawn_position
 	if look_target != spawn_position:
 		var direction := (look_target - spawn_position).normalized()
@@ -226,17 +218,6 @@ func _connected_room_center(room_id: String) -> Vector3:
 				if str(room.id) == other_id:
 					return _room_center(room)
 	return Vector3.ZERO
-
-
-func _add_level_loadout(player_instance: CharacterBody3D) -> void:
-	var manager = player_instance.get_node("Camera/LeanPivot/MainCamera/Weapons_Manager")
-	manager.max_weapons = LEVEL_LOADOUT.size() + 1
-	for weapon_resource in LEVEL_LOADOUT:
-		var slot := WeaponSlot.new()
-		slot.weapon = weapon_resource
-		slot.current_ammo = weapon_resource.magazine
-		slot.reserve_ammo = weapon_resource.max_ammo
-		manager.weapon_stack.append(slot)
 
 
 func _add_room_light(parent: Node3D, room_size: Vector3) -> void:

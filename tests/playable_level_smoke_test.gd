@@ -30,8 +30,8 @@ func _run() -> void:
 		_fail("The JSON time limit should start the round at 90 seconds.")
 		return
 	var manager = level.player.get_node("Camera/LeanPivot/MainCamera/Weapons_Manager")
-	if manager.weapon_stack.size() != 5:
-		_fail("The playable level should grant the complete five-weapon loadout.")
+	if manager.weapon_stack.size() != 1 or manager.current_weapon_slot.weapon.weapon_name != "Glock":
+		_fail("The playable level should arm the player with the Glock alone.")
 		return
 	var sala_one := _find_room(level.level_data.rooms, "Sala 1")
 	var sala_two := _find_room(level.level_data.rooms, "Sala 2")

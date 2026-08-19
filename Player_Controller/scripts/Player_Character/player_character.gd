@@ -10,6 +10,14 @@ var mouse_sensitivity = 0.001
 var crouched: bool = false
 var crouch_blocked: bool = false
 
+# Retroceso de la vista. recoil_target acumula lo que empujan los disparos y
+# recoil_offset es lo que se aplica de verdad, para que la patada entre rapido
+# y la vista vuelva sola al punto original (x: yaw, y: pitch, en radianes).
+var recoil_target: Vector2 = Vector2.ZERO
+var recoil_offset: Vector2 = Vector2.ZERO
+var recoil_snappiness: float = 24.0
+var recoil_recovery: float = 7.5
+
 @export_category("Crouch Parametres")
 @export var enable_crouch: bool = true
 @export var crouch_toggle: bool = false
@@ -157,13 +165,36 @@ func crouch() -> void:
 
 func camera_look(Movement: Vector2) -> void:
 	camera_rotation += Movement
-	
+	camera_rotation.y = clamp(camera_rotation.y,-1.5,1.2)
+	apply_view_rotation()
+
+func apply_view_rotation() -> void:
 	transform.basis = Basis()
 	camera.transform.basis = Basis()
 	
 	rotate_object_local(Vector3(0,1,0),-camera_rotation.x) # first rotate in Y
-	camera.rotate_object_local(Vector3(1,0,0), -camera_rotation.y) # then rotate in X
-	camera_rotation.y = clamp(camera_rotation.y,-1.5,1.2)
+	camera.rotate_object_local(Vector3(0,1,0), recoil_offset.x) # el retroceso lateral no desvia el movimiento
+	camera.rotate_object_local(Vector3(1,0,0), -camera_rotation.y + recoil_offset.y) # then rotate in X
+
+## Empuja la vista hacia arriba y hacia un lado. Los angulos llegan en grados.
+func add_recoil(pitch_degrees: float, yaw_degrees: float, profile: RecoilProfile = null) -> void:
+	if profile:
+		recoil_snappiness = profile.kick_snappiness
+		recoil_recovery = profile.recovery_speed
+	recoil_target += Vector2(deg_to_rad(yaw_degrees), deg_to_rad(pitch_degrees))
+
+func update_recoil(delta: float) -> void:
+	if recoil_target.is_zero_approx() and recoil_offset.is_zero_approx():
+		return
+	
+	recoil_target = recoil_target.lerp(Vector2.ZERO, clampf(recoil_recovery * delta, 0.0, 1.0))
+	recoil_offset = recoil_offset.lerp(recoil_target, clampf(recoil_snappiness * delta, 0.0, 1.0))
+	
+	if recoil_target.is_zero_approx() and recoil_offset.is_zero_approx():
+		recoil_target = Vector2.ZERO
+		recoil_offset = Vector2.ZERO
+	
+	apply_view_rotation()
 	
 func exit_sprint() -> void:
 	if !sprint_timer.is_stopped():
@@ -191,6 +222,7 @@ func sprint_replenish(delta) -> void:
 		sprint_bar.show()
 
 func _process(_delta: float) -> void:
+	update_recoil(_delta)
 	if subviewport_camera:
 		subviewport_camera.global_transform = main_camera.global_transform
 

@@ -6,7 +6,7 @@ Prototipo para Godot 4.7 que integra SimpleDungeons y el FPS Template de Chaff G
 
 - `scenes/levels/playable_level.tscn`: nivel inicial jugable construido desde `level-designs/levels/nivel-1.json`.
 - `scenes/dungeon_test.tscn`: genera un dungeon recorrible y coloca al jugador en la sala de entrada.
-- `scenes/weapon_test.tscn`: poligono con pickups y blancos reutilizables.
+- `scenes/weapon_test.tscn`: poligono con cajas de municion y blancos reutilizables.
 - `scenes/block_lab.tscn`: laboratorio configurable de habitaciones y bloques de objetivos.
 - `scenes/targets/target_spawn_volume_3d.tscn`: volumen configurable que distribuye pelotas estaticas y muestra sus limites de debug.
 - `scenes/ui/round_hud.tscn`: HUD reutilizable de vida, tiempo, precision y eventos de ronda.
@@ -14,8 +14,7 @@ Prototipo para Godot 4.7 que integra SimpleDungeons y el FPS Template de Chaff G
 ## Controles
 
 - WASD: mover; Espacio: saltar; Shift: correr; C: agacharse; Q/E: inclinarse.
-- Mouse izquierdo: disparar; R: recargar; F: melee; G: soltar arma.
-- Rueda o teclas 1-4: cambiar arma.
+- Mouse izquierdo: disparar; R: recargar; F: melee.
 - F1: dungeon; F2: armas; F3: reiniciar escena; F4: laboratorio de bloques; F5: regenerar dungeon; F6: nivel JSON actual; F7/F8: nivel siguiente/anterior.
 
 Al iniciar el proyecto se carga el nivel JSON configurado. Sus salas, puertas, conexiones, luces, bloques de objetivos y tiempo de ronda se construyen en runtime. Los encuentros aparecen al entrar en cada sala.
@@ -25,6 +24,17 @@ Los bloques JSON admiten color, velocidad individual y múltiples oleadas. Al de
 El orden jugable se define en `level-designs/level-sequence.json`. Por ahora F7 y F8 cambian de nivel manualmente. El avance automático queda deliberadamente desacoplado hasta implementar la condición de victoria.
 
 Las pelotas siguen disponibles como objetivo alternativo del bloque. Se destruyen con un impacto, y las variantes azules de penalizacion desaparecen a los 8 segundos y restan 15 HP si no son destruidas. Ni las pelotas ni las ventanas se mueven o reaparecen por su cuenta.
+
+## Arma
+
+El jugador lleva una unica Glock semiautomatica con cargador de 10 balas y 60 de
+reserva. Dispara con retroceso al estilo Counter-Strike 1.6: la vista sube con
+cada tiro y vuelve sola al soltar el gatillo, y la punteria se abre al encadenar
+disparos, al moverse y sobre todo en el aire. Agacharse la mejora. La mira
+central muestra esa dispersion en tiempo real.
+
+El detalle del sistema y los valores que conviene tocar estan en
+[`docs/arma.md`](docs/arma.md).
 
 ## Laboratorio de bloques
 
@@ -53,6 +63,7 @@ Prueba del sistema de ventanas:
 - [`docs/integration_notes.md`](docs/integration_notes.md): estado tecnico de la integracion y proximos pasos.
 - [`docs/niveles_json.md`](docs/niveles_json.md): puente entre el editor web, los JSON versionados y la escena jugable de Godot.
 - [`docs/ventanas.md`](docs/ventanas.md): como armar ventanas disparables desde los templates, marcar zonas y probarlas.
+- [`docs/arma.md`](docs/arma.md): la Glock, su cargador, el retroceso y la imprecision dinamica.
 
 ## Editor de niveles
 
@@ -65,6 +76,10 @@ Prueba automatizada del sistema:
 Prueba del nivel JSON inicial:
 
 `Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/playable_level_smoke_test.gd`
+
+Prueba del arma:
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/glock_weapon_smoke_test.gd`
 
 ## Direccion de desarrollo
 

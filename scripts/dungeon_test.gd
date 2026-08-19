@@ -2,13 +2,6 @@ extends Node3D
 
 const PLAYER_SCENE := preload("res://Player_Controller/player_character.tscn")
 const ROOM_LIGHT_SCENE := preload("res://scenes/room_light.tscn")
-const DUNGEON_LOADOUT: Array[WeaponResource] = [
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterN.tres"),
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterL.tres"),
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterM.tres"),
-	preload("res://Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/blasterQ.tres"),
-]
-
 @onready var generator: DungeonGenerator3D = %DungeonGenerator3D
 @onready var target_populator: DungeonTargetPopulator3D = %TargetPopulator
 @onready var status_label: Label = %StatusLabel
@@ -63,7 +56,6 @@ func _on_dungeon_generated() -> void:
 		status_label.text = "Dungeon generado, pero no se encontro un spawn."
 		return
 	player = PLAYER_SCENE.instantiate()
-	_add_dungeon_loadout(player)
 	add_child(player)
 	player.global_transform = (spawn_points.back() as Node3D).global_transform
 	round_controller.register_player(player)
@@ -73,17 +65,6 @@ func _on_dungeon_generated() -> void:
 
 func _on_generation_failed() -> void:
 	status_label.text = "La generacion fallo. Presiona F5 para reintentar."
-
-
-func _add_dungeon_loadout(player_instance: CharacterBody3D) -> void:
-	var manager = player_instance.get_node("Camera/LeanPivot/MainCamera/Weapons_Manager")
-	manager.max_weapons = 5
-	for weapon_resource in DUNGEON_LOADOUT:
-		var slot := WeaponSlot.new()
-		slot.weapon = weapon_resource
-		slot.current_ammo = weapon_resource.magazine
-		slot.reserve_ammo = weapon_resource.max_ammo
-		manager.weapon_stack.append(slot)
 
 
 func _add_room_lights() -> void:

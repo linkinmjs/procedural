@@ -1,11 +1,16 @@
 extends CanvasLayer
 
+@onready var spread_sight: DynamicCrosshair = $SpreadSight
 @onready var current_weapon_label = $debug_hud/HBoxContainer/CurrentWeapon
 @onready var current_ammo_label = $debug_hud/HBoxContainer2/CurrentAmmo
 @onready var current_weapon_stack = $debug_hud/HBoxContainer3/WeaponStack
 @onready var hit_sight = $HitSight
 @onready var hit_sight_timer = $HitSight/HitSightTimer
 @onready var overLay = $Overlay
+
+func _on_weapons_manager_spread_changed(spread_pixels: float) -> void:
+	spread_sight.set_spread(spread_pixels)
+
 
 func _on_weapons_manager_update_weapon_stack(WeaponStack):
 	current_weapon_stack.text = ""

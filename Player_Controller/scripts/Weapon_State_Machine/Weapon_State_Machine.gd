@@ -9,15 +9,26 @@ signal attack_fired
 signal target_hit
 
 signal connect_weapon_to_hud
+## Dispersion actual del arma expresada en pixeles de viewport. La usa la mira
+## para abrirse cuando el jugador dispara o se mueve.
+signal spread_changed(spread_pixels: float)
 
 @export var animation_player: AnimationPlayer
 @export var melee_hitbox: ShapeCast3D
 @export var max_weapons: int
 @export var enable_weapon_spread := true
+## Reproductor del sonido de disparo del arma activa.
+@export var fire_audio: AudioStreamPlayer3D
 @onready var bullet_point = get_node("%BulletPoint")
 @onready var debug_bullet = preload("res://Player_Controller/Spawnable_Objects/hit_debug.tscn")
 
 var next_weapon: WeaponSlot
+
+# Estado del retroceso dinamico (ver RecoilProfile).
+var _burst_shots: int = 0
+var _shot_spread: float = 0.0
+var _time_since_shot: float = 0.0
+var _last_spread_pixels: float = -1.0
 
 #The List of All Available weapons in the game
 var spray_profiles: Dictionary = {}
@@ -80,6 +91,20 @@ func _input(event: InputEvent) -> void:
 		if check_valid_weapon_slot():
 			melee()
 
+func _process(delta: float) -> void:
+	_time_since_shot += delta
+
+	var profile := _recoil_profile()
+	if profile:
+		if _time_since_shot >= profile.shot_reset_time:
+			_burst_shots = 0
+		_shot_spread = maxf(_shot_spread - profile.spread_recovery * delta, 0.0)
+
+	var pixels := _spread_to_pixels(_current_spread_degrees())
+	if not is_equal_approx(pixels, _last_spread_pixels):
+		_last_spread_pixels = pixels
+		spread_changed.emit(pixels)
+
 func check_valid_weapon_slot()->bool:
 	if current_weapon_slot:
 		if current_weapon_slot.weapon:
@@ -137,10 +162,95 @@ func shoot() -> void:
 			if enable_weapon_spread and current_weapon_slot.weapon.weapon_spray:
 				_count = _count + 1
 				Spread = spray_profiles[current_weapon_slot.weapon.weapon_name].Get_Spray(_count, current_weapon_slot.weapon.magazine)
-				
+			
+			Spread += _dynamic_spread_offset()
+			_apply_shot_recoil()
+			_play_weapon_sound(current_weapon_slot.weapon.fire_sound)
+			
 			load_projectile(Spread)
 	else:
+		_play_weapon_sound(current_weapon_slot.weapon.empty_sound)
 		reload()
+
+## Dispersion del disparo actual, en pixeles de viewport y en una direccion
+## aleatoria dentro del circulo de imprecision.
+func _dynamic_spread_offset() -> Vector2:
+	var profile := _recoil_profile()
+	if profile == null:
+		return Vector2.ZERO
+	
+	var radius := _spread_to_pixels(_current_spread_degrees())
+	
+	_burst_shots += 1
+	_time_since_shot = 0.0
+	_shot_spread = minf(_shot_spread + profile.spread_per_shot, profile.max_shot_spread)
+	
+	if radius <= 0.0:
+		return Vector2.ZERO
+	
+	# sqrt() reparte los impactos de forma uniforme dentro del circulo.
+	return Vector2.RIGHT.rotated(randf() * TAU) * radius * sqrt(randf())
+
+## Patada de camara del disparo actual. Crece con la rafaga y siempre empuja la
+## vista hacia arriba, como en Counter-Strike 1.6.
+func _apply_shot_recoil() -> void:
+	var profile := _recoil_profile()
+	if profile == null or owner == null or not owner.has_method("add_recoil"):
+		return
+	
+	# _burst_shots ya cuenta este disparo: el primero usa el retroceso base.
+	var burst := float(maxi(_burst_shots - 1, 0))
+	var pitch := minf(profile.vertical_kick + profile.vertical_kick_growth * burst, profile.max_vertical_kick)
+	var yaw := minf(profile.horizontal_kick + profile.horizontal_kick_growth * burst, profile.max_horizontal_kick)
+	
+	owner.add_recoil(pitch, yaw * randf_range(-1.0, 1.0), profile)
+
+func _play_weapon_sound(stream: AudioStream) -> void:
+	if stream == null or fire_audio == null:
+		return
+	if fire_audio.stream != stream:
+		fire_audio.stream = stream
+	fire_audio.play()
+
+func _recoil_profile() -> RecoilProfile:
+	if current_weapon_slot and current_weapon_slot.weapon:
+		return current_weapon_slot.weapon.recoil
+	return null
+
+## Imprecision total en grados: disparos recientes, movimiento, salto y postura.
+func _current_spread_degrees() -> float:
+	var profile := _recoil_profile()
+	if profile == null:
+		return 0.0
+	
+	var spread := profile.base_spread + _shot_spread
+	var body := owner as CharacterBody3D
+	
+	if body:
+		var declared_speed: Variant = body.get("base_speed")
+		var reference_speed: float = maxf(float(declared_speed), 0.001) if declared_speed != null else 4.0
+		var planar_speed := Vector2(body.velocity.x, body.velocity.z).length()
+		spread += profile.move_spread * clampf(planar_speed / reference_speed, 0.0, 1.0)
+		
+		if not body.is_on_floor():
+			spread += profile.air_spread
+		elif body.get("crouched") == true:
+			spread *= profile.crouch_multiplier
+	
+	return minf(spread, profile.max_spread)
+
+## Convierte un angulo de dispersion a pixeles sobre el plano de proyeccion.
+func _spread_to_pixels(spread_degrees: float) -> float:
+	if spread_degrees <= 0.0:
+		return 0.0
+	
+	var camera := get_parent() as Camera3D
+	if camera == null:
+		return 0.0
+	
+	var viewport_height: float = camera.get_viewport().get_visible_rect().size.y
+	var pixels_per_radian := (viewport_height * 0.5) / tan(deg_to_rad(camera.fov) * 0.5)
+	return tan(deg_to_rad(spread_degrees)) * pixels_per_radian
 		
 func load_projectile(_spread):
 	var _projectile:Projectile = current_weapon_slot.weapon.projectile_to_load.instantiate()
@@ -184,6 +294,8 @@ func calculate_reload() -> void:
 	
 	update_ammo.emit([current_weapon_slot.current_ammo, current_weapon_slot.reserve_ammo])
 	shot_count_update()
+	_burst_shots = 0
+	_shot_spread = 0.0
 
 func melee() -> void:
 	var Current_Anim = animation_player.get_current_animation()

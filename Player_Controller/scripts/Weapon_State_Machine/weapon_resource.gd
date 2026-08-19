@@ -42,6 +42,15 @@ signal Zoom
 ## The Range that a weapon will fire. Beyong this number no hit will trigger.
 @export var fire_range: int
 
+@export_group("Weapon Feel")
+## Perfil de retroceso e imprecision dinamica. Si es nulo el arma dispara sin
+## patada de camara y solo usa el Spray_Profile clasico.
+@export var recoil: RecoilProfile
+## Sonido que suena en cada disparo. Un AudioStreamRandomizer da variacion.
+@export var fire_sound: AudioStream
+## Sonido del gatillo en seco cuando se intenta disparar sin balas.
+@export var empty_sound: AudioStream
+
 @export_group("Weapon Behaviour")
 ##If Checked the weapon drop scene MUST be provided
 @export var can_be_dropped: bool

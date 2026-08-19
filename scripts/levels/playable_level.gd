@@ -11,6 +11,9 @@ const CORRIDOR_WIDTH := 3.5
 @export_file("*.json") var level_definition_path := "res://level_designs/levels/nivel-1.json"
 @export_range(0.05, 5.0, 0.05) var moving_block_speed := 0.65
 @export_range(0.0, 100.0, 1.0) var block_crossing_damage := 15.0
+## Segundos que el jugador pasa en la ultima habitacion antes de arrancar el
+## siguiente nivel de la secuencia.
+@export_range(0.0, 30.0, 0.1) var level_transition_delay := 3.0
 
 @onready var room_geometry: Node3D = %RoomGeometry
 @onready var connection_geometry: Node3D = %ConnectionGeometry
@@ -23,6 +26,12 @@ var level_data: Dictionary = {}
 var player: CharacterBody3D
 var room_nodes: Dictionary = {}
 var room_encounters: Dictionary = {}
+## Puertas por sala: se cierran al entrar y se abren al limpiar sus bloques.
+var room_doors: Dictionary = {}
+## IDs de las salas ordenadas de la entrada a la salida, siguiendo las conexiones.
+var room_order: Array[String] = []
+var _round_started := false
+var _round_completed := false
 var _floor_material: StandardMaterial3D
 var _wall_material: StandardMaterial3D
 var _corridor_material: StandardMaterial3D
@@ -56,7 +65,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func load_and_build_level() -> void:
-	var sequence = get_node("/root/LevelSequence")
+	var sequence := _level_sequence()
 	var sequence_path: String = sequence.get_current_level_path()
 	var active_level_path := sequence_path if not sequence_path.is_empty() else level_definition_path
 	level_data = LevelDefinitionLoader.load_level(active_level_path)
@@ -65,17 +74,104 @@ func load_and_build_level() -> void:
 		status_label.text = level_definition_path
 		return
 	level_name_label.text = "%s // %s" % [str(level_data.get("name", "Configured level")).to_upper(), sequence.get_position_text()]
+	room_order = _resolve_room_order()
 	_build_connections()
 	_build_rooms()
 	_spawn_player()
 	round_controller.round_duration = float(level_data.timeLimitSeconds)
 	round_controller.register_player(player)
-	round_controller.start_round()
+	round_controller.arm_round()
+	_wire_round_triggers()
 	status_label.text = "%d ROOMS // %d CONNECTIONS // F7 NEXT // F8 PREVIOUS" % [level_data.rooms.size(), level_data.connections.size()]
 
 
+## El cronometro arranca cuando el jugador deja la primera habitacion y se
+## detiene cuando pisa la ultima. Si el nivel tiene una sola sala no hay tramo
+## que cronometrar, asi que la ronda arranca de entrada.
+func _wire_round_triggers() -> void:
+	var first_encounter := _encounter_at(0)
+	var last_encounter := _encounter_at(room_order.size() - 1)
+	if room_order.size() < 2 or first_encounter == null or last_encounter == null:
+		round_controller.start_round()
+		return
+	first_encounter.body_exited.connect(_on_first_room_exited)
+	last_encounter.body_entered.connect(_on_last_room_entered)
+
+
+func _encounter_at(index: int) -> ConfiguredRoomEncounter3D:
+	if index < 0 or index >= room_order.size():
+		return null
+	return room_encounters.get(room_order[index], null) as ConfiguredRoomEncounter3D
+
+
+func _on_first_room_exited(body: Node3D) -> void:
+	if _round_started or body != player:
+		return
+	_round_started = true
+	round_controller.start_round()
+
+
+func _on_last_room_entered(body: Node3D) -> void:
+	if _round_completed or body != player:
+		return
+	_round_completed = true
+	round_controller.complete_round()
+	_start_level_transition()
+
+
+## Llegar a la ultima habitacion cierra el nivel: tras una pausa arranca el
+## siguiente de la secuencia, con el jugador en su habitacion de entrada.
+func _start_level_transition() -> void:
+	if not _level_sequence().has_next_level():
+		round_controller.add_log("CAMPAIGN COMPLETE // NO NEXT LEVEL", "system")
+		return
+	round_controller.add_log("EXIT REACHED // NEXT LEVEL IN %.0fS" % level_transition_delay, "system")
+	get_tree().create_timer(level_transition_delay).timeout.connect(_navigate_level.bind(true))
+
+
+func _level_sequence() -> Node:
+	return get_node("/root/LevelSequence")
+
+
+## Recorre las conexiones desde la entrada. Los niveles son cadenas lineales;
+## ante una bifurcacion se toma la primera salida no visitada.
+func _resolve_room_order() -> Array[String]:
+	var neighbours: Dictionary = {}
+	for room_variant in level_data.rooms:
+		neighbours[str((room_variant as Dictionary).id)] = PackedStringArray()
+	for connection_variant in level_data.connections:
+		var connection := connection_variant as Dictionary
+		var from_id := str(connection.fromRoomId)
+		var to_id := str(connection.toRoomId)
+		if neighbours.has(from_id) and neighbours.has(to_id):
+			neighbours[from_id].append(to_id)
+			neighbours[to_id].append(from_id)
+	var order: Array[String] = []
+	var visited: Dictionary = {}
+	var current := str(_resolve_start_room().get("id", ""))
+	while not current.is_empty() and not visited.has(current):
+		visited[current] = true
+		order.append(current)
+		var next_id := ""
+		for neighbour in neighbours.get(current, PackedStringArray()) as PackedStringArray:
+			if not visited.has(neighbour):
+				next_id = neighbour
+				break
+		current = next_id
+	return order
+
+
+## La sala de entrada es la que se llama "Entrada"; si no existe, la primera.
+func _resolve_start_room() -> Dictionary:
+	for room_variant in level_data.rooms:
+		var room := room_variant as Dictionary
+		if str(room.name).to_lower() == "entrada":
+			return room
+	return level_data.rooms[0] as Dictionary
+
+
 func _navigate_level(forward: bool) -> void:
-	var sequence = get_node("/root/LevelSequence")
+	var sequence := _level_sequence()
 	var changed: bool = sequence.select_next_level() if forward else sequence.select_previous_level()
 	if changed:
 		get_tree().reload_current_scene()
@@ -95,8 +191,12 @@ func _build_rooms() -> void:
 		var width := float(room.size.width)
 		var depth := float(room.size.depth)
 		_add_box(room_root, "Floor", Vector3(0.0, -0.15, 0.0), Vector3(width, 0.3, depth), _floor_material)
+		var doors: Array[RoomDoor3D] = []
 		for wall in ["north", "east", "south", "west"]:
-			_add_room_wall(room_root, wall, width, depth, (openings.get(str(room.id), []) as Array).has(wall))
+			var door := _add_room_wall(room_root, wall, width, depth, (openings.get(str(room.id), []) as Array).has(wall))
+			if door != null:
+				doors.append(door)
+		room_doors[str(room.id)] = doors
 		_add_room_label(room_root, str(room.name))
 		_add_room_light(room_root, Vector3(width, WALL_HEIGHT, depth))
 		var encounter := ConfiguredRoomEncounter3D.new()
@@ -105,6 +205,8 @@ func _build_rooms() -> void:
 		encounter.movement_speed = moving_block_speed
 		encounter.crossing_damage = block_crossing_damage
 		encounter.configure(room)
+		encounter.encounter_started.connect(_on_encounter_started)
+		encounter.encounter_cleared.connect(_on_encounter_cleared)
 		encounters.add_child(encounter)
 		room_encounters[str(room.id)] = encounter
 
@@ -126,7 +228,9 @@ func _append_unique(values: Array, value: String) -> void:
 		values.append(value)
 
 
-func _add_room_wall(parent: Node3D, wall: String, width: float, depth: float, has_opening: bool) -> void:
+## Levanta una pared de la sala. Si hay una abertura deja el vano y devuelve la
+## puerta que lo tapa, todavia abierta.
+func _add_room_wall(parent: Node3D, wall: String, width: float, depth: float, has_opening: bool) -> RoomDoor3D:
 	var is_horizontal := wall == "north" or wall == "south"
 	var length := width if is_horizontal else depth
 	var fixed_offset := (-depth * 0.5 if wall == "north" else depth * 0.5) if is_horizontal else (-width * 0.5 if wall == "west" else width * 0.5)
@@ -134,13 +238,52 @@ func _add_room_wall(parent: Node3D, wall: String, width: float, depth: float, ha
 		var size := Vector3(length, WALL_HEIGHT, WALL_THICKNESS) if is_horizontal else Vector3(WALL_THICKNESS, WALL_HEIGHT, length)
 		var position := Vector3(0.0, WALL_HEIGHT * 0.5, fixed_offset) if is_horizontal else Vector3(fixed_offset, WALL_HEIGHT * 0.5, 0.0)
 		_add_box(parent, "%sWall" % wall.capitalize(), position, size, _wall_material)
-		return
+		return null
 	var segment_length := maxf((length - DOOR_WIDTH) * 0.5, 0.1)
 	var segment_offset := DOOR_WIDTH * 0.5 + segment_length * 0.5
 	for side in [-1.0, 1.0]:
 		var segment_size := Vector3(segment_length, WALL_HEIGHT, WALL_THICKNESS) if is_horizontal else Vector3(WALL_THICKNESS, WALL_HEIGHT, segment_length)
 		var segment_position := Vector3(side * segment_offset, WALL_HEIGHT * 0.5, fixed_offset) if is_horizontal else Vector3(fixed_offset, WALL_HEIGHT * 0.5, side * segment_offset)
 		_add_box(parent, "%sWallSegment" % wall.capitalize(), segment_position, segment_size, _wall_material)
+	return _add_room_door(parent, wall, is_horizontal, fixed_offset)
+
+
+func _add_room_door(parent: Node3D, wall: String, is_horizontal: bool, fixed_offset: float) -> RoomDoor3D:
+	var door := RoomDoor3D.new()
+	door.name = "%sDoor" % wall.capitalize()
+	door.door_size = Vector3(DOOR_WIDTH, WALL_HEIGHT, WALL_THICKNESS) if is_horizontal else Vector3(WALL_THICKNESS, WALL_HEIGHT, DOOR_WIDTH)
+	door.position = Vector3(0.0, WALL_HEIGHT * 0.5, fixed_offset) if is_horizontal else Vector3(fixed_offset, WALL_HEIGHT * 0.5, 0.0)
+	# El vano esta en un borde de la sala, asi que el interior queda del lado
+	# opuesto al desplazamiento de esa pared.
+	door.inward_direction = Vector3(0.0, 0.0, -signf(fixed_offset)) if is_horizontal else Vector3(-signf(fixed_offset), 0.0, 0.0)
+	parent.add_child(door)
+	return door
+
+
+## Entrar a una sala con bloques la sella: sus puertas se cierran detras del
+## jugador y no vuelven a abrirse hasta que caiga el ultimo bloque.
+func _on_encounter_started(encounter: ConfiguredRoomEncounter3D) -> void:
+	var doors := _doors_for(encounter.room_id)
+	if doors.is_empty():
+		return
+	for door in doors:
+		door.request_close(player)
+	round_controller.add_log("%s SEALED" % encounter.room_label.to_upper(), "danger")
+
+
+func _on_encounter_cleared(encounter: ConfiguredRoomEncounter3D) -> void:
+	var was_sealed := false
+	for door in _doors_for(encounter.room_id):
+		was_sealed = was_sealed or door.is_closed
+		door.open()
+	if was_sealed:
+		round_controller.add_log("%s CLEAR // DOORS OPEN" % encounter.room_label.to_upper(), "system")
+
+
+func _doors_for(room_id: String) -> Array[RoomDoor3D]:
+	var doors: Array[RoomDoor3D] = []
+	doors.assign(room_doors.get(room_id, []))
+	return doors
 
 
 func _build_connections() -> void:
@@ -188,12 +331,7 @@ func _add_corridor_segment(start: Vector2, end: Vector2) -> void:
 
 
 func _spawn_player() -> void:
-	var start_room: Dictionary = level_data.rooms[0]
-	for room_variant in level_data.rooms:
-		var room := room_variant as Dictionary
-		if str(room.name).to_lower() == "entrada":
-			start_room = room
-			break
+	var start_room := _resolve_start_room()
 	var spawn_position := _room_center(start_room) + Vector3(0.0, 0.05, 0.0)
 	var look_target := _connected_room_center(str(start_room.id))
 	player = PLAYER_SCENE.instantiate()

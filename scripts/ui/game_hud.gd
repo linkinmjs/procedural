@@ -36,6 +36,7 @@ func bind(controller: RoundController) -> void:
 	controller.accuracy_changed.connect(_on_accuracy_changed)
 	controller.ammo_changed.connect(_on_ammo_changed)
 	controller.log_added.connect(_on_log_added)
+	controller.round_armed.connect(_on_round_armed)
 	controller.round_started.connect(_on_round_started)
 	controller.round_ended.connect(_on_round_ended)
 	_on_health_changed(controller.current_health, controller.max_health)
@@ -43,8 +44,8 @@ func bind(controller: RoundController) -> void:
 	_on_accuracy_changed(controller.hits, controller.attacks, controller.get_accuracy_percent())
 	_on_ammo_changed(controller.magazine_ammo, controller.reserve_ammo)
 	status_value.text = "ROUND // ACTIVE" if controller.is_running else "ROUND // STANDBY"
-	if controller.is_running and _logs.is_empty():
-		_on_log_added("ROUND STARTED", "system")
+	if _logs.is_empty():
+		_on_log_added("ROUND STARTED" if controller.is_running else "ROUND STANDBY", "system")
 
 
 func _bind_available_controller() -> void:
@@ -89,6 +90,10 @@ func _on_log_added(message: String, event_kind: String) -> void:
 
 func _on_round_ended(reason: String) -> void:
 	status_value.text = "ROUND // FAILED" if reason == "health_depleted" else "ROUND // COMPLETE"
+
+
+func _on_round_armed() -> void:
+	status_value.text = "ROUND // STANDBY"
 
 
 func _on_round_started() -> void:

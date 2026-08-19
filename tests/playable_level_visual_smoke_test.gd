@@ -20,6 +20,16 @@ func _ready() -> void:
 	await RenderingServer.frame_post_draw
 	if not _save_viewport("res://.godot/playable-level-sala-one.png"):
 		return
+	# Media vuelta para mirar el vano por el que se entro: al activarse el
+	# encuentro la sala queda sellada por detras.
+	level.player.global_position = Vector3(float(sala_one.position.x), 0.05, float(sala_one.position.z) - 3.0)
+	level.player.rotation = Vector3.ZERO
+	level.player.camera_rotation = Vector2.ZERO
+	await get_tree().process_frame
+	await get_tree().physics_frame
+	await RenderingServer.frame_post_draw
+	if not _save_viewport("res://.godot/playable-level-sealed-door.png"):
+		return
 	print("Playable level visual smoke test passed.")
 	get_tree().quit()
 

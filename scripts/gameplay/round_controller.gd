@@ -6,6 +6,7 @@ signal time_changed(time_remaining: float)
 signal accuracy_changed(hits: int, attacks: int, accuracy_percent: float)
 signal ammo_changed(magazine_ammo: int, reserve_ammo: int)
 signal log_added(message: String, event_kind: String)
+signal round_armed
 signal round_started
 signal round_ended(reason: String)
 
@@ -39,18 +40,42 @@ func _process(delta: float) -> void:
 		_finish_round("time_expired")
 
 
+## Deja la ronda lista pero con el cronometro detenido. El nivel la arranca
+## recien cuando el jugador sale de la primera habitacion.
+func arm_round() -> void:
+	_reset_counters()
+	is_running = false
+	_emit_round_state()
+	round_armed.emit()
+
+
 func start_round() -> void:
+	if is_running:
+		return
+	_reset_counters()
+	is_running = true
+	_emit_round_state()
+	round_started.emit()
+	add_log("ROUND STARTED", "system")
+
+
+## Cierra la ronda porque el jugador llego a la ultima habitacion.
+func complete_round() -> void:
+	_finish_round("exit_reached")
+
+
+func _reset_counters() -> void:
 	current_health = max_health
 	time_remaining = round_duration
 	hits = 0
 	attacks = 0
-	is_running = true
+
+
+func _emit_round_state() -> void:
 	health_changed.emit(current_health, max_health)
 	time_changed.emit(time_remaining)
-	accuracy_changed.emit(hits, attacks, 0.0)
+	accuracy_changed.emit(hits, attacks, get_accuracy_percent())
 	ammo_changed.emit(magazine_ammo, reserve_ammo)
-	round_started.emit()
-	add_log("ROUND STARTED", "system")
 
 
 func register_player(player: Node) -> void:
@@ -140,10 +165,13 @@ func _finish_round(reason: String) -> void:
 	if not is_running:
 		return
 	is_running = false
-	if reason == "health_depleted":
-		add_log("ROUND FAILED // HP DEPLETED", "danger")
-	else:
-		add_log("ROUND COMPLETE // TIME EXPIRED", "system")
+	match reason:
+		"health_depleted":
+			add_log("ROUND FAILED // HP DEPLETED", "danger")
+		"exit_reached":
+			add_log("ROUND COMPLETE // EXIT REACHED", "system")
+		_:
+			add_log("ROUND COMPLETE // TIME EXPIRED", "system")
 	round_ended.emit(reason)
 
 

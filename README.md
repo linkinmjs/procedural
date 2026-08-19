@@ -45,9 +45,17 @@ campania.
 
 Al iniciar el proyecto se carga el nivel JSON configurado. Sus salas, puertas, conexiones, luces, bloques de objetivos y tiempo de ronda se construyen en runtime. Los encuentros aparecen al entrar en cada sala.
 
+Al entrar a una sala que tiene bloques, sus vanos se sellan con una barrera roja
+y no se abren hasta que caiga el ultimo bloque. Las salas sin bloques (Entrada,
+Salida) nunca se sellan. La barrera cierra recien cuando el jugador se alejo del
+vano y esta del lado de adentro, asi que ni lo atrapa dentro de la geometria ni
+lo deja encerrado afuera si retrocede al pasillo.
+
+El cronometro no corre mientras el jugador sigue en la habitacion de entrada: la ronda queda en `STANDBY` y arranca recien cuando la deja. Se detiene al pisar la ultima habitacion, la que cierra la cadena de conexiones (`Entrada -> ... -> Salida`), y la ronda termina con motivo `exit_reached`.
+
 Los bloques JSON admiten color, velocidad individual y múltiples oleadas. Al destruir el último objetivo de una oleada aparece la siguiente; el bloque se cierra al completar todas. Los bloques spawnean ventanas estilo Windows, que se rompen disparando a la X, a un boton o a un cartel.
 
-El orden jugable se define en `level_designs/level-sequence.json`. Por ahora F7 y F8 cambian de nivel manualmente. El avance automático queda deliberadamente desacoplado hasta implementar la condición de victoria.
+El orden jugable se define en `level_designs/level-sequence.json`. Al pisar la ultima habitacion la ronda se cierra y, tres segundos despues, arranca el siguiente nivel de la secuencia con el jugador en su entrada. La pausa se configura con `level_transition_delay` en la escena del nivel. En el ultimo nivel del catalogo no hay salto: el feed anuncia `CAMPAIGN COMPLETE`. F7 y F8 siguen sirviendo para cambiar de nivel a mano.
 
 Las pelotas siguen disponibles como objetivo alternativo del bloque. Se destruyen con un impacto, y las variantes azules de penalizacion desaparecen a los 8 segundos y restan 15 HP si no son destruidas. Ni las pelotas ni las ventanas se mueven o reaparecen por su cuenta.
 

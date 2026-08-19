@@ -1,6 +1,12 @@
 class_name ConfiguredRoomEncounter3D
 extends Area3D
 
+## Se emite al entrar a una sala que tiene bloques: es lo que sella sus puertas.
+signal encounter_started(encounter: ConfiguredRoomEncounter3D)
+## Se emite cuando ya no queda ningun bloque en pie, o de entrada si la sala no
+## tenia ninguno.
+signal encounter_cleared(encounter: ConfiguredRoomEncounter3D)
+
 const TARGET_BLOCK_SCENE := preload("res://scenes/targets/target_block_3d.tscn")
 
 const RELATIVE_WALLS := {
@@ -18,6 +24,9 @@ var blocks_config: Dictionary = {}
 var movement_speed := 0.65
 var crossing_damage := 15.0
 var activated := false
+var cleared := false
+
+var _pending_blocks: Array[TargetBlock3D] = []
 
 
 func configure(room: Dictionary) -> void:
@@ -58,6 +67,10 @@ func activate() -> void:
 		var config: Dictionary = blocks_config.get(slot, {})
 		if bool(config.get("enabled", false)):
 			_spawn_block(slot, config)
+	if _pending_blocks.is_empty():
+		_mark_cleared()
+		return
+	encounter_started.emit(self)
 
 
 func _spawn_block(slot: String, config: Dictionary) -> void:
@@ -79,7 +92,22 @@ func _spawn_block(slot: String, config: Dictionary) -> void:
 	block.movement_direction = wall_setup.direction
 	block.block_size = wall_setup.size
 	block.travel_distance = wall_setup.distance
+	block.closed.connect(_on_block_closed)
+	_pending_blocks.append(block)
 	add_child(block)
+
+
+func _on_block_closed(block: TargetBlock3D) -> void:
+	_pending_blocks.erase(block)
+	if _pending_blocks.is_empty():
+		_mark_cleared()
+
+
+func _mark_cleared() -> void:
+	if cleared:
+		return
+	cleared = true
+	encounter_cleared.emit(self)
 
 
 func _get_wall_setup(wall: String) -> Dictionary:

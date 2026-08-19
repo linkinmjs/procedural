@@ -26,8 +26,8 @@ func _run() -> void:
 	if not is_instance_valid(level.player):
 		_fail("The player should spawn in the Entrada room.")
 		return
-	if not is_equal_approx(level.round_controller.round_duration, 90.0) or not level.round_controller.is_running:
-		_fail("The JSON time limit should start the round at 90 seconds.")
+	if not is_equal_approx(level.round_controller.round_duration, 90.0) or level.round_controller.is_running:
+		_fail("The JSON time limit should arm the round at 90 seconds without starting it.")
 		return
 	var manager = level.player.get_node("Camera/LeanPivot/MainCamera/Weapons_Manager")
 	if manager.weapon_stack.size() != 1 or manager.current_weapon_slot.weapon.weapon_name != "Glock":

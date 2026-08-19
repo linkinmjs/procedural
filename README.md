@@ -99,6 +99,7 @@ Prueba del sistema de ventanas:
 - [`docs/ventanas.md`](docs/ventanas.md): como armar ventanas disparables desde los templates, marcar zonas y probarlas.
 - [`docs/arma.md`](docs/arma.md): la Glock, su cargador, el retroceso y la imprecision dinamica.
 - [`docs/movilidad.md`](docs/movilidad.md): velocidades, friccion, salto, airstrafe y bunny hop.
+- [`docs/deuda_tecnica.md`](docs/deuda_tecnica.md): hallazgos de la revision de codigo pendientes de corregir.
 
 ## Editor de niveles
 

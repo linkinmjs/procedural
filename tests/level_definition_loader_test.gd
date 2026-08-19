@@ -6,35 +6,81 @@ func _initialize() -> void:
 	if level.is_empty():
 		_fail("The saved level definition should load.")
 		return
-	if int(level.schemaVersion) != 3 or int(level.timeLimitSeconds) != 90:
-		_fail("The loader should preserve schema version 3 and the 90 second limit.")
+	if int(level.schemaVersion) != 5 or int(level.timeLimitSeconds) != 90:
+		_fail("The loader should preserve schema version 5 and the 90 second limit.")
 		return
-	if level.rooms.size() != 4 or level.connections.size() != 3:
-		_fail("The loader should preserve all rooms and connections.")
+	var starting_ammo := LevelDefinitionLoader.get_starting_ammo(level)
+	if int(starting_ammo.magazine) != int(level.startingAmmo.magazine) or int(starting_ammo.reserve) != int(level.startingAmmo.reserve):
+		_fail("The loader should expose the level starting ammo as declared.")
 		return
-	var second_level := LevelDefinitionLoader.load_level("res://level_designs/levels/nivel-2.json")
-	if second_level.is_empty() or str(second_level.id) != "nivel-2":
-		_fail("Nivel 2 should have a valid, unique level identity.")
+	if level.rooms.size() != level.connections.size() + 1:
+		_fail("The loader should preserve every room and connection of the chain.")
 		return
-	if second_level.rooms.size() != 5 or second_level.connections.size() != 4:
-		_fail("The loader should preserve Nivel 2 rooms and connections.")
+	if not _check_roles(level):
 		return
-	var third_level := LevelDefinitionLoader.load_level("res://level_designs/levels/nivel-3.json")
-	if third_level.is_empty() or str(third_level.id) != "nivel-3":
-		_fail("Nivel 3 should have a valid identity matching the sequence catalog.")
-		return
-	if third_level.rooms.size() != 3 or third_level.connections.size() != 2:
-		_fail("The loader should preserve Nivel 3 rooms and connections.")
-		return
-	var fourth_level := LevelDefinitionLoader.load_level("res://level_designs/levels/nivel-4.json")
-	if fourth_level.is_empty() or str(fourth_level.id) != "nivel-4":
-		_fail("Nivel 4 should have a valid identity matching the sequence catalog.")
-		return
-	if fourth_level.rooms.size() != 3 or fourth_level.connections.size() != 2:
-		_fail("The loader should preserve Nivel 4 rooms and connections.")
+	if not _check_room_settings():
 		return
 	print("Level definition loader test passed.")
 	quit()
+
+
+## Un nivel declara donde empieza y donde termina el recorrido.
+func _check_roles(level: Dictionary) -> bool:
+	var start := LevelDefinitionLoader.get_start_room(level)
+	var exit := LevelDefinitionLoader.get_exit_room(level)
+	if start.is_empty() or str(start.get("role", "")) != "start":
+		_fail("The level should declare its start room.")
+		return false
+	if exit.is_empty() or str(exit.get("role", "")) != "exit":
+		_fail("The level should declare its exit room.")
+		return false
+	if str(start.id) == str(exit.id):
+		_fail("The start and exit rooms should be different.")
+		return false
+	for connection_variant in level.connections:
+		var width := LevelDefinitionLoader.get_corridor_width(level, connection_variant as Dictionary)
+		if width < LevelDefinitionLoader.MIN_CORRIDOR_WIDTH or width > LevelDefinitionLoader.MAX_CORRIDOR_WIDTH:
+			_fail("Every corridor should declare a usable width.")
+			return false
+	return true
+
+
+## El ejemplo versionado cubre los tres modos nuevos: altura propia, cielo
+## abierto y recompensa de municion al limpiar la sala.
+func _check_room_settings() -> bool:
+	var example := LevelDefinitionLoader.load_level("res://level_designs/three-room-example.json")
+	if example.is_empty():
+		_fail("The versioned example should load.")
+		return false
+	var entry := LevelDefinitionLoader.get_start_room(example)
+	var arena := example.rooms[1] as Dictionary
+	if not is_equal_approx(LevelDefinitionLoader.get_room_facing(entry), 90.0):
+		_fail("The example start room should face its corridor.")
+		return false
+	if not is_equal_approx(LevelDefinitionLoader.get_room_wall_height(example, entry), 6.0):
+		_fail("A room without its own height should inherit the level default.")
+		return false
+	if not is_equal_approx(LevelDefinitionLoader.get_room_wall_height(example, arena), 9.0):
+		_fail("The arena should use its own wall height.")
+		return false
+	if not LevelDefinitionLoader.room_has_ceiling(example, entry):
+		_fail("A room without its own ceiling flag should inherit the level default.")
+		return false
+	if LevelDefinitionLoader.room_has_ceiling(example, arena):
+		_fail("The arena should stay open to the sky.")
+		return false
+	var entry_reward := LevelDefinitionLoader.get_room_ammo_reward(entry)
+	var arena_reward := LevelDefinitionLoader.get_room_ammo_reward(arena)
+	if bool(entry_reward.enabled) or int(entry_reward.amount) != 0:
+		_fail("The entry room should not reward ammo.")
+		return false
+	if not bool(arena_reward.enabled) or int(arena_reward.amount) != 40:
+		_fail("The arena should reward forty rounds once cleared.")
+		return false
+	if not LevelDefinitionLoader.get_room_texture(example, arena, "walls").is_empty():
+		_fail("Textures are still unassigned in the versioned example.")
+		return false
+	return true
 
 
 func _fail(message: String) -> void:

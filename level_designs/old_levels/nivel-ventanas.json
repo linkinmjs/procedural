@@ -1,10 +1,25 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "id": "nivel-ventanas",
   "name": "Prueba de ventanas",
   "description": "Nivel de pruebas: los bloques spawnean ventanas en lugar de esferas.",
   "timeLimitSeconds": 120,
   "gridSize": 1,
+  "startingAmmo": {
+    "magazine": 17,
+    "reserve": 51
+  },
+  "defaults": {
+    "wallHeight": 6,
+    "hasCeiling": true,
+    "textures": {
+      "walls": "",
+      "floor": "",
+      "ceiling": "",
+      "door": "",
+      "block": ""
+    }
+  },
   "rooms": [
     {
       "id": "ventanas-entrada",
@@ -21,6 +36,20 @@
       "entry": {
         "wall": "south",
         "offset": 0
+      },
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
       },
       "blocks": {
         "left": {
@@ -61,6 +90,20 @@
       "entry": {
         "wall": "north",
         "offset": 0
+      },
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
       },
       "blocks": {
         "left": {
@@ -104,6 +147,20 @@
       "entry": {
         "wall": "west",
         "offset": 0
+      },
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
       },
       "blocks": {
         "left": {
@@ -150,6 +207,20 @@
       "entry": {
         "wall": "south",
         "offset": 0
+      },
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
       },
       "blocks": {
         "left": {

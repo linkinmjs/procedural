@@ -3,10 +3,17 @@ extends Node3D
 
 const PLAYER_SCENE := preload("res://scenes/player/player_character.tscn")
 const ROOM_LIGHT_SCENE := preload("res://scenes/environment/room_light.tscn")
+## Altura de respaldo cuando el nivel no declara la suya.
 const WALL_HEIGHT := 6.0
+const CEILING_THICKNESS := 0.3
+const AMMO_PICKUP_SCENE := preload("res://scenes/weapons/glock_ammo_pickup.tscn")
 const WALL_THICKNESS := 0.35
-const DOOR_WIDTH := 3.5
-const CORRIDOR_WIDTH := 3.5
+## Alto del vano. Deja dintel sobre la puerta en vez de abrir la pared entera,
+## para que despues entre una hoja de puerta.
+const DOOR_HEIGHT := 3.0
+## Pared que queda como minimo sobre el vano.
+const LINTEL_HEIGHT := 0.6
+
 
 @export_file("*.json") var level_definition_path := "res://level_designs/levels/nivel-1.json"
 @export_range(0.05, 5.0, 0.05) var moving_block_speed := 0.65
@@ -35,12 +42,21 @@ var _round_completed := false
 var _floor_material: StandardMaterial3D
 var _wall_material: StandardMaterial3D
 var _corridor_material: StandardMaterial3D
+var _ceiling_material: StandardMaterial3D
+## Toda la geometria del nivel vive en un unico arbol CSG: la union elimina las
+## caras internas donde las salas y los pasillos se tocan, que es lo que se veia
+## como costuras y parpadeos entre cajas superpuestas.
+var _shell: CSGCombiner3D
+## Recortes de los vanos. Se aplican al final para que resten sobre el conjunto
+## ya unido, no solo sobre la caja anterior.
+var _openings: Array[CSGBox3D] = []
 
 
 func _ready() -> void:
 	_floor_material = _make_material(Color(0.075, 0.11, 0.14), 0.92)
 	_wall_material = _make_material(Color(0.10, 0.27, 0.34), 0.74)
 	_corridor_material = _make_material(Color(0.09, 0.17, 0.21), 0.86)
+	_ceiling_material = _make_material(Color(0.06, 0.09, 0.12), 0.95)
 	load_and_build_level()
 
 
@@ -75,8 +91,10 @@ func load_and_build_level() -> void:
 		return
 	level_name_label.text = "%s // %s" % [str(level_data.get("name", "Configured level")).to_upper(), sequence.get_position_text()]
 	room_order = _resolve_room_order()
-	_build_connections()
+	_build_shell()
 	_build_rooms()
+	_build_connections()
+	_carve_openings()
 	_spawn_player()
 	round_controller.round_duration = float(level_data.timeLimitSeconds)
 	round_controller.register_player(player)
@@ -90,8 +108,11 @@ func load_and_build_level() -> void:
 ## que cronometrar, asi que la ronda arranca de entrada.
 func _wire_round_triggers() -> void:
 	var first_encounter := _encounter_at(0)
-	var last_encounter := _encounter_at(room_order.size() - 1)
-	if room_order.size() < 2 or first_encounter == null or last_encounter == null:
+	var exit_room := LevelDefinitionLoader.get_exit_room(level_data)
+	var last_encounter := room_encounters.get(str(exit_room.get("id", "")), null) as ConfiguredRoomEncounter3D
+	if last_encounter == null:
+		last_encounter = _encounter_at(room_order.size() - 1)
+	if room_order.size() < 2 or first_encounter == null or last_encounter == null or first_encounter == last_encounter:
 		round_controller.start_round()
 		return
 	first_encounter.body_exited.connect(_on_first_room_exited)
@@ -161,13 +182,10 @@ func _resolve_room_order() -> Array[String]:
 	return order
 
 
-## La sala de entrada es la que se llama "Entrada"; si no existe, la primera.
+## El jugador aparece en la sala marcada como inicio.
 func _resolve_start_room() -> Dictionary:
-	for room_variant in level_data.rooms:
-		var room := room_variant as Dictionary
-		if str(room.name).to_lower() == "entrada":
-			return room
-	return level_data.rooms[0] as Dictionary
+	var start := LevelDefinitionLoader.get_start_room(level_data)
+	return start if not start.is_empty() else level_data.rooms[0] as Dictionary
 
 
 func _navigate_level(forward: bool) -> void:
@@ -179,82 +197,147 @@ func _navigate_level(forward: bool) -> void:
 	round_controller.add_log("NO %s LEVEL" % ("NEXT" if forward else "PREVIOUS"), "info")
 
 
+## Contenedor unico de la geometria solida. La colision sale del resultado ya
+## combinado, asi que los vanos quedan abiertos tambien para la fisica.
+func _build_shell() -> void:
+	_openings.clear()
+	_shell = CSGCombiner3D.new()
+	_shell.name = "LevelShell"
+	_shell.use_collision = true
+	room_geometry.add_child(_shell)
+
+
 func _build_rooms() -> void:
 	var openings := _collect_room_openings()
 	for room_variant in level_data.rooms:
 		var room := room_variant as Dictionary
-		var room_root := Node3D.new()
-		room_root.name = _safe_node_name(str(room.name))
-		room_root.position = _room_center(room)
-		room_geometry.add_child(room_root)
-		room_nodes[str(room.id)] = room_root
+		var room_id := str(room.id)
+		var safe_name := _safe_node_name(str(room.name))
+		var center := _room_center(room)
 		var width := float(room.size.width)
 		var depth := float(room.size.depth)
-		_add_box(room_root, "Floor", Vector3(0.0, -0.15, 0.0), Vector3(width, 0.3, depth), _floor_material)
+		var wall_height := LevelDefinitionLoader.get_room_wall_height(level_data, room)
+		# El marcador sostiene lo que no es geometria solida: luz, cartel y las
+		# puertas, que se mueven aparte del casco del nivel.
+		var room_marker := Node3D.new()
+		room_marker.name = safe_name
+		room_marker.position = center
+		room_geometry.add_child(room_marker)
+		room_nodes[room_id] = room_marker
+
+		_add_box(_shell, "%sFloor" % safe_name, center + Vector3(0.0, -0.15, 0.0),
+				Vector3(width, 0.3, depth), _floor_material)
+		if LevelDefinitionLoader.room_has_ceiling(level_data, room):
+			_add_box(_shell, "%sCeiling" % safe_name, center + Vector3(0.0, wall_height + CEILING_THICKNESS * 0.5, 0.0),
+					Vector3(width, CEILING_THICKNESS, depth), _ceiling_material)
+		var room_openings: Dictionary = openings.get(room_id, {}) as Dictionary
 		var doors: Array[RoomDoor3D] = []
 		for wall in ["north", "east", "south", "west"]:
-			var door := _add_room_wall(room_root, wall, width, depth, (openings.get(str(room.id), []) as Array).has(wall))
-			if door != null:
-				doors.append(door)
-		room_doors[str(room.id)] = doors
-		_add_room_label(room_root, str(room.name))
-		_add_room_light(room_root, Vector3(width, WALL_HEIGHT, depth))
+			_add_room_wall(safe_name, center, wall, width, depth, wall_height)
+			var opening_width := float(room_openings.get(wall, 0.0))
+			if opening_width <= 0.0:
+				continue
+			doors.append(_add_room_opening(room_marker, wall, width, depth, wall_height, opening_width))
+		room_doors[room_id] = doors
+
+		_add_room_label(room_marker, str(room.name), wall_height)
+		_add_room_light(room_marker, Vector3(width, wall_height, depth))
 		var encounter := ConfiguredRoomEncounter3D.new()
-		encounter.name = "%sEncounter" % _safe_node_name(str(room.name))
-		encounter.position = room_root.position
+		encounter.name = "%sEncounter" % safe_name
+		encounter.position = center
 		encounter.movement_speed = moving_block_speed
 		encounter.crossing_damage = block_crossing_damage
+		encounter.wall_height = wall_height
 		encounter.configure(room)
 		encounter.encounter_started.connect(_on_encounter_started)
 		encounter.encounter_cleared.connect(_on_encounter_cleared)
 		encounters.add_child(encounter)
-		room_encounters[str(room.id)] = encounter
+		room_encounters[room_id] = encounter
 
 
+## Una sala se abre unicamente donde la toca un pasillo, y el vano toma el ancho
+## de ese pasillo. La entrada de la sala inicial es conceptual (orienta sus
+## bloques), asi que no perfora la pared si no hay nada del otro lado.
 func _collect_room_openings() -> Dictionary:
 	var openings: Dictionary = {}
 	for room_variant in level_data.rooms:
-		var room := room_variant as Dictionary
-		openings[str(room.id)] = [str(room.entry.wall)]
+		openings[str((room_variant as Dictionary).id)] = {}
 	for connection_variant in level_data.connections:
 		var connection := connection_variant as Dictionary
-		_append_unique(openings[str(connection.fromRoomId)], str(connection.fromWall))
-		_append_unique(openings[str(connection.toRoomId)], str(connection.toWall))
+		var corridor_width := LevelDefinitionLoader.get_corridor_width(level_data, connection)
+		(openings[str(connection.fromRoomId)] as Dictionary)[str(connection.fromWall)] = corridor_width
+		(openings[str(connection.toRoomId)] as Dictionary)[str(connection.toWall)] = corridor_width
 	return openings
 
 
-func _append_unique(values: Array, value: String) -> void:
-	if not values.has(value):
-		values.append(value)
-
-
-## Levanta una pared de la sala. Si hay una abertura deja el vano y devuelve la
-## puerta que lo tapa, todavia abierta.
-func _add_room_wall(parent: Node3D, wall: String, width: float, depth: float, has_opening: bool) -> RoomDoor3D:
+## Cada pared se levanta entera. Los vanos se restan despues, asi la union no
+## deja los cantos de dos medias paredes a los lados de cada puerta.
+func _add_room_wall(safe_name: String, center: Vector3, wall: String, width: float, depth: float, wall_height: float) -> void:
 	var is_horizontal := wall == "north" or wall == "south"
 	var length := width if is_horizontal else depth
-	var fixed_offset := (-depth * 0.5 if wall == "north" else depth * 0.5) if is_horizontal else (-width * 0.5 if wall == "west" else width * 0.5)
-	if not has_opening:
-		var size := Vector3(length, WALL_HEIGHT, WALL_THICKNESS) if is_horizontal else Vector3(WALL_THICKNESS, WALL_HEIGHT, length)
-		var position := Vector3(0.0, WALL_HEIGHT * 0.5, fixed_offset) if is_horizontal else Vector3(fixed_offset, WALL_HEIGHT * 0.5, 0.0)
-		_add_box(parent, "%sWall" % wall.capitalize(), position, size, _wall_material)
-		return null
-	var segment_length := maxf((length - DOOR_WIDTH) * 0.5, 0.1)
-	var segment_offset := DOOR_WIDTH * 0.5 + segment_length * 0.5
-	for side in [-1.0, 1.0]:
-		var segment_size := Vector3(segment_length, WALL_HEIGHT, WALL_THICKNESS) if is_horizontal else Vector3(WALL_THICKNESS, WALL_HEIGHT, segment_length)
-		var segment_position := Vector3(side * segment_offset, WALL_HEIGHT * 0.5, fixed_offset) if is_horizontal else Vector3(fixed_offset, WALL_HEIGHT * 0.5, side * segment_offset)
-		_add_box(parent, "%sWallSegment" % wall.capitalize(), segment_position, segment_size, _wall_material)
-	return _add_room_door(parent, wall, is_horizontal, fixed_offset)
+	var offset := _wall_offset(wall, width, depth)
+	var size := Vector3(length, wall_height, WALL_THICKNESS) if is_horizontal else Vector3(WALL_THICKNESS, wall_height, length)
+	var position := center + Vector3(offset.x, wall_height * 0.5, offset.y)
+	_add_box(_shell, "%s%sWall" % [safe_name, wall.capitalize()], position, size, _wall_material)
 
 
-func _add_room_door(parent: Node3D, wall: String, is_horizontal: bool, fixed_offset: float) -> RoomDoor3D:
+## Marca el vano para recortarlo y cuelga la barrera que lo sella.
+func _add_room_opening(room_marker: Node3D, wall: String, width: float, depth: float, wall_height: float, opening_width: float) -> RoomDoor3D:
+	var is_horizontal := wall == "north" or wall == "south"
+	var length := width if is_horizontal else depth
+	var door_width := clampf(opening_width, 1.0, length - 0.2)
+	var door_height := _door_height_for(wall_height)
+	var offset := _wall_offset(wall, width, depth)
+	var local_position := Vector3(offset.x, door_height * 0.5, offset.y)
+	# El recorte cruza la pared de lado a lado para que no queden restos.
+	var cut_depth := WALL_THICKNESS * 3.0
+	var cut_size := Vector3(door_width, door_height, cut_depth) if is_horizontal else Vector3(cut_depth, door_height, door_width)
+	_add_opening_cut("%sOpening" % wall.capitalize(), room_marker.position + local_position, cut_size)
+	return _add_room_door(room_marker, wall, is_horizontal, local_position, door_width, door_height)
+
+
+func _wall_offset(wall: String, width: float, depth: float) -> Vector2:
+	match wall:
+		"north":
+			return Vector2(0.0, -depth * 0.5)
+		"south":
+			return Vector2(0.0, depth * 0.5)
+		"west":
+			return Vector2(-width * 0.5, 0.0)
+		_:
+			return Vector2(width * 0.5, 0.0)
+
+
+## Alto del vano: el de una puerta, salvo que la sala sea tan baja que no deje
+## lugar para el dintel.
+func _door_height_for(wall_height: float) -> float:
+	return clampf(minf(DOOR_HEIGHT, wall_height - LINTEL_HEIGHT), 1.8, wall_height)
+
+
+func _add_opening_cut(cut_name: String, position: Vector3, size: Vector3) -> void:
+	var cut := CSGBox3D.new()
+	cut.name = cut_name
+	cut.operation = CSGShape3D.OPERATION_SUBTRACTION
+	cut.position = position
+	cut.size = size
+	_openings.append(cut)
+
+
+## Los recortes van al final del arbol: CSG acumula en orden, asi que restar
+## despues de todas las uniones abre el vano en la pared y en el pasillo a la vez.
+func _carve_openings() -> void:
+	for cut in _openings:
+		_shell.add_child(cut)
+
+
+func _add_room_door(parent: Node3D, wall: String, is_horizontal: bool, local_position: Vector3, door_width: float, door_height: float) -> RoomDoor3D:
 	var door := RoomDoor3D.new()
 	door.name = "%sDoor" % wall.capitalize()
-	door.door_size = Vector3(DOOR_WIDTH, WALL_HEIGHT, WALL_THICKNESS) if is_horizontal else Vector3(WALL_THICKNESS, WALL_HEIGHT, DOOR_WIDTH)
-	door.position = Vector3(0.0, WALL_HEIGHT * 0.5, fixed_offset) if is_horizontal else Vector3(fixed_offset, WALL_HEIGHT * 0.5, 0.0)
+	door.door_size = Vector3(door_width, door_height, WALL_THICKNESS) if is_horizontal else Vector3(WALL_THICKNESS, door_height, door_width)
+	door.position = local_position
 	# El vano esta en un borde de la sala, asi que el interior queda del lado
 	# opuesto al desplazamiento de esa pared.
+	var fixed_offset := local_position.z if is_horizontal else local_position.x
 	door.inward_direction = Vector3(0.0, 0.0, -signf(fixed_offset)) if is_horizontal else Vector3(-signf(fixed_offset), 0.0, 0.0)
 	parent.add_child(door)
 	return door
@@ -278,6 +361,33 @@ func _on_encounter_cleared(encounter: ConfiguredRoomEncounter3D) -> void:
 		door.open()
 	if was_sealed:
 		round_controller.add_log("%s CLEAR // DOORS OPEN" % encounter.room_label.to_upper(), "system")
+	_spawn_ammo_reward(encounter.room_id)
+
+
+## Limpiar una sala configurada como recompensa deja un cargador en su centro.
+func _spawn_ammo_reward(room_id: String) -> void:
+	var room := _room_by_id(room_id)
+	if room.is_empty():
+		return
+	var reward := LevelDefinitionLoader.get_room_ammo_reward(room)
+	if not bool(reward.enabled) or int(reward.amount) <= 0:
+		return
+	var pickup := AMMO_PICKUP_SCENE.instantiate() as WeaponPickUp
+	pickup.name = "%sAmmoReward" % _safe_node_name(str(room.name))
+	pickup.position = _room_center(room) + Vector3(0.0, 1.2, 0.0)
+	var magazine: int = pickup.weapon.weapon.magazine
+	pickup.weapon.current_ammo = mini(int(reward.amount), magazine)
+	pickup.weapon.reserve_ammo = maxi(int(reward.amount) - magazine, 0)
+	add_child(pickup)
+	round_controller.add_log("%s // +%d ROUNDS" % [str(room.name).to_upper(), int(reward.amount)], "system")
+
+
+func _room_by_id(room_id: String) -> Dictionary:
+	for room_variant in level_data.rooms:
+		var room := room_variant as Dictionary
+		if str(room.id) == room_id:
+			return room
+	return {}
 
 
 func _doors_for(room_id: String) -> Array[RoomDoor3D]:
@@ -295,67 +405,140 @@ func _build_connections() -> void:
 		var connection := connection_variant as Dictionary
 		var from_room: Dictionary = rooms_by_id[str(connection.fromRoomId)]
 		var to_room: Dictionary = rooms_by_id[str(connection.toRoomId)]
-		var start := _wall_point(from_room, str(connection.fromWall))
-		var end := _wall_point(to_room, str(connection.toWall))
-		if is_equal_approx(start.x, end.x) or is_equal_approx(start.y, end.y):
-			_add_corridor_segment(start, end)
-		else:
-			var corner := Vector2((start.x + end.x) * 0.5, start.y)
-			var corner_two := Vector2(corner.x, end.y)
-			_add_corridor_segment(start, corner)
-			_add_corridor_segment(corner, corner_two)
-			_add_corridor_segment(corner_two, end)
+		var corridor_width := LevelDefinitionLoader.get_corridor_width(level_data, connection)
+		# El pasillo llega justo a la altura del vano mas bajo que une, asi el
+		# techo del pasillo apoya contra el dintel en vez de cortarlo.
+		var corridor_height := minf(
+				_door_height_for(LevelDefinitionLoader.get_room_wall_height(level_data, from_room)),
+				_door_height_for(LevelDefinitionLoader.get_room_wall_height(level_data, to_room)))
+		var plan := _corridor_plan(from_room, to_room, connection, corridor_width)
+		_add_corridor(plan.points, float(plan.width), corridor_height)
 
 
-func _add_corridor_segment(start: Vector2, end: Vector2) -> void:
+## Traza el pasillo entre dos salas y decide su ancho efectivo. Es el mismo
+## calculo que hace la herramienta en tools/level-editor/level-format.js.
+##
+## El primer tramo sale perpendicular a la pared que perfora, o el pasillo
+## arrancaria de costado y dejaria la puerta contra una pared: una conexion
+## norte / sur avanza primero en profundidad y una este / oeste, primero a lo
+## ancho. Si las dos puertas estan desalineadas menos que el ancho del pasillo
+## no hay lugar para un codo, asi que va recto y se ensancha lo justo para
+## cubrir ambas bocas.
+func _corridor_plan(from_room: Dictionary, to_room: Dictionary, connection: Dictionary, corridor_width: float) -> Dictionary:
+	var from_wall := str(connection.fromWall)
+	var start := _wall_point(from_room, from_wall)
+	var end := _wall_point(to_room, str(connection.toWall))
+	var exits_along_depth := from_wall == "north" or from_wall == "south"
+	var offset := absf(start.x - end.x) if exits_along_depth else absf(start.y - end.y)
+	if offset < 0.01:
+		return {"points": PackedVector2Array([start, end]), "width": corridor_width}
+	if offset <= corridor_width:
+		var widened := corridor_width + offset
+		if exits_along_depth:
+			var mid_x := (start.x + end.x) * 0.5
+			return {"points": PackedVector2Array([Vector2(mid_x, start.y), Vector2(mid_x, end.y)]), "width": widened}
+		var mid_y := (start.y + end.y) * 0.5
+		return {"points": PackedVector2Array([Vector2(start.x, mid_y), Vector2(end.x, mid_y)]), "width": widened}
+	if exits_along_depth:
+		var elbow_y := (start.y + end.y) * 0.5
+		return {"points": PackedVector2Array([start, Vector2(start.x, elbow_y), Vector2(end.x, elbow_y), end]), "width": corridor_width}
+	var elbow_x := (start.x + end.x) * 0.5
+	return {"points": PackedVector2Array([start, Vector2(elbow_x, start.y), Vector2(elbow_x, end.y), end]), "width": corridor_width}
+
+
+## Arma el pasillo como un tubo continuo: cada tramo aporta piso, techo y sus
+## dos paredes, y cada codo se cierra con un cubo del ancho del pasillo. Los
+## extremos que dan a un codo se recortan medio ancho, o las paredes del tramo
+## cruzarian el giro y lo taparian.
+func _add_corridor(points: PackedVector2Array, corridor_width: float, corridor_height: float) -> void:
+	for index in points.size() - 1:
+		_add_corridor_segment(points[index], points[index + 1], corridor_width, corridor_height,
+				index > 0, index < points.size() - 2)
+	for index in range(1, points.size() - 1):
+		_add_corridor_corner(points[index - 1], points[index], points[index + 1], corridor_width, corridor_height)
+
+
+func _add_corridor_segment(start: Vector2, end: Vector2, corridor_width: float, corridor_height: float, trim_start: bool, trim_end: bool) -> void:
 	var delta := end - start
-	var length := delta.length()
+	var full_length := delta.length()
+	if full_length < 0.05:
+		return
+	var direction := delta / full_length
+	var trimmed_start := start + direction * (corridor_width * 0.5 if trim_start else 0.0)
+	var trimmed_end := end - direction * (corridor_width * 0.5 if trim_end else 0.0)
+	var length := (trimmed_end - trimmed_start).length()
 	if length < 0.05:
 		return
-	var center := (start + end) * 0.5
+	var center := (trimmed_start + trimmed_end) * 0.5
 	var horizontal := absf(delta.x) >= absf(delta.y)
-	var floor_size := Vector3(length, 0.3, CORRIDOR_WIDTH) if horizontal else Vector3(CORRIDOR_WIDTH, 0.3, length)
-	_add_box(connection_geometry, "CorridorFloor", Vector3(center.x, -0.15, center.y), floor_size, _corridor_material)
+	var floor_size := Vector3(length, 0.3, corridor_width) if horizontal else Vector3(corridor_width, 0.3, length)
+	_add_box(_shell, "CorridorFloor", Vector3(center.x, -0.15, center.y), floor_size, _corridor_material)
+	var ceiling_size := Vector3(length, CEILING_THICKNESS, corridor_width) if horizontal else Vector3(corridor_width, CEILING_THICKNESS, length)
+	_add_box(_shell, "CorridorCeiling", Vector3(center.x, corridor_height + CEILING_THICKNESS * 0.5, center.y), ceiling_size, _ceiling_material)
+	_add_corridor_light(center, full_length, corridor_height)
+	for side in [-1.0, 1.0]:
+		var wall_size := Vector3(length, corridor_height, WALL_THICKNESS) if horizontal else Vector3(WALL_THICKNESS, corridor_height, length)
+		var wall_position := Vector3(center.x, corridor_height * 0.5, center.y + side * (corridor_width + WALL_THICKNESS) * 0.5) if horizontal else Vector3(center.x + side * (corridor_width + WALL_THICKNESS) * 0.5, corridor_height * 0.5, center.y)
+		_add_box(_shell, "CorridorWall", wall_position, wall_size, _wall_material)
+
+
+## Cierra un codo: piso y techo del giro, y pared en las dos caras por las que
+## el pasillo no entra ni sale.
+func _add_corridor_corner(previous: Vector2, corner: Vector2, next: Vector2, corridor_width: float, corridor_height: float) -> void:
+	var incoming := (corner - previous).normalized()
+	var outgoing := (next - corner).normalized()
+	_add_box(_shell, "CorridorCornerFloor", Vector3(corner.x, -0.15, corner.y),
+			Vector3(corridor_width, 0.3, corridor_width), _corridor_material)
+	_add_box(_shell, "CorridorCornerCeiling", Vector3(corner.x, corridor_height + CEILING_THICKNESS * 0.5, corner.y),
+			Vector3(corridor_width, CEILING_THICKNESS, corridor_width), _ceiling_material)
+	for face in [Vector2.RIGHT, Vector2.LEFT, Vector2.DOWN, Vector2.UP]:
+		if face.is_equal_approx(-incoming) or face.is_equal_approx(outgoing):
+			continue
+		var offset := (corridor_width + WALL_THICKNESS) * 0.5
+		var horizontal_face := absf(face.x) > absf(face.y)
+		var wall_length := corridor_width + WALL_THICKNESS * 2.0
+		var wall_size := Vector3(WALL_THICKNESS, corridor_height, wall_length) if horizontal_face else Vector3(wall_length, corridor_height, WALL_THICKNESS)
+		var wall_position := Vector3(corner.x + face.x * offset, corridor_height * 0.5, corner.y + face.y * offset)
+		_add_box(_shell, "CorridorCornerWall", wall_position, wall_size, _wall_material)
+
+
+func _add_corridor_light(center: Vector2, length: float, corridor_height: float) -> void:
 	var corridor_light := OmniLight3D.new()
 	corridor_light.name = "CorridorLight"
-	corridor_light.position = Vector3(center.x, 3.2, center.y)
+	corridor_light.position = Vector3(center.x, corridor_height - 0.4, center.y)
 	corridor_light.light_color = Color(0.58, 0.84, 1.0)
 	corridor_light.light_energy = 1.8
 	corridor_light.omni_range = clampf(length * 0.65, 6.0, 16.0)
 	corridor_light.shadow_enabled = false
 	connection_geometry.add_child(corridor_light)
-	for side in [-1.0, 1.0]:
-		var wall_size := Vector3(length, WALL_HEIGHT, WALL_THICKNESS) if horizontal else Vector3(WALL_THICKNESS, WALL_HEIGHT, length)
-		var wall_position := Vector3(center.x, WALL_HEIGHT * 0.5, center.y + side * CORRIDOR_WIDTH * 0.5) if horizontal else Vector3(center.x + side * CORRIDOR_WIDTH * 0.5, WALL_HEIGHT * 0.5, center.y)
-		_add_box(connection_geometry, "CorridorWall", wall_position, wall_size, _wall_material)
 
 
 func _spawn_player() -> void:
 	var start_room := _resolve_start_room()
-	var spawn_position := _room_center(start_room) + Vector3(0.0, 0.05, 0.0)
-	var look_target := _connected_room_center(str(start_room.id))
 	player = PLAYER_SCENE.instantiate()
-	player.position = spawn_position
-	if look_target != spawn_position:
-		var direction := (look_target - spawn_position).normalized()
-		player.rotation.y = atan2(-direction.x, -direction.z)
+	player.position = _room_center(start_room) + Vector3(0.0, 0.05, 0.0)
+	# La brujula del editor mide 0 grados al norte y crece hacia el este; en
+	# Godot el norte es -Z y los angulos de Y crecen al oeste.
+	player.rotation.y = -deg_to_rad(LevelDefinitionLoader.get_room_facing(start_room))
 	add_child(player)
+	_apply_starting_ammo()
 
 
-func _connected_room_center(room_id: String) -> Vector3:
-	for connection_variant in level_data.connections:
-		var connection := connection_variant as Dictionary
-		var other_id := ""
-		if str(connection.fromRoomId) == room_id:
-			other_id = str(connection.toRoomId)
-		elif str(connection.toRoomId) == room_id:
-			other_id = str(connection.fromRoomId)
-		if not other_id.is_empty():
-			for room_variant in level_data.rooms:
-				var room := room_variant as Dictionary
-				if str(room.id) == other_id:
-					return _room_center(room)
-	return Vector3.ZERO
+## El nivel decide con cuantas balas arranca el jugador, por encima de las que
+## trae configuradas la escena del personaje.
+func _apply_starting_ammo() -> void:
+	var manager := player.get_node_or_null("Camera/LeanPivot/MainCamera/Weapons_Manager")
+	if manager == null:
+		push_warning("PlayableLevel could not find the player's Weapons_Manager.")
+		return
+	var slot: WeaponSlot = manager.get("current_weapon_slot")
+	if slot == null:
+		push_warning("PlayableLevel could not find the player's active weapon slot.")
+		return
+	var starting_ammo := LevelDefinitionLoader.get_starting_ammo(level_data)
+	slot.current_ammo = mini(int(starting_ammo.magazine), slot.weapon.magazine)
+	slot.reserve_ammo = mini(int(starting_ammo.reserve), slot.weapon.max_ammo)
+	manager.update_ammo.emit([slot.current_ammo, slot.reserve_ammo])
 
 
 func _add_room_light(parent: Node3D, room_size: Vector3) -> void:
@@ -363,14 +546,15 @@ func _add_room_light(parent: Node3D, room_size: Vector3) -> void:
 	room_light.energy = 3.0
 	room_light.max_range = 24.0
 	parent.add_child(room_light)
-	room_light.position = Vector3(0.0, 3.2, 0.0)
+	# La luz cuelga bajo el techo, asi que sigue a la altura de la sala.
+	room_light.position = Vector3(0.0, minf(room_size.y - 0.8, 3.2), 0.0)
 	room_light.configure_for_room(room_size)
 
 
-func _add_room_label(parent: Node3D, label_text: String) -> void:
+func _add_room_label(parent: Node3D, label_text: String, wall_height: float) -> void:
 	var label := Label3D.new()
 	label.text = label_text.to_upper()
-	label.position = Vector3(0.0, 5.25, 0.0)
+	label.position = Vector3(0.0, maxf(wall_height - 0.75, 1.5), 0.0)
 	label.font_size = 48
 	label.modulate = Color(0.36, 0.92, 1.0)
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -384,8 +568,12 @@ func _add_box(parent: Node3D, box_name: String, box_position: Vector3, box_size:
 	box.position = box_position
 	box.size = box_size
 	box.material = material
-	box.use_collision = true
 	parent.add_child(box)
+
+
+func _level_wall_height() -> float:
+	var defaults: Dictionary = level_data.get("defaults", {}) as Dictionary
+	return clampf(float(defaults.get("wallHeight", WALL_HEIGHT)), 2.0, 20.0)
 
 
 func _room_center(room: Dictionary) -> Vector3:

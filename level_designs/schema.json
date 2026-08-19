@@ -1,14 +1,34 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://procedural-map.local/schemas/level-design-v3.json",
+  "$id": "https://procedural-map.local/schemas/level-design-v5.json",
   "title": "Procedural Map level design",
   "type": "object",
-  "required": ["schemaVersion", "id", "name", "timeLimitSeconds", "gridSize", "rooms", "connections"],
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "timeLimitSeconds",
+    "gridSize",
+    "startingAmmo",
+    "defaults",
+    "rooms",
+    "connections"
+  ],
   "properties": {
-    "schemaVersion": { "const": 3 },
-    "id": { "type": "string", "minLength": 1 },
-    "name": { "type": "string", "minLength": 1 },
-    "description": { "type": "string" },
+    "schemaVersion": {
+      "const": 5
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string"
+    },
     "timeLimitSeconds": {
       "type": "integer",
       "minimum": 1,
@@ -16,69 +36,324 @@
       "default": 90,
       "description": "Duración total configurada para el nivel, en segundos."
     },
-    "gridSize": { "type": "number", "exclusiveMinimum": 0 },
+    "gridSize": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "startingAmmo": {
+      "$ref": "#/$defs/startingAmmo",
+      "description": "Munición con la que el jugador arranca el nivel."
+    },
+    "defaults": {
+      "$ref": "#/$defs/levelDefaults",
+      "description": "Valores heredados por las salas que no los sobrescriben."
+    },
     "rooms": {
       "type": "array",
-      "items": { "$ref": "#/$defs/room" }
+      "items": {
+        "$ref": "#/$defs/room"
+      }
     },
     "connections": {
       "type": "array",
-      "items": { "$ref": "#/$defs/connection" }
+      "items": {
+        "$ref": "#/$defs/connection"
+      }
     }
   },
   "additionalProperties": false,
   "$defs": {
-    "wall": { "enum": ["north", "east", "south", "west"] },
+    "wall": {
+      "enum": [
+        "north",
+        "east",
+        "south",
+        "west"
+      ]
+    },
+    "wallHeight": {
+      "type": "number",
+      "minimum": 2,
+      "maximum": 20
+    },
+    "startingAmmo": {
+      "type": "object",
+      "required": [
+        "magazine",
+        "reserve"
+      ],
+      "properties": {
+        "magazine": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 200,
+          "description": "Balas cargadas en el arma al empezar."
+        },
+        "reserve": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 999,
+          "description": "Balas de reserva al empezar."
+        }
+      },
+      "additionalProperties": false
+    },
+    "textures": {
+      "type": "object",
+      "required": [
+        "walls",
+        "floor",
+        "ceiling",
+        "door",
+        "block"
+      ],
+      "description": "Identificadores del catálogo de texturas. Una cadena vacía usa el material procedural actual.",
+      "properties": {
+        "walls": {
+          "type": "string"
+        },
+        "floor": {
+          "type": "string"
+        },
+        "ceiling": {
+          "type": "string"
+        },
+        "door": {
+          "type": "string"
+        },
+        "block": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "levelDefaults": {
+      "type": "object",
+      "required": [
+        "wallHeight",
+        "hasCeiling",
+        "corridorWidth",
+        "textures"
+      ],
+      "properties": {
+        "wallHeight": {
+          "$ref": "#/$defs/wallHeight",
+          "default": 6
+        },
+        "hasCeiling": {
+          "type": "boolean",
+          "default": true
+        },
+        "textures": {
+          "$ref": "#/$defs/textures"
+        },
+        "corridorWidth": {
+          "type": "number",
+          "minimum": 1.5,
+          "maximum": 12,
+          "default": 3.5,
+          "description": "Ancho por defecto de los pasillos entre salas."
+        }
+      },
+      "additionalProperties": false
+    },
+    "ammoReward": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "amount",
+        "color"
+      ],
+      "description": "Bloque de munición que aparece al limpiar la sala y abrir sus puertas.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 999
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        }
+      },
+      "additionalProperties": false
+    },
     "block": {
       "type": "object",
-      "required": ["enabled", "movement", "movementSpeed", "color", "waves"],
+      "required": [
+        "enabled",
+        "movement",
+        "movementSpeed",
+        "color",
+        "waves"
+      ],
       "properties": {
-        "enabled": { "type": "boolean" },
-        "movement": { "enum": ["static", "opposite"] },
-        "movementSpeed": { "type": "number", "minimum": 0.05, "maximum": 5.0 },
-        "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "enabled": {
+          "type": "boolean"
+        },
+        "movement": {
+          "enum": [
+            "static",
+            "opposite"
+          ]
+        },
+        "movementSpeed": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 5.0
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
         "waves": {
           "type": "array",
-          "items": { "type": "integer", "minimum": 1, "maximum": 64 }
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          }
         }
       },
       "additionalProperties": false
     },
     "room": {
       "type": "object",
-      "required": ["id", "name", "type", "position", "size", "entry", "blocks"],
+      "required": [
+        "id",
+        "name",
+        "type",
+        "role",
+        "position",
+        "size",
+        "entry",
+        "facing",
+        "wallHeight",
+        "hasCeiling",
+        "ammoReward",
+        "textures",
+        "blocks"
+      ],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "name": { "type": "string", "minLength": 1 },
-        "type": { "enum": ["small", "large", "corridor", "custom"] },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "small",
+            "large",
+            "corridor",
+            "custom"
+          ]
+        },
+        "role": {
+          "$ref": "#/$defs/role"
+        },
         "position": {
           "type": "object",
-          "required": ["x", "z"],
-          "properties": { "x": { "type": "number" }, "z": { "type": "number" } },
+          "required": [
+            "x",
+            "z"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "z": {
+              "type": "number"
+            }
+          },
           "additionalProperties": false
         },
         "size": {
           "type": "object",
-          "required": ["width", "depth"],
+          "required": [
+            "width",
+            "depth"
+          ],
           "properties": {
-            "width": { "type": "number", "minimum": 4, "maximum": 40 },
-            "depth": { "type": "number", "minimum": 4, "maximum": 40 }
+            "width": {
+              "type": "number",
+              "minimum": 4,
+              "maximum": 40
+            },
+            "depth": {
+              "type": "number",
+              "minimum": 4,
+              "maximum": 40
+            }
           },
           "additionalProperties": false
         },
         "entry": {
           "type": "object",
-          "required": ["wall", "offset"],
-          "properties": { "wall": { "$ref": "#/$defs/wall" }, "offset": { "type": "number" } },
-          "additionalProperties": false
+          "required": [
+            "wall",
+            "offset"
+          ],
+          "properties": {
+            "wall": {
+              "$ref": "#/$defs/wall"
+            },
+            "offset": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Pared por la que entra el jugador. Es un valor derivado: la herramienta lo recalcula desde las conexiones y desde facing en la sala de inicio."
+        },
+        "facing": {
+          "$ref": "#/$defs/facing"
+        },
+        "wallHeight": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/wallHeight"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Altura de las paredes en metros. null hereda defaults.wallHeight."
+        },
+        "hasCeiling": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "false deja la sala a cielo abierto. null hereda defaults.hasCeiling."
+        },
+        "ammoReward": {
+          "$ref": "#/$defs/ammoReward"
+        },
+        "textures": {
+          "$ref": "#/$defs/textures"
         },
         "blocks": {
           "type": "object",
-          "required": ["left", "front", "right"],
+          "required": [
+            "left",
+            "front",
+            "right"
+          ],
           "properties": {
-            "left": { "$ref": "#/$defs/block" },
-            "front": { "$ref": "#/$defs/block" },
-            "right": { "$ref": "#/$defs/block" }
+            "left": {
+              "$ref": "#/$defs/block"
+            },
+            "front": {
+              "$ref": "#/$defs/block"
+            },
+            "right": {
+              "$ref": "#/$defs/block"
+            }
           },
           "additionalProperties": false
         }
@@ -87,15 +362,55 @@
     },
     "connection": {
       "type": "object",
-      "required": ["id", "fromRoomId", "toRoomId", "fromWall", "toWall"],
+      "required": [
+        "id",
+        "fromRoomId",
+        "toRoomId",
+        "fromWall",
+        "toWall",
+        "width"
+      ],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "fromRoomId": { "type": "string", "minLength": 1 },
-        "toRoomId": { "type": "string", "minLength": 1 },
-        "fromWall": { "$ref": "#/$defs/wall" },
-        "toWall": { "$ref": "#/$defs/wall" }
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fromRoomId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "toRoomId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fromWall": {
+          "$ref": "#/$defs/wall"
+        },
+        "toWall": {
+          "$ref": "#/$defs/wall"
+        },
+        "width": {
+          "type": "number",
+          "minimum": 1.5,
+          "maximum": 12,
+          "description": "Ancho del pasillo. Su largo sale de la distancia entre las salas."
+        }
       },
       "additionalProperties": false
+    },
+    "role": {
+      "enum": [
+        "start",
+        "transition",
+        "exit"
+      ],
+      "description": "Un nivel declara exactamente una sala start y una exit."
+    },
+    "facing": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 359,
+      "description": "Direccion en grados hacia la que mira el jugador. 0 es norte, 90 este. Solo se usa en la sala de inicio."
     }
   }
 }

@@ -15,59 +15,94 @@
     <div class="file-actions" aria-label="Acciones de archivo">
       <button id="new-level" type="button">Nuevo</button>
       <button id="load-example" type="button">Cargar ejemplo</button>
-      <label class="button" for="import-file">Importar JSON</label>
+      <label class="button" for="import-file">Importar</label>
       <input id="import-file" type="file" accept="application/json,.json" hidden>
-      <button id="save-file" type="button">Guardar JSON</button>
+      <button id="save-file" type="button">Guardar</button>
       <button id="download-file" class="primary" type="button">Descargar JSON</button>
     </div>
   </header>
 
   <main class="workspace">
-    <aside class="sidebar left-sidebar">
-      <section>
-        <h2>Nivel</h2>
-        <label>Nombre
-          <input id="level-name" type="text" maxlength="80">
-        </label>
-        <label>Descripción
-          <textarea id="level-description" rows="3" maxlength="300"></textarea>
-        </label>
-        <fieldset class="time-limit">
-          <legend>Tiempo límite</legend>
-          <div class="two-columns">
+    <aside class="sidebar level-sidebar">
+      <p class="sidebar-title">Configuración del nivel</p>
+
+      <details class="panel" open>
+        <summary>Identidad</summary>
+        <div class="panel-body">
+          <label>Nombre
+            <input id="level-name" type="text" maxlength="80">
+          </label>
+          <label>Descripción
+            <textarea id="level-description" rows="2" maxlength="300"></textarea>
+          </label>
+        </div>
+      </details>
+
+      <details class="panel" open>
+        <summary>Reglas</summary>
+        <div class="panel-body">
+          <div class="field-row">
             <label>Minutos<input id="level-time-minutes" type="number" min="0" max="60" step="1"></label>
             <label>Segundos<input id="level-time-seconds" type="number" min="0" max="59" step="1"></label>
           </div>
-          <p class="hint">Configuración global del nivel.</p>
-        </fieldset>
-      </section>
-
-      <section>
-        <h2>Agregar sala</h2>
-        <div class="stack-actions">
-          <button class="room-preset" data-room-type="small" type="button">Habitación pequeña</button>
-          <button class="room-preset" data-room-type="large" type="button">Habitación grande</button>
-          <button class="room-preset" data-room-type="corridor" type="button">Pasillo</button>
+          <p class="hint">Tiempo límite de la ronda.</p>
+          <div class="field-row">
+            <label>Cargador<input id="level-ammo-magazine" type="number" min="0" max="200" step="1"></label>
+            <label>Reserva<input id="level-ammo-reserve" type="number" min="0" max="999" step="1"></label>
+          </div>
+          <p class="hint">Balas iniciales. El cargador se recorta a la capacidad del arma.</p>
         </div>
-      </section>
+      </details>
 
-      <section>
-        <h2>Conexiones</h2>
-        <button id="connect-mode" type="button" aria-pressed="false">Unir dos salas</button>
-        <p id="connect-help" class="hint">Seleccioná una sala para editarla.</p>
-        <ul id="connection-list" class="connection-list"></ul>
-      </section>
+      <details class="panel" open>
+        <summary>Predeterminados de sala</summary>
+        <div class="panel-body">
+          <div class="field-row">
+            <label>Altura (m)<input id="level-wall-height" type="number" min="2" max="20" step="0.5"></label>
+            <label>Pasillos (m)<input id="level-corridor-width" type="number" min="1.5" max="12" step="0.5"></label>
+          </div>
+          <label class="switch">
+            <input id="level-has-ceiling" type="checkbox"> Las salas llevan techo
+          </label>
+          <p class="hint">Cada sala y cada pasillo puede usar su propio valor.</p>
+        </div>
+      </details>
+
+      <details class="panel" open>
+        <summary>Salas</summary>
+        <div class="panel-body">
+          <div class="preset-row">
+            <button class="room-preset" data-room-type="small" type="button">Pequeña</button>
+            <button class="room-preset" data-room-type="large" type="button">Grande</button>
+            <button class="room-preset" data-room-type="corridor" type="button">Pasillo</button>
+          </div>
+          <ul id="room-list" class="room-list"></ul>
+        </div>
+      </details>
+
+      <details class="panel" open>
+        <summary>Conexiones</summary>
+        <div class="panel-body">
+          <button id="connect-mode" type="button" aria-pressed="false">Unir dos salas</button>
+          <p id="connect-help" class="hint">Seleccioná una sala para editarla.</p>
+          <ul id="connection-list" class="connection-list"></ul>
+        </div>
+      </details>
     </aside>
 
     <section class="canvas-column" aria-label="Plano del nivel">
       <div class="canvas-toolbar">
         <span id="level-status">Borrador guardado localmente</span>
-        <span id="level-stats"></span>
+        <span class="view-controls">
+          <button id="zoom-out" class="subtle" type="button" title="Alejar">−</button>
+          <button id="zoom-in" class="subtle" type="button" title="Acercar">+</button>
+          <button id="zoom-fit" class="subtle" type="button" title="Encuadrar el nivel">Encuadrar</button>
+        </span>
       </div>
       <div class="canvas-frame">
         <svg id="level-canvas" viewBox="-35 -28 70 56" role="img" aria-labelledby="canvas-title canvas-description">
           <title id="canvas-title">Plano superior editable del nivel</title>
-          <desc id="canvas-description">Las salas se pueden seleccionar, arrastrar y conectar. Los bloques aparecen junto a sus paredes.</desc>
+          <desc id="canvas-description">Las salas se pueden seleccionar, arrastrar y conectar. Los pasillos, las entradas y los bloques se dibujan a escala.</desc>
           <defs>
             <pattern id="minor-grid" width="1" height="1" patternUnits="userSpaceOnUse">
               <path d="M 1 0 L 0 0 0 1" class="minor-grid-line"></path>
@@ -76,65 +111,150 @@
               <rect width="5" height="5" fill="url(#minor-grid)"></rect>
               <path d="M 5 0 L 0 0 0 5" class="major-grid-line"></path>
             </pattern>
+            <pattern id="open-sky" width="1.1" height="1.1" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="1.1" class="open-sky-line"></line>
+            </pattern>
           </defs>
-          <rect x="-100" y="-100" width="200" height="200" fill="url(#major-grid)"></rect>
-          <g id="connections-layer"></g>
+          <rect x="-400" y="-400" width="800" height="800" fill="url(#major-grid)"></rect>
+          <g id="corridors-layer"></g>
           <g id="rooms-layer"></g>
         </svg>
         <div class="legend" aria-label="Leyenda">
-          <span><i class="legend-room"></i>Sala</span>
+          <span><i class="legend-start"></i>Inicio</span>
+          <span><i class="legend-exit"></i>Salida</span>
           <span><i class="legend-door"></i>Entrada</span>
           <span><i class="legend-block"></i>Bloque</span>
           <span><i class="legend-moving"></i>Bloque móvil</span>
+          <span><i class="legend-ammo"></i>Munición</span>
+          <span><i class="legend-sky"></i>Cielo abierto</span>
         </div>
       </div>
-      <p class="canvas-tip">Arrastrá las salas para ordenarlas. El plano se ajusta a una grilla de 1 metro.</p>
+      <p class="canvas-tip"><span id="level-stats"></span></p>
+      <p class="canvas-tip">Arrastrá las salas sobre la grilla de 1 m. Rueda para acercar, arrastre del fondo para desplazar. La entrada de cada sala sale de sus conexiones.</p>
     </section>
 
     <aside class="sidebar inspector">
+      <p class="sidebar-title">Configuración de la sala</p>
+
       <div id="empty-inspector" class="empty-state">
-        <h2>Sin selección</h2>
-        <p>Agregá o seleccioná una sala para configurar su forma, entrada y bloques.</p>
+        <p>Agregá o seleccioná una sala para configurar su rol, su forma, sus bloques y sus texturas.</p>
       </div>
 
       <div id="room-inspector" hidden>
         <div class="section-heading">
-          <h2>Sala seleccionada</h2>
-          <button id="delete-room" class="danger subtle" type="button">Eliminar</button>
+          <h2 id="room-heading">Sala</h2>
+          <div class="room-tools">
+            <button id="duplicate-room" class="subtle" type="button">Duplicar</button>
+            <button id="delete-room" class="danger subtle" type="button">Eliminar</button>
+          </div>
         </div>
-        <label>Nombre
-          <input id="room-name" type="text" maxlength="60">
-        </label>
-        <label>Tipo
-          <select id="room-type">
-            <option value="small">Habitación pequeña</option>
-            <option value="large">Habitación grande</option>
-            <option value="corridor">Pasillo</option>
-            <option value="custom">Personalizada</option>
-          </select>
-        </label>
-        <div class="two-columns">
-          <label>Ancho (m)<input id="room-width" type="number" min="4" max="40" step="1"></label>
-          <label>Profundidad (m)<input id="room-depth" type="number" min="4" max="40" step="1"></label>
-          <label>X (m)<input id="room-x" type="number" min="-100" max="100" step="1"></label>
-          <label>Z (m)<input id="room-z" type="number" min="-100" max="100" step="1"></label>
-        </div>
-        <label>Pared de entrada
-          <select id="entry-wall">
-            <option value="north">Norte</option>
-            <option value="east">Este</option>
-            <option value="south">Sur</option>
-            <option value="west">Oeste</option>
-          </select>
-        </label>
 
-        <h2 class="blocks-title">Bloques relativos a la entrada</h2>
-        <div id="block-editors"></div>
+        <div class="segmented" role="radiogroup" aria-label="Rol de la sala">
+          <button class="segment" type="button" role="radio" data-role="start" aria-checked="false">Inicio</button>
+          <button class="segment" type="button" role="radio" data-role="transition" aria-checked="true">Tránsito</button>
+          <button class="segment" type="button" role="radio" data-role="exit" aria-checked="false">Salida</button>
+        </div>
+        <p id="role-help" class="hint"></p>
+
+        <div class="tabs" role="tablist" aria-label="Secciones de la sala">
+          <button class="tab" type="button" role="tab" data-tab="general" aria-selected="true">Sala</button>
+          <button class="tab" type="button" role="tab" data-tab="blocks" aria-selected="false">Bloques</button>
+          <button class="tab" type="button" role="tab" data-tab="textures" aria-selected="false">Texturas</button>
+        </div>
+
+        <div class="tab-panel" data-tab-panel="general" role="tabpanel">
+          <label>Nombre
+            <input id="room-name" type="text" maxlength="60">
+          </label>
+          <label>Tipo
+            <select id="room-type">
+              <option value="small">Habitación pequeña</option>
+              <option value="large">Habitación grande</option>
+              <option value="corridor">Pasillo</option>
+              <option value="custom">Personalizada</option>
+            </select>
+          </label>
+          <div class="field-row">
+            <label>Ancho (m)<input id="room-width" type="number" min="4" max="40" step="1"></label>
+            <label>Profundidad (m)<input id="room-depth" type="number" min="4" max="40" step="1"></label>
+            <label>X (m)<input id="room-x" type="number" min="-200" max="200" step="1"></label>
+            <label>Z (m)<input id="room-z" type="number" min="-200" max="200" step="1"></label>
+          </div>
+
+          <fieldset id="facing-field">
+            <legend>Orientación inicial</legend>
+            <p class="hint">Hacia dónde mira el jugador al aparecer.</p>
+            <div id="facing-compass" class="compass" role="radiogroup" aria-label="Dirección inicial del jugador">
+              <button class="compass-point" type="button" role="radio" data-facing="315" aria-checked="false" title="Noroeste">↖</button>
+              <button class="compass-point" type="button" role="radio" data-facing="0" aria-checked="false" title="Norte">↑</button>
+              <button class="compass-point" type="button" role="radio" data-facing="45" aria-checked="false" title="Noreste">↗</button>
+              <button class="compass-point" type="button" role="radio" data-facing="270" aria-checked="false" title="Oeste">←</button>
+              <span class="compass-center" aria-hidden="true"></span>
+              <button class="compass-point" type="button" role="radio" data-facing="90" aria-checked="false" title="Este">→</button>
+              <button class="compass-point" type="button" role="radio" data-facing="225" aria-checked="false" title="Suroeste">↙</button>
+              <button class="compass-point" type="button" role="radio" data-facing="180" aria-checked="false" title="Sur">↓</button>
+              <button class="compass-point" type="button" role="radio" data-facing="135" aria-checked="false" title="Sureste">↘</button>
+            </div>
+          </fieldset>
+
+          <fieldset id="entry-field">
+            <legend>Entrada</legend>
+            <p id="entry-summary" class="derived"></p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Volumen</legend>
+            <div class="field-row">
+              <label>Altura de paredes
+                <select id="room-wall-height-mode">
+                  <option value="inherit">Heredar</option>
+                  <option value="custom">Propia</option>
+                </select>
+              </label>
+              <label id="room-wall-height-field">Altura (m)
+                <input id="room-wall-height" type="number" min="2" max="20" step="0.5">
+              </label>
+            </div>
+            <label>Techo
+              <select id="room-ceiling">
+                <option value="inherit">Heredar del nivel</option>
+                <option value="closed">Con techo</option>
+                <option value="open">Cielo abierto</option>
+              </select>
+            </label>
+          </fieldset>
+        </div>
+
+        <div class="tab-panel" data-tab-panel="blocks" role="tabpanel" hidden>
+          <p class="hint">Los lados son relativos a la entrada de la sala. Cada bloque cubre su pared completa.</p>
+          <div id="block-editors"></div>
+          <fieldset class="ammo-reward">
+            <legend>Recompensa al limpiar</legend>
+            <label class="switch">
+              <input id="room-ammo-enabled" type="checkbox"> Spawnear bloque de munición
+            </label>
+            <div id="room-ammo-fields" hidden>
+              <div class="field-row">
+                <label>Balas<input id="room-ammo-amount" type="number" min="1" max="999" step="1"></label>
+                <label>Color<input id="room-ammo-color" type="color"></label>
+              </div>
+              <p class="hint">Aparece al destruir todos los bloques, cuando se abren las puertas.</p>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="tab-panel" data-tab-panel="textures" role="tabpanel" hidden>
+          <p class="hint">Un campo vacío usa el material procedural actual. El catálogo se completa desde <code>level_designs/texture-catalog.json</code>.</p>
+          <div id="texture-fields"></div>
+          <p id="texture-catalog-status" class="hint"></p>
+        </div>
       </div>
     </aside>
   </main>
 
+  <datalist id="texture-catalog-options"></datalist>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="level-format.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

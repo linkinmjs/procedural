@@ -1,10 +1,12 @@
 extends SceneTree
 
-## Al pisar la ultima habitacion el nivel se cierra y, tras la pausa
-## configurada, arranca el siguiente de la secuencia con el jugador en su
-## habitacion de entrada.
+## Al pisar la sala marcada como salida el nivel se cierra. Si la campania tiene
+## otro nivel por delante, tras la pausa configurada arranca el siguiente con el
+## jugador en su sala de inicio; si era el ultimo, la escena se queda donde esta.
 
 const TRANSITION_DELAY := 0.25
+
+var _sequence: Node
 
 
 func _initialize() -> void:
@@ -13,54 +15,76 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	var sequence := root.get_node("LevelSequence")
-	sequence.select_first_level()
+	_sequence = root.get_node("LevelSequence")
+	_sequence.select_first_level()
 	change_scene_to_file("res://scenes/levels/playable_level.tscn")
 	await _wait_frames(8)
 	var level := current_scene as PlayableLevel
-	if level == null or str(level.level_data.id) != "nivel-1":
-		_fail("The transition test should start on nivel-1.")
+	if level == null or level.level_data.is_empty():
+		_fail("The transition test should start on the first level of the sequence.")
 		return
 	level.level_transition_delay = TRANSITION_DELAY
+	# La escena anterior se libera al avanzar, asi que su identidad se guarda
+	# antes de disparar la transicion.
+	var previous_id := str(level.level_data.id)
 
+	# Salir de la sala de inicio arranca la ronda; pisar la salida la cierra.
 	level.player.global_position = Vector3(0.0, 1.0, 400.0)
 	await _wait_frames(6)
-	var last_room_id: String = level.room_order[level.room_order.size() - 1]
-	level.player.global_position = (level.room_nodes[last_room_id] as Node3D).global_position + Vector3(0.0, 1.0, 0.0)
+	var exit_room := LevelDefinitionLoader.get_exit_room(level.level_data)
+	if exit_room.is_empty():
+		_fail("The level should declare an exit room.")
+		return
+	var exit_node := level.room_nodes[str(exit_room.id)] as Node3D
+	level.player.global_position = exit_node.global_position + Vector3(0.0, 1.0, 0.0)
 	await _wait_frames(6)
 	if level.round_controller.is_running:
-		_fail("Reaching the last room should close the round before the transition.")
+		_fail("Reaching the exit room should close the round.")
 		return
 	if current_scene != level:
 		_fail("The level should not change before the transition delay elapses.")
 		return
 
+	var expects_next: bool = _sequence.has_next_level()
 	await create_timer(TRANSITION_DELAY + 0.2).timeout
 	await _wait_frames(8)
+	if not expects_next:
+		if not is_instance_valid(level) or current_scene != level:
+			_fail("The last level of the campaign should not advance anywhere.")
+			return
+		print("Level transition smoke test passed.")
+		quit()
+		return
+
 	var next_level := current_scene as PlayableLevel
-	if next_level == null or next_level == level:
+	if next_level == null or not is_instance_valid(next_level):
 		_fail("The transition should have loaded the next level scene.")
 		return
-	if str(next_level.level_data.id) != "nivel-2":
-		_fail("The sequence should advance to nivel-2, not to '%s'." % next_level.level_data.get("id", "?"))
+	if str(next_level.level_data.id) == previous_id:
+		_fail("The sequence should advance to a different level.")
 		return
-	if sequence.get_position_text() != "2 / 5":
+	if _sequence.get_position_text() != "2 / %d" % _sequence.get_level_count():
 		_fail("The level sequence position should follow the automatic advance.")
 		return
 	if next_level.round_controller.is_running:
 		_fail("The new level should arm its round on standby, not start it.")
 		return
-
-	var entrance_id: String = next_level.room_order[0]
-	var entrance_center: Vector3 = (next_level.room_nodes[entrance_id] as Node3D).global_position
-	var offset := Vector2(next_level.player.global_position.x - entrance_center.x, next_level.player.global_position.z - entrance_center.z)
-	if offset.length() > 1.0:
-		_fail("The player should respawn at the entrance of the next level.")
+	if not _check_spawn(next_level):
 		return
-
-	sequence.select_first_level()
+	_sequence.select_first_level()
 	print("Level transition smoke test passed.")
 	quit()
+
+
+## El jugador reaparece en la sala de inicio del nivel nuevo.
+func _check_spawn(level: PlayableLevel) -> bool:
+	var start_room := LevelDefinitionLoader.get_start_room(level.level_data)
+	var start_center: Vector3 = (level.room_nodes[str(start_room.id)] as Node3D).global_position
+	var offset := Vector2(level.player.global_position.x - start_center.x, level.player.global_position.z - start_center.z)
+	if offset.length() > 1.0:
+		_fail("The player should respawn at the start room of the next level.")
+		return false
+	return true
 
 
 func _wait_frames(count: int) -> void:

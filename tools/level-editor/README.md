@@ -4,26 +4,83 @@ Editor web local para diseñar niveles desde arriba. No necesita dependencias ni
 
 ## Uso
 
-Se puede abrir `index.html` directamente. Para servirlo desde una URL local, desde la raíz del repositorio:
+Se puede abrir `index.html` directamente, pero conviene servirlo para que el editor pueda leer el catálogo de texturas. Desde la raíz del repositorio:
 
 ```powershell
-python -m http.server 8080 --directory tools/level-editor
+python -m http.server 8080 --directory .
 ```
 
-Abrir `http://localhost:8080` en el navegador.
+Abrir `http://localhost:8080/tools/level-editor/` en el navegador.
 
-- Agregar salas pequeñas, grandes o pasillos.
-- Arrastrarlas sobre la grilla.
-- Activar **Unir dos salas** y seleccionar origen y destino.
-- Configurar la entrada y los bloques izquierdo, frontal y derecho de cada sala.
-- Elegir color, velocidad y si el bloque es estático o avanza hacia el lado contrario.
-- Configurar una o más oleadas de objetivos; la siguiente aparece al destruir la anterior.
-- Definir el tiempo límite global del nivel en minutos y segundos.
+La pantalla separa lo que se configura por nivel (columna izquierda) de lo que se configura por sala (columna derecha).
+
+## Configuración del nivel
+
+- **Identidad**: nombre y descripción.
+- **Reglas**: tiempo límite en minutos y segundos, y munición inicial. El cargador se recorta a la capacidad del arma: la Glock lleva 10 balas, así que un valor mayor entra igual pero se guarda el resto en la reserva.
+- **Predeterminados de sala**: altura de paredes, ancho de pasillos y si las salas llevan techo. Cada sala y cada pasillo puede usar su propio valor.
+- **Salas**: agregar pequeñas, grandes o pasillos, y seleccionarlas desde la lista.
+- **Conexiones**: unir dos salas y ajustar el ancho de cada pasillo.
+
+## Configuración de la sala
+
+Cada sala tiene un **rol**:
+
+- **Inicio**: donde aparece el jugador. Hay exactamente una por nivel.
+- **Tránsito**: cualquier sala intermedia.
+- **Salida**: llegar a ella cierra el nivel. Hay una como máximo.
+
+Marcar una sala como inicio o salida devuelve a tránsito a la que tenía ese rol.
+
+En la pestaña **Sala**:
+
+- Nombre, tipo, tamaño y posición.
+- **Orientación inicial** (sólo en la sala de inicio): una brújula de ocho direcciones decide hacia dónde mira el jugador al aparecer, para que no arranque contra una pared.
+- **Entrada**: es un dato calculado, no un campo. Se entra a cada sala por la pared que la une con la anterior, siguiendo el camino desde el inicio; en la sala de inicio, por la pared que le queda a la espalda del jugador. El resumen dice cuál quedó.
+- **Volumen**: altura de paredes propia o heredada, y techo heredado / cerrado / a cielo abierto.
+
+En la pestaña **Bloques**:
+
+- Los lados izquierdo, frontal y derecho son relativos a la entrada; el recuadro de cada bloque muestra sobre qué pared cae. Cambiar el recorrido del nivel los reorienta solo.
+- Cada bloque cubre su pared completa, de piso a techo, para que no se lo pueda esquivar mientras avanza.
+- Color, movimiento estático o hacia el lado contrario, velocidad y oleadas.
+- **Recompensa al limpiar**: un bloque de munición con la cantidad de balas indicada, que aparece cuando cae el último bloque y se abren las puertas.
+
+En la pestaña **Texturas**: paredes, suelo, techo, puertas y bloques.
+
+## Plano
+
+- Rueda del mouse para acercar, arrastre del fondo para desplazar, **Encuadrar** para ver todo el nivel.
+- Cada pasillo se dibuja como una sola figura cerrada, con su ancho real y sus codos resueltos, igual que la geometría que arma el juego. Si las puertas quedan desalineadas menos que el ancho, el pasillo se ensancha en lugar de quebrarse.
+- Las salas muestran su altura, si están a cielo abierto y cuántas balas entregan.
+- La sala de inicio muestra una flecha con la orientación del jugador.
+- Atajos: `Supr` elimina la sala seleccionada, `F` encuadra, `Ctrl+S` guarda.
+
+## Archivo
+
 - Guardar con el selector de archivos del navegador o descargar el JSON.
-- Colocar los archivos definitivos en `level_designs/`.
+- Colocar los archivos definitivos en `level_designs/levels/` y registrarlos en `level_designs/level-sequence.json`.
 
 El editor conserva automáticamente un borrador en el almacenamiento local del navegador. Ese borrador es una comodidad y no reemplaza a los JSON versionados en Git.
 
+## Estructura
+
+- `level-format.js` define el modelo de datos: límites, normalización, roles e inferencia de entradas. Lo comparten el editor, el migrador y los smoke tests, así que la lógica del formato tiene una sola implementación.
+- `app.js` es la interfaz: dibujo del plano, inspector y eventos.
+- `migrate-level.js` actualiza archivos versionados al formato actual.
+
+## Migrar diseños viejos
+
+Importar un archivo anterior desde el editor lo completa en memoria. Para migrar los archivos versionados en el disco:
+
+```powershell
+node tools/level-editor/migrate-level.js level_designs/levels/nivel-1.json
+```
+
+## Texturas
+
+Los campos de textura guardan identificadores del catálogo `level_designs/texture-catalog.json`. Ese catálogo todavía está vacío: los packs viven comprimidos en `assets/_raw/textures/` y hay que importarlos antes de poder elegirlos. Mientras tanto los campos aceptan texto libre y una cadena vacía significa "usar el material procedural actual".
+
 ## Alcance actual
 
-El formato registra la intención de diseño. Todavía no instancia estas definiciones dentro de Godot; esa importación será el siguiente puente entre la herramienta y el runtime.
+El runtime ya construye todo lo que declara el formato salvo las texturas: alturas, techos, pasillos con su ancho, roles, orientación inicial, munición y recompensas.

@@ -1,18 +1,17 @@
 {
-  "schemaVersion": 5,
-  "id": "f4-three-room-example",
-  "name": "Circuito de tres salas",
-  "description": "Ejemplo editable con sala pequeña, sala grande y pasillo.",
+  "schemaVersion": 4,
+  "id": "nivel-1",
+  "name": "Nivel 1",
+  "description": "",
   "timeLimitSeconds": 90,
   "gridSize": 1,
   "startingAmmo": {
     "magazine": 17,
-    "reserve": 34
+    "reserve": 51
   },
   "defaults": {
     "wallHeight": 6,
     "hasCeiling": true,
-    "corridorWidth": 3.5,
     "textures": {
       "walls": "",
       "floor": "",
@@ -23,23 +22,129 @@
   },
   "rooms": [
     {
-      "id": "room-entry",
+      "id": "c5ed6841-055e-4111-bad9-87542e3bc6ee",
       "name": "Entrada",
       "type": "small",
-      "role": "start",
       "position": {
-        "x": -18,
-        "z": 8
+        "x": -17,
+        "z": -13
       },
       "size": {
         "width": 14,
         "depth": 14
       },
       "entry": {
-        "wall": "west",
+        "wall": "south",
         "offset": 0
       },
-      "facing": 90,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "front": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "right": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        }
+      }
+    },
+    {
+      "id": "36ccfdaf-ad42-47ed-b2c3-7f7dbaafb7ac",
+      "name": "Salida",
+      "type": "small",
+      "position": {
+        "x": 20,
+        "z": -13
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "front": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "right": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        }
+      }
+    },
+    {
+      "id": "252e4253-f229-4a61-8cff-f91116f9696b",
+      "name": "Sala 1",
+      "type": "custom",
+      "position": {
+        "x": -17,
+        "z": 14
+      },
+      "size": {
+        "width": 24,
+        "depth": 18
+      },
+      "entry": {
+        "wall": "north",
+        "offset": 0
+      },
       "wallHeight": null,
       "hasCeiling": null,
       "ammoReward": {
@@ -68,7 +173,7 @@
           "movementSpeed": 0.65,
           "color": "#2ed5c5",
           "waves": [
-            4
+            10
           ]
         },
         "right": {
@@ -81,87 +186,22 @@
       }
     },
     {
-      "id": "room-arena",
-      "name": "Arena",
-      "type": "large",
-      "role": "transition",
+      "id": "9bfa5e95-f162-45b9-8ebc-b4b593b741fb",
+      "name": "Sala 2",
+      "type": "custom",
       "position": {
-        "x": 4,
-        "z": 5
-      },
-      "size": {
-        "width": 24,
-        "depth": 18
-      },
-      "entry": {
-        "wall": "west",
-        "offset": 0
-      },
-      "facing": 270,
-      "wallHeight": 9,
-      "hasCeiling": false,
-      "ammoReward": {
-        "enabled": true,
-        "amount": 40,
-        "color": "#f4bc59"
-      },
-      "textures": {
-        "walls": "",
-        "floor": "",
-        "ceiling": "",
-        "door": "",
-        "block": ""
-      },
-      "blocks": {
-        "left": {
-          "enabled": true,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#35d4c7",
-          "waves": [
-            5
-          ]
-        },
-        "front": {
-          "enabled": true,
-          "movement": "opposite",
-          "movementSpeed": 0.8,
-          "color": "#f4bc59",
-          "waves": [
-            3,
-            6
-          ]
-        },
-        "right": {
-          "enabled": true,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#35d4c7",
-          "waves": [
-            5
-          ]
-        }
-      }
-    },
-    {
-      "id": "room-corridor",
-      "name": "Pasillo de salida",
-      "type": "corridor",
-      "role": "exit",
-      "position": {
-        "x": 22,
-        "z": -11
+        "x": 20,
+        "z": 14
       },
       "size": {
         "width": 10,
         "depth": 28
       },
       "entry": {
-        "wall": "north",
+        "wall": "west",
         "offset": 0
       },
-      "facing": 0,
-      "wallHeight": 4,
+      "wallHeight": null,
       "hasCeiling": null,
       "ammoReward": {
         "enabled": false,
@@ -182,7 +222,7 @@
           "movementSpeed": 0.65,
           "color": "#2ed5c5",
           "waves": [
-            4
+            5
           ]
         },
         "front": {
@@ -198,7 +238,7 @@
           "movementSpeed": 0.65,
           "color": "#2ed5c5",
           "waves": [
-            4
+            5
           ]
         }
       }
@@ -206,20 +246,25 @@
   ],
   "connections": [
     {
-      "id": "connection-entry-arena",
-      "fromRoomId": "room-entry",
-      "toRoomId": "room-arena",
-      "fromWall": "east",
-      "toWall": "west",
-      "width": 3.5
+      "id": "b9043af5-3f4b-40e0-9946-13477815de0e",
+      "fromRoomId": "c5ed6841-055e-4111-bad9-87542e3bc6ee",
+      "toRoomId": "252e4253-f229-4a61-8cff-f91116f9696b",
+      "fromWall": "south",
+      "toWall": "north"
     },
     {
-      "id": "connection-arena-corridor",
-      "fromRoomId": "room-arena",
-      "toRoomId": "room-corridor",
-      "fromWall": "south",
-      "toWall": "north",
-      "width": 3.5
+      "id": "22faab49-0479-432c-be6e-a52e52d18e91",
+      "fromRoomId": "252e4253-f229-4a61-8cff-f91116f9696b",
+      "toRoomId": "9bfa5e95-f162-45b9-8ebc-b4b593b741fb",
+      "fromWall": "east",
+      "toWall": "west"
+    },
+    {
+      "id": "595f6900-1fcc-42f4-b1a8-6aeb8e3620bb",
+      "fromRoomId": "9bfa5e95-f162-45b9-8ebc-b4b593b741fb",
+      "toRoomId": "36ccfdaf-ad42-47ed-b2c3-7f7dbaafb7ac",
+      "fromWall": "north",
+      "toWall": "south"
     }
   ]
 }

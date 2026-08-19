@@ -1,60 +1,232 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const LevelFormat = require("../tools/level-editor/level-format.js");
 
 const html = fs.readFileSync("tools/level-editor/index.html", "utf8");
 const script = fs.readFileSync("tools/level-editor/app.js", "utf8");
+const styles = fs.readFileSync("tools/level-editor/styles.css", "utf8");
 const schema = JSON.parse(fs.readFileSync("level_designs/schema.json", "utf8"));
-const example = JSON.parse(fs.readFileSync("level_designs/three-room-example.json", "utf8"));
-const levelOne = JSON.parse(fs.readFileSync("level_designs/levels/nivel-1.json", "utf8"));
+const catalog = JSON.parse(fs.readFileSync("level_designs/texture-catalog.json", "utf8"));
+const levelPaths = [
+  "level_designs/three-room-example.json",
+  ...fs.readdirSync("level_designs/levels").map((file) => `level_designs/levels/${file}`)
+];
+
+// --- Controles del documento -------------------------------------------------
 
 for (const id of [
-  "level-canvas",
-  "rooms-layer",
-  "connections-layer",
-  "room-inspector",
-  "block-editors",
-  "level-time-minutes",
-  "level-time-seconds",
-  "import-file",
-  "download-file"
+  "level-canvas", "rooms-layer", "corridors-layer", "room-inspector", "block-editors",
+  "texture-fields", "room-list", "connection-list", "level-time-minutes", "level-time-seconds",
+  "level-ammo-magazine", "level-ammo-reserve", "level-wall-height", "level-corridor-width",
+  "level-has-ceiling", "room-wall-height", "room-wall-height-mode", "room-ceiling",
+  "room-ammo-enabled", "room-ammo-amount", "facing-compass", "entry-summary",
+  "duplicate-room", "zoom-fit", "import-file", "download-file"
 ]) {
   assert.match(html, new RegExp(`id=["']${id}["']`), `Falta el control #${id}`);
 }
-
-assert.equal(schema.properties.schemaVersion.const, 3);
-assert.equal(example.schemaVersion, 3);
-assert.equal(example.timeLimitSeconds, 90);
-assert.equal(schema.properties.timeLimitSeconds.minimum, 1);
-assert.equal(schema.properties.timeLimitSeconds.maximum, 3600);
-assert.equal(levelOne.timeLimitSeconds, 90);
-assert.equal(levelOne.schemaVersion, 3);
-assert.equal(example.rooms.length, 3);
-assert.equal(example.connections.length, 2);
-
-const roomIds = new Set(example.rooms.map((room) => room.id));
-assert.equal(roomIds.size, example.rooms.length, "Los IDs de sala deben ser únicos");
-for (const room of example.rooms) {
-  assert.ok(["small", "large", "corridor", "custom"].includes(room.type));
-  assert.ok(["north", "east", "south", "west"].includes(room.entry.wall));
-  assert.deepEqual(Object.keys(room.blocks).sort(), ["front", "left", "right"]);
-  for (const block of Object.values(room.blocks)) {
-    assert.equal(typeof block.movementSpeed, "number");
-    assert.match(block.color, /^#[0-9a-f]{6}$/i);
-    assert.ok(Array.isArray(block.waves));
-    assert.equal("targetCount" in block, false);
-  }
+for (const tab of ["general", "blocks", "textures"]) {
+  assert.match(html, new RegExp(`data-tab=["']${tab}["']`), `Falta la pestaña ${tab}`);
 }
-for (const connection of example.connections) {
-  assert.ok(roomIds.has(connection.fromRoomId), "La conexión debe partir de una sala existente");
-  assert.ok(roomIds.has(connection.toRoomId), "La conexión debe llegar a una sala existente");
+for (const role of ["start", "transition", "exit"]) {
+  assert.match(html, new RegExp(`data-role=["']${role}["']`), `Falta el rol ${role}`);
 }
+for (const facing of [0, 45, 90, 135, 180, 225, 270, 315]) {
+  assert.match(html, new RegExp(`data-facing=["']${facing}["']`), `Falta la dirección ${facing}`);
+}
+assert.doesNotMatch(html, /id=["']entry-wall["']/, "La pared de entrada ya no se elige a mano");
 
+// Cada control que el script busca por id tiene que existir en el documento.
+const referencedIds = new Set([...script.matchAll(/\$\("#([a-z0-9-]+)"\)/g)].map((match) => match[1]));
+const missingIds = [...referencedIds].filter((id) => !html.includes(`id="${id}"`));
+assert.deepEqual(missingIds, [], `El editor referencia controles inexistentes: ${missingIds.join(", ")}`);
+assert.match(styles, /\.tab\[aria-selected="true"\]/, "Las pestañas del inspector necesitan estado visual");
+assert.match(styles, /\.segment\[aria-checked="true"\]/, "El selector de rol necesita estado visual");
+assert.match(script, /window\.LevelFormat/, "El editor debe usar el modelo compartido");
 assert.match(script, /localStorage\.setItem/, "El editor debe guardar el borrador automáticamente");
 assert.match(script, /showSaveFilePicker/, "El editor debe poder guardar un archivo JSON");
 assert.match(script, /createSVGPoint/, "El editor debe soportar arrastre sobre el plano SVG");
-assert.match(script, /refreshConnectionsForRoom\(dragState\.roomId\)/, "Mover una sala debe actualizar las paredes de sus conexiones");
-assert.match(script, /data-add-wave/, "El editor debe permitir agregar oleadas por bloque");
-assert.deepEqual(example.rooms[1].blocks.front.waves, [3, 6]);
-assert.equal(example.rooms[1].blocks.front.movementSpeed, 0.8);
+assert.match(script, /texture-catalog\.json/, "El editor debe leer el catálogo de texturas");
+
+// --- Contrato del formato ----------------------------------------------------
+
+assert.equal(schema.properties.schemaVersion.const, LevelFormat.SCHEMA_VERSION);
+assert.deepEqual(schema.$defs.role.enum, ["start", "transition", "exit"]);
+assert.equal(schema.$defs.facing.maximum, 359);
+assert.ok(schema.$defs.connection.required.includes("width"), "Cada pasillo declara su ancho");
+assert.ok(schema.$defs.levelDefaults.required.includes("corridorWidth"));
+for (const key of ["role", "facing", "wallHeight", "hasCeiling", "ammoReward", "textures"]) {
+  assert.ok(schema.$defs.room.required.includes(key), `La sala debe declarar ${key}`);
+}
+assert.ok(Array.isArray(catalog.textures), "El catálogo de texturas debe listar sus entradas");
+
+// --- Inferencia de la entrada ------------------------------------------------
+
+/** Arma una cadena de salas en línea: A al oeste, B al centro, C al este. */
+function chainLevel() {
+  const level = LevelFormat.createEmptyLevel();
+  const a = LevelFormat.createRoom("small", 1);
+  const b = LevelFormat.createRoom("small", 2);
+  const c = LevelFormat.createRoom("small", 3);
+  Object.assign(a, { id: "a", name: "A", role: "start", facing: 90, position: { x: -20, z: 0 } });
+  Object.assign(b, { id: "b", name: "B", position: { x: 0, z: 0 } });
+  Object.assign(c, { id: "c", name: "C", role: "exit", position: { x: 20, z: 0 } });
+  level.rooms = [a, b, c];
+  level.connections = [LevelFormat.createConnection(a, b, 3.5), LevelFormat.createConnection(b, c, 2)];
+  return LevelFormat.normalizeLevel(level);
+}
+
+const chain = chainLevel();
+const [a, b, c] = chain.rooms;
+assert.equal(a.entry.wall, "west", "La sala de inicio entra por la pared a espaldas del jugador");
+assert.equal(b.entry.wall, "west", "Se entra a B desde A, que está al oeste");
+assert.equal(c.entry.wall, "west", "Se entra a C desde B, que está al oeste");
+assert.equal(chain.connections[1].width, 2, "El pasillo conserva el ancho declarado");
+
+// Girar al jugador cambia la entrada de la sala de inicio sin tocar el resto.
+a.facing = 180;
+LevelFormat.resolveEntryWalls(chain);
+assert.equal(a.entry.wall, "north", "Mirando al sur, la entrada queda al norte");
+assert.equal(b.entry.wall, "west", "Las demás salas no dependen de la orientación inicial");
+
+// Mover la sala de inicio al otro extremo invierte por dónde llega el jugador.
+const moved = chainLevel();
+moved.rooms[0].position = { x: 40, z: 0 };
+moved.connections[0] = LevelFormat.createConnection(moved.rooms[0], moved.rooms[1], 3.5);
+LevelFormat.resolveEntryWalls(moved);
+assert.equal(moved.rooms[1].entry.wall, "east", "Ahora se entra a B por el este");
+
+// Una sala suelta no rompe el recorrido.
+const orphan = chainLevel();
+orphan.rooms.push(Object.assign(LevelFormat.createRoom("small", 4), { id: "d", name: "D", position: { x: 0, z: 40 } }));
+LevelFormat.resolveEntryWalls(orphan);
+assert.equal(orphan.rooms[3].entry.wall, "south", "Una sala sin pasillos conserva su entrada por defecto");
+
+// --- Trazado de los pasillos -------------------------------------------------
+
+/** Un pasillo entre paredes este/oeste avanza primero a lo ancho. */
+const sideways = chainLevel();
+const sidewaysPlan = LevelFormat.corridorPlan(sideways.rooms[0], sideways.rooms[1], sideways.connections[0]);
+const sidewaysPath = sidewaysPlan.points;
+assert.equal(sidewaysPath.length, 2, "Con las salas alineadas el pasillo es recto");
+assert.equal(sidewaysPath[0].y, sidewaysPath[1].y);
+assert.equal(sidewaysPlan.width, sideways.connections[0].width, "Sin desfase conserva el ancho declarado");
+
+/** Uno entre paredes norte/sur tiene que salir en profundidad, no de costado. */
+const elbow = LevelFormat.createEmptyLevel();
+const below = Object.assign(LevelFormat.createRoom("small", 1), { id: "below", name: "Abajo", role: "start", position: { x: 7, z: -2 } });
+const above = Object.assign(LevelFormat.createRoom("large", 2), { id: "above", name: "Arriba", role: "exit", position: { x: -11, z: -22 } });
+elbow.rooms = [below, above];
+elbow.connections = [{ id: "e1", fromRoomId: "below", toRoomId: "above", fromWall: "north", toWall: "south", width: 3.5 }];
+const elbowPlan = LevelFormat.corridorPlan(below, above, elbow.connections[0]);
+const elbowPath = elbowPlan.points;
+assert.equal(elbowPath.length, 4, "Sin alineación el pasillo describe un codo");
+assert.equal(elbowPlan.width, 3.5, "Un codo con lugar conserva el ancho declarado");
+assert.equal(elbowPath[0].x, elbowPath[1].x, "El primer tramo sale perpendicular a la pared norte");
+assert.ok(elbowPath[1].y < elbowPath[0].y, "y avanza hacia el norte al salir");
+assert.equal(elbowPath[3].x, elbowPath[2].x, "El último tramo entra perpendicular a la pared sur");
+assert.deepEqual(elbowPath[0], LevelFormat.wallPoint(below, "north"));
+assert.deepEqual(elbowPath[3], LevelFormat.wallPoint(above, "south"));
+assert.match(script, /corridorPlan/, "El plano debe dibujar el trazado compartido");
+
+/**
+ * Con las puertas desalineadas menos que el ancho no entra un codo: los dos
+ * giros se solaparían, así que el pasillo va recto y se ensancha.
+ */
+const tight = LevelFormat.createEmptyLevel();
+const west = Object.assign(LevelFormat.createRoom("large", 1), { id: "w", name: "Oeste", role: "start", position: { x: -11, z: -22 } });
+const east = Object.assign(LevelFormat.createRoom("small", 2), { id: "e", name: "Este", role: "exit", position: { x: 19, z: -20 } });
+tight.rooms = [west, east];
+tight.connections = [{ id: "t1", fromRoomId: "w", toRoomId: "e", fromWall: "east", toWall: "west", width: 3.5 }];
+const tightPlan = LevelFormat.corridorPlan(west, east, tight.connections[0]);
+assert.equal(tightPlan.points.length, 2, "Sin lugar para el codo el pasillo va recto");
+assert.equal(tightPlan.width, 5.5, "El pasillo se ensancha lo justo para cubrir las dos puertas");
+const tightMinY = Math.min(...tightPlan.points.map((point) => point.y)) - tightPlan.width / 2;
+const tightMaxY = Math.max(...tightPlan.points.map((point) => point.y)) + tightPlan.width / 2;
+for (const [room, wall] of [[west, "east"], [east, "west"]]) {
+  const door = LevelFormat.wallPoint(room, wall);
+  assert.ok(door.y - 3.5 / 2 >= tightMinY - 0.001 && door.y + 3.5 / 2 <= tightMaxY + 0.001,
+    `El pasillo ensanchado debe cubrir la puerta de ${room.name}`);
+}
+
+// El contorno cierra la banda del pasillo sin bordes internos entre tramos.
+const outline = LevelFormat.corridorOutline(elbowPath, 3.5);
+assert.equal(outline.length, elbowPath.length * 2, "El contorno recorre ida y vuelta el trazado");
+const outlineXs = outline.map((point) => point.x);
+const outlineYs = outline.map((point) => point.y);
+assert.ok(Math.max(...outlineXs) - Math.min(...outlineXs) >= 3.5, "El contorno tiene el ancho del pasillo");
+assert.ok(Math.max(...outlineYs) - Math.min(...outlineYs) >= 3.5);
+for (const point of outline) {
+  assert.ok(Number.isFinite(point.x) && Number.isFinite(point.y), "El contorno no puede tener puntos degenerados");
+}
+const straightOutline = LevelFormat.corridorOutline(sidewaysPath, 2);
+assert.equal(straightOutline.length, 4, "Un pasillo recto es un rectángulo de cuatro vértices");
+assert.match(script, /corridorOutline/, "El plano debe dibujar el pasillo como una sola figura");
+assert.doesNotMatch(script, /class: "corridor-shape corner"/, "Ya no se dibujan parches de esquina sueltos");
+
+// --- Roles -------------------------------------------------------------------
+
+const roles = chainLevel();
+LevelFormat.assignRole(roles.rooms, roles.rooms[1], "start");
+assert.equal(roles.rooms.filter((room) => room.role === "start").length, 1, "Sólo puede haber una sala de inicio");
+assert.equal(roles.rooms[1].role, "start");
+assert.equal(roles.rooms[0].role, "transition", "La sala de inicio anterior pasa a tránsito");
+
+const singleRoom = LevelFormat.normalizeLevel({
+  rooms: [LevelFormat.createRoom("small", 1)],
+  connections: []
+});
+assert.equal(singleRoom.rooms[0].role, "start", "Un nivel de una sala arranca en ella");
+assert.equal(singleRoom.rooms.filter((room) => room.role === "exit").length, 0, "Sin salida separada no se inventa una");
+
+// --- Migración de archivos anteriores ----------------------------------------
+
+const legacy = LevelFormat.normalizeLevel({
+  schemaVersion: 3,
+  rooms: [
+    { id: "one", name: "Entrada", type: "small", position: { x: 0, z: 0 }, size: { width: 14, depth: 14 }, entry: { wall: "south", offset: 0 }, blocks: { front: { enabled: true, targetCount: 6 } } },
+    { id: "two", name: "Salida", type: "small", position: { x: 20, z: 0 }, size: { width: 14, depth: 14 }, entry: { wall: "west", offset: 0 }, blocks: {} }
+  ],
+  connections: [{ id: "c1", fromRoomId: "one", toRoomId: "two", fromWall: "east", toWall: "west" }]
+});
+assert.equal(legacy.schemaVersion, LevelFormat.SCHEMA_VERSION);
+assert.deepEqual(legacy.rooms[0].blocks.front.waves, [6], "targetCount se migra a la primera oleada");
+assert.equal("targetCount" in legacy.rooms[0].blocks.front, false);
+assert.equal(legacy.rooms[0].role, "start");
+assert.equal(legacy.rooms[1].role, "exit");
+assert.equal(legacy.rooms[0].facing, 90, "Sin orientación declarada, la sala de inicio mira hacia su pasillo");
+assert.equal(legacy.connections[0].width, legacy.defaults.corridorWidth, "Los pasillos viejos toman el ancho por defecto");
+
+// --- Archivos versionados ----------------------------------------------------
+
+const TEXTURE_SLOTS = ["walls", "floor", "ceiling", "door", "block"];
+for (const path of levelPaths) {
+  const level = JSON.parse(fs.readFileSync(path, "utf8"));
+  assert.equal(level.schemaVersion, LevelFormat.SCHEMA_VERSION, `${path} debe estar migrado`);
+  assert.equal(level.rooms.filter((room) => room.role === "start").length, 1, `${path} necesita una sala de inicio`);
+  assert.ok(level.rooms.filter((room) => room.role === "exit").length <= 1, `${path} no puede tener dos salidas`);
+  assert.ok(level.defaults.corridorWidth >= 1.5, `${path} necesita un ancho de pasillo válido`);
+  const roomIds = new Set(level.rooms.map((room) => room.id));
+  assert.equal(roomIds.size, level.rooms.length, `${path}: los IDs de sala deben ser únicos`);
+  for (const room of level.rooms) {
+    assert.ok(["north", "east", "south", "west"].includes(room.entry.wall));
+    assert.ok(room.facing >= 0 && room.facing <= 359, `${path}: orientación inválida`);
+    assert.ok(room.wallHeight === null || (room.wallHeight >= 2 && room.wallHeight <= 20));
+    assert.ok(room.hasCeiling === null || typeof room.hasCeiling === "boolean");
+    assert.deepEqual(Object.keys(room.textures).sort(), [...TEXTURE_SLOTS].sort());
+    assert.deepEqual(Object.keys(room.blocks).sort(), ["front", "left", "right"]);
+  }
+  for (const connection of level.connections) {
+    assert.ok(roomIds.has(connection.fromRoomId) && roomIds.has(connection.toRoomId), `${path}: pasillo huérfano`);
+    assert.ok(connection.width >= 1.5 && connection.width <= 12, `${path}: ancho de pasillo inválido`);
+  }
+  // Los archivos versionados ya deben tener la entrada resuelta.
+  const resolved = LevelFormat.resolveEntryWalls(structuredClone(level));
+  for (const [index, room] of resolved.rooms.entries()) {
+    assert.equal(room.entry.wall, level.rooms[index].entry.wall, `${path}: ${room.name} tiene una entrada desactualizada`);
+  }
+}
 
 console.log("LEVEL EDITOR SMOKE TEST PASSED");

@@ -58,7 +58,7 @@ func _run() -> void:
 	if blocks.size() != 1:
 		_fail("Sala 1 should deploy exactly one block.")
 		return
-	var cleared_targets := _clear_targets(blocks[0])
+	var cleared_targets := await _clear_every_wave(blocks[0])
 	if cleared_targets == 0:
 		_fail("The Sala 1 block should have spawned targets to clear.")
 		return
@@ -132,6 +132,17 @@ func _blocks_of(encounter: ConfiguredRoomEncounter3D) -> Array[TargetBlock3D]:
 		if child is TargetBlock3D:
 			blocks.append(child)
 	return blocks
+
+
+## Un bloque puede encadenar varias oleadas: se limpian todas hasta que cae.
+func _clear_every_wave(block: TargetBlock3D) -> int:
+	var resolved := 0
+	for _attempt in 32:
+		if not is_instance_valid(block):
+			break
+		resolved += _clear_targets(block)
+		await _wait_frames(4)
+	return resolved
 
 
 func _clear_targets(block: TargetBlock3D) -> int:

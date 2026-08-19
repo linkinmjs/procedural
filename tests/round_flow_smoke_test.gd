@@ -1,7 +1,7 @@
 extends SceneTree
 
-## El cronometro de la ronda no corre mientras el jugador sigue en la primera
-## habitacion, arranca al salir de ella y se detiene al pisar la ultima.
+## El cronometro de la ronda no corre mientras el jugador sigue en la sala de
+## inicio, arranca al salir de ella y se detiene al pisar la de salida.
 
 var _ended_reason := ""
 
@@ -19,13 +19,16 @@ func _run() -> void:
 	if level == null or level.level_data.is_empty():
 		_fail("The playable level did not load.")
 		return
-	if level.room_order.size() != 4:
-		_fail("The four rooms of nivel-1 should chain from Entrada to Salida.")
+	if level.room_order.size() != level.level_data.rooms.size():
+		_fail("The room chain should reach every room of the level.")
 		return
-	var first_room: Dictionary = _room_by_id(level, level.room_order[0])
-	var last_room: Dictionary = _room_by_id(level, level.room_order[level.room_order.size() - 1])
-	if str(first_room.name) != "Entrada" or str(last_room.name) != "Salida":
-		_fail("The chain should run from Entrada to Salida, not %s to %s." % [first_room.get("name", "?"), last_room.get("name", "?")])
+	var first_room := LevelDefinitionLoader.get_start_room(level.level_data)
+	var last_room := LevelDefinitionLoader.get_exit_room(level.level_data)
+	if first_room.is_empty() or last_room.is_empty():
+		_fail("The level should declare its start and exit rooms.")
+		return
+	if str(first_room.id) != level.room_order[0]:
+		_fail("The chain should begin at the start room, not at %s." % _room_by_id(level, level.room_order[0]).get("name", "?"))
 		return
 
 	# El salto automatico al siguiente nivel tiene su propio test: aca se aleja
@@ -36,12 +39,13 @@ func _run() -> void:
 	if level.round_controller.is_running:
 		_fail("The round should stay on standby while the player is in the entrance.")
 		return
-	if not is_equal_approx(level.round_controller.time_remaining, 90.0):
+	var time_limit := float(level.level_data.timeLimitSeconds)
+	if not is_equal_approx(level.round_controller.time_remaining, time_limit):
 		_fail("The armed round should hold the full JSON time limit.")
 		return
 
 	await _wait_frames(6)
-	if level.round_controller.is_running or not is_equal_approx(level.round_controller.time_remaining, 90.0):
+	if level.round_controller.is_running or not is_equal_approx(level.round_controller.time_remaining, time_limit):
 		_fail("Standing in the entrance should not consume the round clock.")
 		return
 
@@ -52,7 +56,7 @@ func _run() -> void:
 		return
 
 	await _wait_frames(6)
-	var elapsed := 90.0 - level.round_controller.time_remaining
+	var elapsed := time_limit - level.round_controller.time_remaining
 	if elapsed <= 0.0:
 		_fail("The round clock should tick once the player left the entrance.")
 		return

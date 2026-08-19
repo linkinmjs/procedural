@@ -1,10 +1,25 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "id": "nivel-4",
   "name": "Nivel 4",
   "description": "",
   "timeLimitSeconds": 90,
   "gridSize": 1,
+  "startingAmmo": {
+    "magazine": 17,
+    "reserve": 51
+  },
+  "defaults": {
+    "wallHeight": 6,
+    "hasCeiling": true,
+    "textures": {
+      "walls": "",
+      "floor": "",
+      "ceiling": "",
+      "door": "",
+      "block": ""
+    }
+  },
   "rooms": [
     {
       "id": "c35a05c6-6ab5-4858-967e-ab81d6c219a3",
@@ -21,6 +36,20 @@
       "entry": {
         "wall": "north",
         "offset": 0
+      },
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
       },
       "blocks": {
         "left": {
@@ -61,6 +90,20 @@
       "entry": {
         "wall": "south",
         "offset": 0
+      },
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
       },
       "blocks": {
         "left": {
@@ -105,6 +148,20 @@
       "entry": {
         "wall": "south",
         "offset": 0
+      },
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
       },
       "blocks": {
         "left": {

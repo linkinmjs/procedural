@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "description": "Catálogo de texturas disponibles para las salas. El editor lo carga para ofrecer sugerencias; mientras esté vacío, los campos de textura aceptan texto libre y el runtime usa los materiales procedurales actuales.",
+  "sourcePacks": [
+    "assets/_raw/textures/SBS - Horror Texture Pack (128/256/512)",
+    "assets/_raw/textures/SBS - Tiny Texture Pack (128/256/512)",
+    "assets/_raw/textures/SBS - Tiny Texture Pack 2 (128/256/512)"
+  ],
+  "textures": []
+}

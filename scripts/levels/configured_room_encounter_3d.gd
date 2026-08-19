@@ -8,6 +8,11 @@ signal encounter_started(encounter: ConfiguredRoomEncounter3D)
 signal encounter_cleared(encounter: ConfiguredRoomEncounter3D)
 
 const TARGET_BLOCK_SCENE := preload("res://scenes/targets/target_block_3d.tscn")
+## Aire que queda entre el bloque y los bordes de la pared. Es el minimo que
+## evita que el panel roce la geometria sin dejar pasar al jugador.
+const WALL_MARGIN := 0.4
+## Separacion entre el bloque y la pared en la que arranca.
+const WALL_OFFSET := 0.65
 
 const RELATIVE_WALLS := {
 	"north": {"left": "east", "front": "south", "right": "west"},
@@ -19,6 +24,8 @@ const RELATIVE_WALLS := {
 var room_id := ""
 var room_label := "Room"
 var room_size := Vector2(14.0, 14.0)
+## Altura de las paredes de la sala: el bloque las cubre de piso a techo.
+var wall_height := 6.0
 var entry_wall := "south"
 var blocks_config: Dictionary = {}
 var movement_speed := 0.65
@@ -110,41 +117,46 @@ func _mark_cleared() -> void:
 	encounter_cleared.emit(self)
 
 
+## El bloque cubre la pared entera menos un margen minimo, para que no quede
+## ningun hueco por el que esquivarlo mientras avanza.
 func _get_wall_setup(wall: String) -> Dictionary:
-	var center_y := 2.4
-	var block_height := 4.0
+	var block_height := maxf(wall_height - WALL_MARGIN, 2.0)
+	var center_y := block_height * 0.5
+	var horizontal := wall == "north" or wall == "south"
+	var block_width := maxf((room_size.x if horizontal else room_size.y) - WALL_MARGIN, 2.0)
+	var size := Vector2(block_width, block_height)
 	match wall:
 		"north":
 			return {
-				"position": Vector3(0.0, center_y, -room_size.y * 0.5 + 0.65),
+				"position": Vector3(0.0, center_y, -room_size.y * 0.5 + WALL_OFFSET),
 				"rotation": Vector3.ZERO,
 				"direction": Vector3.BACK,
-				"size": Vector2(maxf(room_size.x - 3.0, 3.0), block_height),
-				"distance": room_size.y - 1.3,
+				"size": size,
+				"distance": room_size.y - WALL_OFFSET * 2.0,
 			}
 		"south":
 			return {
-				"position": Vector3(0.0, center_y, room_size.y * 0.5 - 0.65),
+				"position": Vector3(0.0, center_y, room_size.y * 0.5 - WALL_OFFSET),
 				"rotation": Vector3(0.0, PI, 0.0),
 				"direction": Vector3.FORWARD,
-				"size": Vector2(maxf(room_size.x - 3.0, 3.0), block_height),
-				"distance": room_size.y - 1.3,
+				"size": size,
+				"distance": room_size.y - WALL_OFFSET * 2.0,
 			}
 		"west":
 			return {
-				"position": Vector3(-room_size.x * 0.5 + 0.65, center_y, 0.0),
+				"position": Vector3(-room_size.x * 0.5 + WALL_OFFSET, center_y, 0.0),
 				"rotation": Vector3(0.0, PI * 0.5, 0.0),
 				"direction": Vector3.RIGHT,
-				"size": Vector2(maxf(room_size.y - 3.0, 3.0), block_height),
-				"distance": room_size.x - 1.3,
+				"size": size,
+				"distance": room_size.x - WALL_OFFSET * 2.0,
 			}
 		_:
 			return {
-				"position": Vector3(room_size.x * 0.5 - 0.65, center_y, 0.0),
+				"position": Vector3(room_size.x * 0.5 - WALL_OFFSET, center_y, 0.0),
 				"rotation": Vector3(0.0, -PI * 0.5, 0.0),
 				"direction": Vector3.LEFT,
-				"size": Vector2(maxf(room_size.y - 3.0, 3.0), block_height),
-				"distance": room_size.x - 1.3,
+				"size": size,
+				"distance": room_size.x - WALL_OFFSET * 2.0,
 			}
 
 

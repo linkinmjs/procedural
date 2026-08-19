@@ -93,10 +93,14 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	calculate_movement_parameters()
 
+## Deja camera_rotation en linea con la pose actual. Tiene que ser la inversa
+## exacta de apply_view_rotation(), que aplica los dos angulos negados: copiarlos
+## con el signo tal cual espejaba la vista en cuanto algo volvia a aplicarla, asi
+## que el jugador aparecia mirando hacia donde pedia el nivel y se daba vuelta al
+## frame siguiente. El cabeceo vive en la camara, no en el cuerpo.
 func update_camera_rotation() -> void:
-	var current_rotation = get_rotation()
-	camera_rotation.x = current_rotation.y
-	camera_rotation.y = current_rotation.x
+	camera_rotation.x = -rotation.y
+	camera_rotation.y = -camera.rotation.x
 
 
 func _input(event: InputEvent) -> void:

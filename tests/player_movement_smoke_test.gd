@@ -124,6 +124,8 @@ func _run() -> void:
 		_fail("Holding jump should keep hopping, counted %d hops." % hops)
 		return
 
+	if not _check_spawn_facing():
+		return
 	print("Player movement smoke test passed.")
 	quit()
 
@@ -146,6 +148,38 @@ func _press_jump() -> void:
 
 func _planar_speed() -> float:
 	return Vector2(_player.velocity.x, _player.velocity.z).length()
+
+
+## La orientacion con la que arranca el jugador tiene que sobrevivir al primer
+## apply_view_rotation(): es lo que pasa apenas se mueve el mouse o entra un
+## retroceso, y antes espejaba el yaw y lo dejaba mirando para el otro lado.
+func _check_spawn_facing() -> bool:
+	# El retroceso tambien entra en apply_view_rotation(); acá se mide la pose,
+	# no la patada, asi que se arranca sin nada acumulado.
+	_player.recoil_target = Vector2.ZERO
+	_player.recoil_offset = Vector2.ZERO
+	for degrees in [90.0, -35.0, 180.0]:
+		_player.rotation = Vector3(0.0, deg_to_rad(degrees), 0.0)
+		_player.camera.rotation = Vector3.ZERO
+		_player.update_camera_rotation()
+		_player.apply_view_rotation()
+		var drift := absf(wrapf(_player.rotation.y - deg_to_rad(degrees), -PI, PI))
+		if drift > 0.001:
+			_fail("Spawning at %.0f deg should hold that heading, got %.0f." % [
+				degrees, rad_to_deg(_player.rotation.y)])
+			return false
+	# Un cabeceo tampoco se tiene que invertir al reconstruir la vista.
+	_player.rotation = Vector3.ZERO
+	_player.camera.rotation = Vector3(deg_to_rad(-20.0), 0.0, 0.0)
+	_player.update_camera_rotation()
+	_player.apply_view_rotation()
+	if absf(_player.camera.rotation.x - deg_to_rad(-20.0)) > 0.001:
+		_fail("Looking 20 deg down should stay down, got %.1f." % rad_to_deg(_player.camera.rotation.x))
+		return false
+	_player.rotation = Vector3.ZERO
+	_player.camera.rotation = Vector3.ZERO
+	_player.update_camera_rotation()
+	return true
 
 
 func _find_player() -> CharacterBody3D:

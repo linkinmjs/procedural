@@ -84,3 +84,23 @@ Al corregir algo, borrar su entrada de este archivo.
 - [ ] Los JSON de nivel siguen con guiones (`nivel-1.json`, `level-sequence.json`)
   porque el nombre de archivo hace de ID de contenido. Renombrarlos a snake_case
   implica tocar los `id` del catalogo.
+
+## Pruebas en rojo
+
+Ambas se pusieron en rojo el 2026-08-19 al pasar la campania al `nivel-1` nuevo,
+que tiene la sala de inicio con recompensa de municion y sin bloques. Ninguna
+senala un error del editor ni del formato.
+
+- [ ] `tests/playable_level_smoke_test.gd:53` — `_check_starting_ammo()` compara
+  la municion cargada contra la que declara el JSON, pero una sala sin bloques se
+  marca limpia al entrar y suelta su recompensa en el centro, o sea a los pies del
+  jugador, que la levanta en el frame siguiente: la reserva salta de las 51
+  declaradas a las 60 del tope de la Glock.
+  **Fix:** decidir primero el diseno — si una sala sin bloques tiene que soltar
+  igual su recompensa, o si conviene que el cargador aparezca fuera del punto de
+  aparicion — y despues medir la municion antes de que el jugador pueda tocarlo.
+- [ ] `tests/room_lockdown_smoke_test.gd:23` — busca las salas de prueba por
+  nombre (`Sala 1` y `Entrada`), asi que renombrar una sala en la herramienta deja
+  el test sin encontrarlas.
+  **Fix:** derivarlas del recorrido, como hace `playable_level_smoke_test.gd`:
+  la sala de inicio y la siguiente segun las conexiones.

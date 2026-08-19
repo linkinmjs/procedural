@@ -4,6 +4,10 @@
     {
       "id": "level-1787164129302",
       "path": "res://level_designs/levels/nivel-1.json"
+    },
+      {
+      "id": "level-1787180619943",
+      "path": "res://level_designs/levels/nivel-2.json"
     }
   ]
 }

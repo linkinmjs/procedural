@@ -9,8 +9,11 @@ func _initialize() -> void:
 	if int(level.schemaVersion) != LevelDefinitionLoader.SUPPORTED_SCHEMA_VERSION:
 		_fail("The loader should preserve the supported schema version.")
 		return
-	if int(level.timeLimitSeconds) != 90:
-		_fail("The loader should preserve the 90 second limit of nivel-1.")
+	# El limite sale del propio archivo: rediseniar el nivel en la herramienta no
+	# tiene que invalidar la prueba.
+	var raw := JSON.parse_string(FileAccess.get_file_as_string("res://level_designs/levels/nivel-1.json")) as Dictionary
+	if raw == null or int(level.timeLimitSeconds) != int(raw.get("timeLimitSeconds", -1)):
+		_fail("The loader should preserve the time limit declared by nivel-1.")
 		return
 	if not SkyCatalog.has_sky(LevelDefinitionLoader.get_sky_id(level)):
 		_fail("The loader should resolve the sky of the level.")

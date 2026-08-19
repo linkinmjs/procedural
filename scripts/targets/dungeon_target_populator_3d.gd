@@ -5,7 +5,7 @@ const ENCOUNTER_SCENE := preload("res://scenes/targets/entry_aware_target_encoun
 
 @export_range(1, 32, 1) var targets_per_wall := 4
 @export_range(0, 32, 1) var penalty_targets_per_wall := 1
-@export_range(0.0, 10.0, 0.05) var minimum_spacing := 1.0
+@export var minimum_separation := Vector2(1.0, 1.0)
 @export var debug_bounds_visible := true
 
 
@@ -17,7 +17,7 @@ func populate(dungeon_generator: DungeonGenerator3D) -> void:
 		var encounter := ENCOUNTER_SCENE.instantiate() as EntryAwareTargetEncounter3D
 		encounter.targets_per_volume = targets_per_wall
 		encounter.penalty_targets_per_volume = mini(penalty_targets_per_wall, targets_per_wall)
-		encounter.minimum_spacing = minimum_spacing
+		encounter.minimum_separation = minimum_separation
 		encounter.debug_bounds_visible = debug_bounds_visible
 		var is_corridor := room.scene_file_path == dungeon_generator.corridor_room_scene.resource_path
 		encounter.configure_for_room(Vector3(room.size_in_voxels) * room.voxel_scale, is_corridor)

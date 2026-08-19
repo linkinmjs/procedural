@@ -1,6 +1,8 @@
 extends SceneTree
 
 const BLOCK_SCENE := preload("res://scenes/targets/target_block_3d.tscn")
+const BALL_SCENE := preload("res://scenes/targets/target_ball.tscn")
+const WINDOW_SCENE := preload("res://scenes/windows/shutdown_window.tscn")
 
 
 func _initialize() -> void:
@@ -16,6 +18,9 @@ func _run() -> void:
 	var player := CharacterBody3D.new()
 	root.add_child(player)
 	var target_block := BLOCK_SCENE.instantiate() as TargetBlock3D
+	target_block.target_scenes = [BALL_SCENE]
+	target_block.target_separation = Vector2(1.0, 1.0)
+	target_block.target_padding = Vector2(0.35, 0.35)
 	target_block.target_count = 0
 	target_block.waves.assign([2, 3])
 	target_block.block_color = Color("d84cff")
@@ -72,6 +77,31 @@ func _run() -> void:
 	await physics_frame
 	if moving_block.position.x <= 0.0 or moving_block.position.x > 0.101:
 		_fail("A moving block should advance toward, but not beyond, its opposite side.")
+		return
+	var window_block := BLOCK_SCENE.instantiate() as TargetBlock3D
+	window_block.block_size = Vector2(16.0, 4.0)
+	window_block.target_count = 0
+	window_block.waves.assign([3])
+	root.add_child(window_block)
+	if window_block.spawn_volume.active_targets.size() != 3:
+		_fail("A block should spawn windows by default, got %d." % window_block.spawn_volume.active_targets.size())
+		return
+	for spawned in window_block.spawn_volume.active_targets:
+		if not spawned is WindowPanel3D:
+			_fail("Default block targets should be windows.")
+			return
+	await process_frame
+	await process_frame
+	for spawned in window_block.spawn_volume.active_targets.duplicate():
+		var window := spawned as WindowPanel3D
+		var zones := window.get_hit_bodies()
+		if zones.is_empty():
+			_fail("Spawned windows should build their hit zones inside the block.")
+			return
+		zones[0].Hit_Successful(1.0)
+	await process_frame
+	if is_instance_valid(window_block):
+		_fail("Destroying every window should close the block.")
 		return
 	print("Target block smoke test passed.")
 	quit()

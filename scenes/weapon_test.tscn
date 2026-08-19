@@ -134,7 +134,7 @@ position = Vector3(0, 3.0, -18)
 target_count = 8
 penalty_target_count = 3
 size = Vector3(12, 4.5, 0.6)
-minimum_spacing = 1.15
+minimum_separation = Vector2(1.15, 1.15)
 
 [node name="RoundHUD" parent="." instance=ExtResource("4_round_hud")]
 

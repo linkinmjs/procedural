@@ -20,11 +20,11 @@ Prototipo para Godot 4.7 que integra SimpleDungeons y el FPS Template de Chaff G
 
 Al iniciar el proyecto se carga el nivel JSON configurado. Sus salas, puertas, conexiones, luces, bloques de objetivos y tiempo de ronda se construyen en runtime. Los encuentros aparecen al entrar en cada sala.
 
-Los bloques JSON admiten color, velocidad individual y múltiples oleadas. Al destruir la última esfera de una oleada aparece la siguiente; el bloque se cierra al completar todas.
+Los bloques JSON admiten color, velocidad individual y múltiples oleadas. Al destruir el último objetivo de una oleada aparece la siguiente; el bloque se cierra al completar todas. Los bloques spawnean ventanas estilo Windows, que se rompen disparando a la X, a un boton o a un cartel.
 
 El orden jugable se define en `level-designs/level-sequence.json`. Por ahora F7 y F8 cambian de nivel manualmente. El avance automático queda deliberadamente desacoplado hasta implementar la condición de victoria.
 
-Las pelotas del bloque celeste se destruyen con un impacto. Las variantes azules de penalizacion desaparecen a los 8 segundos y restan 15 HP si no son destruidas. En esta primera prueba no se mueven ni reaparecen.
+Las pelotas siguen disponibles como objetivo alternativo del bloque. Se destruyen con un impacto, y las variantes azules de penalizacion desaparecen a los 8 segundos y restan 15 HP si no son destruidas. Ni las pelotas ni las ventanas se mueven o reaparecen por su cuenta.
 
 ## Laboratorio de bloques
 
@@ -40,6 +40,8 @@ Presiona F4 desde el dungeon o el poligono de armas. El menu inicial ofrece nive
 Las ventanas estilo Windows son los objetivos con personalidad que reemplazaran a las esferas dentro de un bloque. Cada una se dibuja como UI dentro de un `SubViewport`, se proyecta sobre un quad en 3D y se destruye disparando a la X, a un boton o a un cartel.
 
 Hay dos estilos con su propio theme y template: Windows XP y retro gris. Para crear una ventana nueva se duplica el template correspondiente de `scenes/windows/templates/`. El procedimiento completo esta en [`docs/ventanas.md`](docs/ventanas.md).
+
+`level-designs/levels/nivel-ventanas.json` es el nivel de pruebas del sistema. Esta al final del catalogo, asi que se llega con F7 desde el nivel inicial.
 
 Prueba del sistema de ventanas:
 

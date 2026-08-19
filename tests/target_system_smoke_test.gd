@@ -14,7 +14,7 @@ func _run() -> void:
 	volume.target_count = 3
 	volume.random_seed = 42
 	volume.size = Vector3(6.0, 3.0, 0.5)
-	volume.minimum_spacing = 0.75
+	volume.minimum_separation = Vector2(0.75, 0.75)
 	root.add_child(volume)
 	volume.spawn_targets()
 	if volume.active_targets.size() != 3:

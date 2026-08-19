@@ -8,8 +8,8 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var sequence = root.get_node("LevelSequence")
-	if sequence.get_level_count() != 4:
-		_fail("The level catalog should contain Nivel 1 through Nivel 4.")
+	if sequence.get_level_count() != 5:
+		_fail("The level catalog should contain Nivel 1 through Nivel 4 plus the window test level.")
 		return
 	sequence.select_first_level()
 	change_scene_to_file("res://scenes/levels/playable_level.tscn")
@@ -24,7 +24,7 @@ func _run() -> void:
 	if second_level == null or str(second_level.level_data.id) != "nivel-2" or second_level.level_data.rooms.size() != 5:
 		_fail("F7 should load Nivel 2 without evaluating victory conditions.")
 		return
-	if sequence.get_position_text() != "2 / 4":
+	if sequence.get_position_text() != "2 / 5":
 		_fail("The sequence position should reflect the second level.")
 		return
 	_send_key(KEY_F7)

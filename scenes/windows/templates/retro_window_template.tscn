@@ -11,7 +11,8 @@ viewport_path = NodePath("SubViewport")
 
 [sub_resource type="StandardMaterial3D" id="ScreenMaterial"]
 resource_local_to_scene = true
-transparency = 1
+transparency = 2
+alpha_scissor_threshold = 0.5
 cull_mode = 2
 shading_mode = 0
 albedo_texture = SubResource("ScreenTexture")
@@ -20,7 +21,7 @@ texture_filter = 0
 [sub_resource type="QuadMesh" id="ScreenMesh"]
 resource_local_to_scene = true
 material = SubResource("ScreenMaterial")
-size = Vector2(1.18, 0.59)
+size = Vector2(3.562, 1.781)
 
 [node name="RetroWindowTemplate" type="Node3D"]
 script = ExtResource("1_panel")

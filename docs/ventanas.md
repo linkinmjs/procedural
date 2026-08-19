@@ -42,7 +42,7 @@ Sólo las zonas frenan el disparo. Un tiro al centro de la ventana la atraviesa 
 
 ## Escala
 
-`pixels_per_meter` en el nodo raíz define cuántos píxeles del `SubViewport` equivalen a un metro. Con el valor por defecto (220), una ventana de 320 x 150 px mide 1,45 x 0,68 m en el mundo. Bajar el valor agranda la ventana; subirlo la achica y la vuelve más exigente.
+`pixels_per_meter` en el nodo raíz define cuántos píxeles del `SubViewport` equivalen a un metro. Con el valor por defecto (73), una ventana de 320 x 150 px mide 4,38 x 2,05 m en el mundo. Bajar el valor agranda la ventana; subirlo la achica y la vuelve más exigente.
 
 El quad se redimensiona solo al iniciar. El tamaño que quedó guardado en el `QuadMesh` sirve para verla bien en el editor.
 
@@ -57,7 +57,27 @@ window.find_hit_body("close")  # el primero con ese identificador
 window.close()                 # cierre por código
 ```
 
-Las ventanas todavía no reportan al `RoundController`. La integración con `TargetBlock3D` queda pendiente.
+Al recibir un disparo la ventana reporta el impacto al `RoundController` si hay uno en escena, usando `window_label` más el `zone_id` de la zona golpeada. Sin controller funciona igual.
+
+## Dentro de un bloque
+
+`TargetBlock3D` spawnea ventanas por defecto: su propiedad `target_scenes` trae las tres ventanas de ejemplo y cada objetivo elige una al azar. Para volver a las esferas basta con reemplazar esa lista por `target_ball.tscn`.
+
+El bloque también expone la métrica de distribución, ya ajustada al tamaño de una ventana:
+
+- `target_separation`: distancia mínima en metros entre dos objetivos, medida en horizontal **o** en vertical. El valor por defecto para ventanas, `Vector2(2.0, 1.0)`, es menor que su tamaño, así que **se superponen a propósito**, como ventanas apiladas en un escritorio. Subirlo por encima del tamaño de la ventana vuelve a separarlas; para esferas se usa `Vector2(1.0, 1.0)`.
+- `target_padding`: margen interior del muestreo. Puede quedar chico porque cada ventana además se recorta contra los bordes del bloque según su propio tamaño, así que ninguna sobresale del panel aunque cambie la escala.
+
+Para que el solape se vea limpio hay dos piezas:
+
+- `stacking_depth` en el volumen adelanta cada objetivo respecto del anterior (8 cm por defecto), así dos ventanas superpuestas nunca comparten plano y no aparece z-fighting. El orden de apilado coincide con el orden de spawn, y la ventana que se ve adelante es también la que recibe el disparo.
+- El material de la ventana usa transparencia por recorte (`alpha scissor`), de modo que escribe profundidad y se dibuja en el orden correcto sin depender del ordenamiento entre superficies transparentes.
+
+Un bloque de 15 m de ancho admite unas siete posiciones, con solape entre vecinas. Si una oleada pide más objetivos de los que entran, el volumen coloca los que puede y avisa por consola.
+
+Las oleadas, el color del panel, el movimiento y el cierre del bloque no cambian: al destruir la última ventana de una oleada aparece la siguiente, y al terminar todas el bloque se cierra.
+
+[`level-designs/levels/nivel-ventanas.json`](../level-designs/levels/nivel-ventanas.json) es el nivel de pruebas. Está al final de `level-sequence.json`, así que se llega con F7 desde el nivel 1; para arrancar directamente ahí, mover su entrada al principio del catálogo. Tiene una sala con dos oleadas estáticas y otra con tres bloques, uno de ellos en movimiento.
 
 ## Probar
 
@@ -68,6 +88,10 @@ Prueba funcional de todas las ventanas y templates:
 Vista previa renderizada en `.godot/window-preview.png`:
 
 `Godot_v4.7-stable_win64_console.exe --path . res://tests/window_visual_smoke_test.tscn`
+
+Vista del nivel de pruebas con las ventanas dentro del bloque, en `.godot/window-level.png`:
+
+`Godot_v4.7-stable_win64_console.exe --path . res://tests/window_level_visual_smoke_test.tscn`
 
 La vista previa necesita ventana real: con `--headless` no se puede capturar la imagen. Al agregar una ventana nueva conviene sumarla a [`tests/window_visual_smoke_test.tscn`](../tests/window_visual_smoke_test.tscn) para revisarla junto al resto.
 

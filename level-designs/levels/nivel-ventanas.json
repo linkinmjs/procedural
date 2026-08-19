@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 3,
+  "id": "nivel-ventanas",
+  "name": "Prueba de ventanas",
+  "description": "Nivel de pruebas: los bloques spawnean ventanas en lugar de esferas.",
+  "timeLimitSeconds": 120,
+  "gridSize": 1,
+  "rooms": [
+    {
+      "id": "ventanas-entrada",
+      "name": "Entrada",
+      "type": "small",
+      "position": {
+        "x": 0,
+        "z": -20
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "front": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "right": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        }
+      }
+    },
+    {
+      "id": "ventanas-sala-estatica",
+      "name": "Sala estatica",
+      "type": "custom",
+      "position": {
+        "x": 0,
+        "z": 0
+      },
+      "size": {
+        "width": 18,
+        "depth": 16
+      },
+      "entry": {
+        "wall": "north",
+        "offset": 0
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "front": {
+          "enabled": true,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": [
+            3,
+            5
+          ]
+        },
+        "right": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        }
+      }
+    },
+    {
+      "id": "ventanas-sala-movil",
+      "name": "Sala movil",
+      "type": "custom",
+      "position": {
+        "x": 30,
+        "z": 0
+      },
+      "size": {
+        "width": 16,
+        "depth": 22
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "blocks": {
+        "left": {
+          "enabled": true,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#d84cff",
+          "waves": [
+            2
+          ]
+        },
+        "front": {
+          "enabled": true,
+          "movement": "opposite",
+          "movementSpeed": 0.5,
+          "color": "#ffae2e",
+          "waves": [
+            4
+          ]
+        },
+        "right": {
+          "enabled": true,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#d84cff",
+          "waves": [
+            2
+          ]
+        }
+      }
+    },
+    {
+      "id": "ventanas-salida",
+      "name": "Salida",
+      "type": "small",
+      "position": {
+        "x": 30,
+        "z": -20
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "front": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "right": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "ventanas-c1",
+      "fromRoomId": "ventanas-entrada",
+      "toRoomId": "ventanas-sala-estatica",
+      "fromWall": "south",
+      "toWall": "north"
+    },
+    {
+      "id": "ventanas-c2",
+      "fromRoomId": "ventanas-sala-estatica",
+      "toRoomId": "ventanas-sala-movil",
+      "fromWall": "east",
+      "toWall": "west"
+    },
+    {
+      "id": "ventanas-c3",
+      "fromRoomId": "ventanas-sala-movil",
+      "toRoomId": "ventanas-salida",
+      "fromWall": "north",
+      "toWall": "south"
+    }
+  ]
+}

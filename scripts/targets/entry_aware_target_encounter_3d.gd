@@ -14,7 +14,7 @@ enum ActivationMode {
 @export var spawn_volumes: Array[TargetSpawnVolume3D] = []
 @export_range(1, 32, 1) var targets_per_volume := 4
 @export_range(0, 32, 1) var penalty_targets_per_volume := 1
-@export_range(0.0, 10.0, 0.05) var minimum_spacing := 1.0
+@export var minimum_separation := Vector2(1.0, 1.0)
 @export var debug_bounds_visible := true
 
 var _activated := false
@@ -45,7 +45,7 @@ func _add_spawn_volume(volume_name: String, local_position: Vector3, volume_size
 	volume.size = volume_size
 	volume.target_count = targets_per_volume
 	volume.penalty_target_count = mini(penalty_targets_per_volume, targets_per_volume)
-	volume.minimum_spacing = minimum_spacing
+	volume.minimum_separation = minimum_separation
 	volume.spawn_on_ready = false
 	volume.debug_bounds_visible = debug_bounds_visible
 	add_child(volume)

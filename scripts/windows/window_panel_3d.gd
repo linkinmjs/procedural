@@ -17,7 +17,10 @@ const TARGET_LAYER := 32
 const TARGET_MASK := 16
 
 ## Cuantos pixeles del SubViewport equivalen a un metro del mundo.
-@export_range(40.0, 800.0, 1.0) var pixels_per_meter := 220.0:
+## Nombre con el que la ventana aparece en el feed de la ronda.
+@export var window_label := "ventana"
+
+@export_range(40.0, 800.0, 1.0) var pixels_per_meter := 73.0:
 	set(value):
 		pixels_per_meter = maxf(value, 1.0)
 		if is_node_ready():
@@ -117,6 +120,13 @@ func _add_hit_body(zone: WindowHitZone) -> void:
 	body.hit.connect(_on_zone_hit)
 
 
+func _get_round_controller() -> RoundController:
+	var controllers := get_tree().get_nodes_in_group("round_controller")
+	if controllers.is_empty():
+		return null
+	return controllers[0] as RoundController
+
+
 func _viewport_to_local(point: Vector2) -> Vector3:
 	var size_px := Vector2(sub_viewport.size)
 	return Vector3(
@@ -136,6 +146,9 @@ func _update_screen_size() -> void:
 func _on_zone_hit(body: WindowHitBody3D) -> void:
 	if _closed:
 		return
+	var controller := _get_round_controller()
+	if controller != null:
+		controller.report_target_hit("%s // %s" % [window_label, body.zone_id])
 	zone_hit.emit(body.zone_id, self)
 	if body.closes_window:
 		close()

@@ -2,10 +2,15 @@
 class_name TargetSpawnVolume3D
 extends Node3D
 
-signal targets_spawned(targets: Array[TargetBall])
+signal targets_spawned(targets: Array[Node3D])
 signal all_targets_destroyed
 
-@export var target_scene: PackedScene = preload("res://scenes/targets/target_ball.tscn")
+## Un objetivo se considera resuelto cuando emite alguna de estas señales.
+## Cubre las pelotas (destroyed, left) y las ventanas (closed).
+const RESOLVE_SIGNALS: Array[String] = ["destroyed", "left", "closed"]
+
+## Escenas que se pueden distribuir. Cada objetivo elige una al azar.
+@export var target_scenes: Array[PackedScene] = [preload("res://scenes/targets/target_ball.tscn")]
 @export var penalty_target_scene: PackedScene = preload("res://scenes/targets/blue_penalty_ball.tscn")
 @export_range(1, 64, 1) var target_count := 8
 @export_range(0, 64, 1) var penalty_target_count := 0
@@ -14,8 +19,14 @@ signal all_targets_destroyed
 	set(value):
 		size = value.max(Vector3(0.1, 0.1, 0.1))
 		_update_debug_bounds()
-@export_range(0.0, 10.0, 0.05) var minimum_spacing := 1.0
+## Separacion minima entre objetivos. Dos objetivos no se solapan cuando estan
+## suficientemente separados en horizontal o en vertical, asi que este valor se
+## corresponde con el tamaño del objetivo.
+@export var minimum_separation := Vector2(1.0, 1.0)
 @export var edge_padding := Vector3(0.4, 0.4, 0.0)
+## Separacion en profundidad entre objetivos consecutivos. Los apila como
+## ventanas en un escritorio: se pueden superponer sin pelear por el mismo plano.
+@export_range(0.0, 1.0, 0.005) var stacking_depth := 0.08
 @export var random_seed := 0
 @export var spawn_on_ready := true
 @export var debug_bounds_visible := true:
@@ -26,7 +37,7 @@ signal all_targets_destroyed
 @onready var debug_bounds: MeshInstance3D = $DebugBounds
 @onready var targets_container: Node3D = $Targets
 
-var active_targets: Array[TargetBall] = []
+var active_targets: Array[Node3D] = []
 var _debug_active := false
 
 
@@ -37,7 +48,7 @@ func _ready() -> void:
 
 
 func spawn_targets() -> void:
-	if Engine.is_editor_hint() or target_scene == null:
+	if Engine.is_editor_hint() or _usable_target_scenes().is_empty():
 		return
 	_debug_active = true
 	_update_debug_bounds()
@@ -47,23 +58,53 @@ func spawn_targets() -> void:
 		rng.randomize()
 	else:
 		rng.seed = random_seed
+	var scenes := _usable_target_scenes()
 	var positions := _build_spawn_positions(rng)
 	var penalty_indices := _pick_penalty_indices(positions.size(), rng)
 	for index in positions.size():
-		var scene_to_spawn := penalty_target_scene if penalty_indices.has(index) else target_scene
-		var target := scene_to_spawn.instantiate() as TargetBall
+		var is_penalty := penalty_indices.has(index)
+		var scene_to_spawn := penalty_target_scene if is_penalty else scenes[rng.randi_range(0, scenes.size() - 1)]
+		var target := scene_to_spawn.instantiate() as Node3D
 		if target == null:
-			push_error("TargetSpawnVolume3D requires a scene with TargetBall as its root.")
+			push_error("TargetSpawnVolume3D requires target scenes with a Node3D root.")
 			continue
-		if scene_to_spawn == target_scene:
-			target.display_color = target_color
-			target.use_custom_display_color = true
+		if not is_penalty and target is TargetBall:
+			var ball := target as TargetBall
+			ball.display_color = target_color
+			ball.use_custom_display_color = true
 		targets_container.add_child(target)
-		target.position = positions[index]
-		target.destroyed.connect(_on_target_destroyed)
-		target.left.connect(_on_target_left)
+		target.position = _place_target(target, positions[index], index)
+		_connect_target(target)
 		active_targets.append(target)
 	targets_spawned.emit(active_targets.duplicate())
+
+
+## Coloca el objetivo dentro del volumen y lo adelanta segun su orden, para que
+## dos objetivos superpuestos nunca queden en el mismo plano.
+func _place_target(target: Node3D, position: Vector3, index: int) -> Vector3:
+	var placed := position
+	placed.z += index * stacking_depth
+	if not target.has_method("get_window_size"):
+		return placed
+	var extents: Vector2 = target.call("get_window_size") * 0.5
+	var limit := Vector2(maxf(size.x * 0.5 - extents.x, 0.0), maxf(size.y * 0.5 - extents.y, 0.0))
+	placed.x = clampf(placed.x, -limit.x, limit.x)
+	placed.y = clampf(placed.y, -limit.y, limit.y)
+	return placed
+
+
+func _usable_target_scenes() -> Array[PackedScene]:
+	var scenes: Array[PackedScene] = []
+	for scene in target_scenes:
+		if scene != null:
+			scenes.append(scene)
+	return scenes
+
+
+func _connect_target(target: Node3D) -> void:
+	for signal_name in RESOLVE_SIGNALS:
+		if target.has_signal(signal_name):
+			target.connect(signal_name, _on_target_resolved)
 
 
 func clear_targets() -> void:
@@ -91,22 +132,20 @@ func _build_spawn_positions(rng: RandomNumberGenerator) -> Array[Vector3]:
 			rng.randf_range(-half_size.y, half_size.y),
 			rng.randf_range(-half_size.z, half_size.z)
 		)
-		if positions.all(func(existing: Vector3) -> bool: return existing.distance_to(candidate) >= minimum_spacing):
+		if positions.all(func(existing: Vector3) -> bool: return _is_separated(existing, candidate)):
 			positions.append(candidate)
 	if positions.size() < target_count:
-		push_warning("TargetSpawnVolume3D could only place %d of %d targets. Increase size or reduce minimum_spacing." % [positions.size(), target_count])
+		push_warning("TargetSpawnVolume3D could only place %d of %d targets. Increase size or reduce minimum_separation." % [positions.size(), target_count])
 	return positions
 
 
-func _on_target_destroyed(target: TargetBall) -> void:
-	_resolve_target(target)
+func _is_separated(existing: Vector3, candidate: Vector3) -> bool:
+	return absf(existing.x - candidate.x) >= minimum_separation.x or absf(existing.y - candidate.y) >= minimum_separation.y
 
 
-func _on_target_left(target: TargetBall) -> void:
-	_resolve_target(target)
-
-
-func _resolve_target(target: TargetBall) -> void:
+func _on_target_resolved(target: Node3D) -> void:
+	if not active_targets.has(target):
+		return
 	active_targets.erase(target)
 	if active_targets.is_empty():
 		all_targets_destroyed.emit()

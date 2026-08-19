@@ -16,6 +16,10 @@
     {
       "id": "nivel-4",
       "path": "res://level-designs/levels/nivel-4.json"
+    },
+    {
+      "id": "nivel-ventanas",
+      "path": "res://level-designs/levels/nivel-ventanas.json"
     }
   ]
 }

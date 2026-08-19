@@ -13,6 +13,19 @@ signal closed(block: TargetBlock3D)
 @export_range(0.0, 100.0, 1.0) var crossing_damage := 15.0
 @export var movement_direction := Vector3.ZERO
 @export var block_size := Vector2(8.0, 4.0)
+## Escenas que puede spawnear el bloque. Cada objetivo elige una al azar.
+@export var target_scenes: Array[PackedScene] = [
+	preload("res://scenes/windows/shutdown_window.tscn"),
+	preload("res://scenes/windows/close_window.tscn"),
+	preload("res://scenes/windows/download_window.tscn"),
+]
+## Separacion minima entre objetivos y margen interior del bloque, en metros.
+## Los valores por defecto contemplan el tamaño de una ventana.
+## Con valores menores al tamaño del objetivo las ventanas se superponen, que es
+## el comportamiento buscado. El volumen las escalona en profundidad y cada una
+## se recorta contra los bordes del bloque, asi que el solape se ve limpio.
+@export var target_separation := Vector2(2.0, 1.0)
+@export var target_padding := Vector2(0.2, 0.2)
 
 @onready var block_mesh: MeshInstance3D = $BlockMesh
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
@@ -60,8 +73,10 @@ func _update_geometry() -> void:
 	var shape := collision_shape.shape as BoxShape3D
 	shape.size = physical_size
 	spawn_volume.position = Vector3(0.0, 0.0, 0.5)
-	spawn_volume.size = Vector3(maxf(block_size.x - 1.0, 0.5), maxf(block_size.y - 1.0, 0.5), 0.1)
-	spawn_volume.edge_padding = Vector3(0.35, 0.35, 0.0)
+	spawn_volume.size = Vector3(maxf(block_size.x - 1.0, 0.5), maxf(block_size.y - 1.0, 0.5), 0.02)
+	spawn_volume.edge_padding = Vector3(target_padding.x, target_padding.y, 0.0)
+	spawn_volume.minimum_separation = target_separation
+	spawn_volume.target_scenes = target_scenes
 
 
 func _update_appearance() -> void:

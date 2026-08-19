@@ -12,7 +12,8 @@ viewport_path = NodePath("SubViewport")
 
 [sub_resource type="StandardMaterial3D" id="ScreenMaterial"]
 resource_local_to_scene = true
-transparency = 1
+transparency = 2
+alpha_scissor_threshold = 0.5
 cull_mode = 2
 shading_mode = 0
 albedo_texture = SubResource("ScreenTexture")
@@ -21,10 +22,11 @@ texture_filter = 0
 [sub_resource type="QuadMesh" id="ScreenMesh"]
 resource_local_to_scene = true
 material = SubResource("ScreenMaterial")
-size = Vector2(1.09, 0.5)
+size = Vector2(3.288, 1.507)
 
 [node name="CloseWindow" type="Node3D" unique_id=1452921705]
 script = ExtResource("1_panel")
+window_label = "aviso"
 
 [node name="SubViewport" type="SubViewport" parent="." unique_id=1316518550]
 disable_3d = true

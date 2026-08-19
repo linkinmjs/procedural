@@ -14,8 +14,8 @@ El layout manda: mover un botón en 2D recalcula su zona 3D sola. No hay coorden
 
 | Estilo | Theme | Assets | Template |
 | --- | --- | --- | --- |
-| Windows XP | [`assets/UI/xp/xp_theme.tres`](../assets/UI/xp/xp_theme.tres) | `assets/UI/xp/` | [`scenes/windows/templates/xp_window_template.tscn`](../scenes/windows/templates/xp_window_template.tscn) |
-| Retro gris | [`assets/UI/retro/retro_theme.tres`](../assets/UI/retro/retro_theme.tres) | `assets/UI/retro/` | [`scenes/windows/templates/retro_window_template.tscn`](../scenes/windows/templates/retro_window_template.tscn) |
+| Windows XP | [`resources/themes/xp_theme.tres`](../resources/themes/xp_theme.tres) | `assets/textures/ui/xp/` | [`scenes/windows/templates/xp_window_template.tscn`](../scenes/windows/templates/xp_window_template.tscn) |
+| Retro gris | [`resources/themes/retro_theme.tres`](../resources/themes/retro_theme.tres) | `assets/textures/ui/retro/` | [`scenes/windows/templates/retro_window_template.tscn`](../scenes/windows/templates/retro_window_template.tscn) |
 
 Cada theme concentra fuente, botones y estilos. Cambiar el aspecto de todas las ventanas de un estilo se hace en un solo archivo. El theme retro además define `ProgressBar`, por si la ventana necesita una barra de progreso.
 
@@ -77,7 +77,7 @@ Un bloque de 15 m de ancho admite unas siete posiciones, con solape entre vecina
 
 Las oleadas, el color del panel, el movimiento y el cierre del bloque no cambian: al destruir la última ventana de una oleada aparece la siguiente, y al terminar todas el bloque se cierra.
 
-[`level-designs/levels/nivel-ventanas.json`](../level-designs/levels/nivel-ventanas.json) es el nivel de pruebas. Está al final de `level-sequence.json`, así que se llega con F7 desde el nivel 1; para arrancar directamente ahí, mover su entrada al principio del catálogo. Tiene una sala con dos oleadas estáticas y otra con tres bloques, uno de ellos en movimiento.
+[`level_designs/levels/nivel-ventanas.json`](../level_designs/levels/nivel-ventanas.json) es el nivel de pruebas. Está al final de `level-sequence.json`, así que se llega con F7 desde el nivel 1; para arrancar directamente ahí, mover su entrada al principio del catálogo. Tiene una sala con dos oleadas estáticas y otra con tres bloques, uno de ellos en movimiento.
 
 ## Probar
 
@@ -97,7 +97,7 @@ La vista previa necesita ventana real: con `--headless` no se puede capturar la 
 
 ## Origen de los assets
 
-- `assets/UI/xp/`: recortes del atlas `WinXp/Frame/UI Theme.png` del pack WinXp de NullTale, más la fuente Tahoma incluida en ese pack. Tahoma es propiedad de Microsoft; para distribuir el juego conviene reemplazarla por una libre equivalente, y el cambio se hace sólo en los dos themes.
-- `assets/UI/retro/`: archivos del pack RetroWindowsGUI, más el icono de cerrar recortado de su atlas de iconos.
+- `assets/textures/ui/xp/`: recortes del atlas `WinXp/Frame/UI Theme.png` del pack WinXp de NullTale, más la fuente Tahoma incluida en ese pack (hoy en `assets/fonts/tahoma.ttf`). Tahoma es propiedad de Microsoft; para distribuir el juego conviene reemplazarla por una libre equivalente, y el cambio se hace sólo en los dos themes.
+- `assets/textures/ui/retro/`: archivos del pack RetroWindowsGUI, más el icono de cerrar recortado de su atlas de iconos.
 
 Los zips originales viven en `assets/_raw/`, que no se versiona.

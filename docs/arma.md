@@ -8,15 +8,15 @@ como material de referencia pero ya no aparecen en ninguna escena jugable.
 
 | Archivo | Que define |
 | --- | --- |
-| [`Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/glock.tres`](../Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/glock.tres) | Cargador, reserva, dano, alcance, animaciones y sonido. |
-| [`Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/glock_recoil.tres`](../Player_Controller/scripts/Weapon_State_Machine/Weapon_Resources/glock_recoil.tres) | Retroceso de camara e imprecision dinamica. |
-| [`Player_Controller/Spawnable_Objects/Weapons/glock_view_model.tscn`](../Player_Controller/Spawnable_Objects/Weapons/glock_view_model.tscn) | Modelo en primera persona, con corredera, cargador y fogonazo. |
-| [`Player_Controller/glock_animation.tres`](../Player_Controller/glock_animation.tres) | Animaciones `Active`, `Shoot`, `Reload`, `De-Activate`, `Drop`, `OOA` y `Melee`. |
-| [`Player_Controller/Spawnable_Objects/Weapons/glock_ammo_pickup.tscn`](../Player_Controller/Spawnable_Objects/Weapons/glock_ammo_pickup.tscn) | Caja de municion del poligono de armas: suma 10 balas a la reserva. |
-| [`assets/audios/glock/glock_shoot.tres`](../assets/audios/glock/glock_shoot.tres) | Randomizador de los tres samples de disparo. |
+| [`resources/weapons/glock.tres`](../resources/weapons/glock.tres) | Cargador, reserva, dano, alcance, animaciones y sonido. |
+| [`resources/weapons/glock_recoil.tres`](../resources/weapons/glock_recoil.tres) | Retroceso de camara e imprecision dinamica. |
+| [`scenes/weapons/glock_view_model.tscn`](../scenes/weapons/glock_view_model.tscn) | Modelo en primera persona, con corredera, cargador y fogonazo. |
+| [`resources/animations/glock_animation.tres`](../resources/animations/glock_animation.tres) | Animaciones `Active`, `Shoot`, `Reload`, `De-Activate`, `Drop`, `OOA` y `Melee`. |
+| [`scenes/weapons/glock_ammo_pickup.tscn`](../scenes/weapons/glock_ammo_pickup.tscn) | Caja de municion del poligono de armas: suma 10 balas a la reserva. |
+| [`resources/audio/glock_shoot.tres`](../resources/audio/glock_shoot.tres) | Randomizador de los tres samples de disparo. |
 
 El arma vive en el `weapon_stack` de
-[`player_character.tscn`](../Player_Controller/player_character.tscn), con
+[`player_character.tscn`](../scenes/player/player_character.tscn), con
 `max_weapons = 1`. Ninguna escena agrega armas extra al stack.
 
 ## Cambiar el cargador
@@ -27,7 +27,7 @@ recarga, el HUD y el contador de la ronda leen el mismo valor.
 
 ## Retroceso e imprecision
 
-`RecoilProfile` ([`recoil_profile.gd`](../Player_Controller/scripts/Weapon_State_Machine/recoil_profile.gd))
+`RecoilProfile` ([`recoil_profile.gd`](../scripts/weapons/recoil_profile.gd))
 expresa todo en grados, asi que los valores no dependen de la resolucion ni del
 FOV. El comportamiento imita al Counter-Strike 1.6:
 
@@ -35,7 +35,7 @@ FOV. El comportamiento imita al Counter-Strike 1.6:
   lado. La patada crece con la rafaga (`vertical_kick_growth`) hasta el tope
   (`max_vertical_kick`) y la vista vuelve sola al punto original al soltar el
   gatillo (`recovery_speed`). Lo aplica `add_recoil()` en
-  [`player_character.gd`](../Player_Controller/scripts/Player_Character/player_character.gd).
+  [`player_character.gd`](../scripts/player/player_character.gd).
 - **Imprecision**: el primer disparo quieto y en el suelo es exacto
   (`base_spread = 0`). A partir de ahi suman `spread_per_shot` por disparo,
   `move_spread` segun la velocidad del jugador y `air_spread` mientras esta en
@@ -44,7 +44,7 @@ FOV. El comportamiento imita al Counter-Strike 1.6:
   tras `shot_reset_time` sin disparar.
 - **Mira**: `Weapon_State_Machine` emite `spread_changed` con la dispersion ya
   convertida a pixeles y
-  [`dynamic_crosshair.gd`](../Player_Controller/scripts/Player_Character/dynamic_crosshair.gd)
+  [`dynamic_crosshair.gd`](../scripts/player/dynamic_crosshair.gd)
   abre los cuatro trazos exactamente esa cantidad. El hueco de la mira es la
   dispersion real del disparo, no un adorno.
 

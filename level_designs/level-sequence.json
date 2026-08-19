@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "levels": [
+    {
+      "id": "nivel-1",
+      "path": "res://level_designs/levels/nivel-1.json"
+    },
+    {
+      "id": "nivel-2",
+      "path": "res://level_designs/levels/nivel-2.json"
+    },
+    {
+      "id": "nivel-3",
+      "path": "res://level_designs/levels/nivel-3.json"
+    },
+    {
+      "id": "nivel-4",
+      "path": "res://level_designs/levels/nivel-4.json"
+    },
+    {
+      "id": "nivel-ventanas",
+      "path": "res://level_designs/levels/nivel-ventanas.json"
+    }
+  ]
+}

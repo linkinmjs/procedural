@@ -14,7 +14,7 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	change_scene_to_file("res://scenes/weapon_test.tscn")
+	change_scene_to_file("res://scenes/sandbox/weapon_test.tscn")
 	await process_frame
 	await process_frame
 	_player = _find_player()

@@ -2,12 +2,38 @@
 
 Prototipo para Godot 4.7 que integra SimpleDungeons y el FPS Template de Chaff Games.
 
+## Estructura del proyecto
+
+Layout separado (assets / scenes / scripts / resources), el recomendado para
+proyectos medianos en Godot 4. Todo en `snake_case`, sin espacios ni mayusculas
+en carpetas ni archivos.
+
+```
+assets/      # material crudo importable: modelos, texturas, audio, fuentes, iconos
+  _raw/      # fuentes de trabajo (zips, proyectos de Reaper). Tiene .gdignore y no se versiona
+resources/   # recursos .tres/.res de datos: armas, themes, animaciones, audio, entorno
+scenes/      # escenas .tscn agrupadas por dominio
+  player/ weapons/ projectiles/ levels/ targets/ windows/ ui/ environment/ sandbox/
+scripts/     # scripts .gd espejando la estructura de scenes/
+  autoloads/ player/ weapons/ projectiles/ levels/ targets/ windows/ ui/ gameplay/ environment/ sandbox/
+level_designs/  # definiciones de nivel en JSON, leidas en runtime
+addons/      # plugins de terceros (SimpleDungeons)
+tests/       # smoke tests headless y visuales
+tools/       # editor web de niveles (fuera del alcance de Godot via .gdignore)
+docs/        # documentacion del proyecto
+third_party/ # licencias y versiones de las fuentes de terceros
+```
+
+`scenes/sandbox/` agrupa los bancos de prueba jugables (dungeon, poligono de
+armas, laboratorio de bloques): son escenas de desarrollo, no niveles de la
+campania.
+
 ## Escenas
 
-- `scenes/levels/playable_level.tscn`: nivel inicial jugable construido desde `level-designs/levels/nivel-1.json`.
-- `scenes/dungeon_test.tscn`: genera un dungeon recorrible y coloca al jugador en la sala de entrada.
-- `scenes/weapon_test.tscn`: poligono con cajas de municion y blancos reutilizables.
-- `scenes/block_lab.tscn`: laboratorio configurable de habitaciones y bloques de objetivos.
+- `scenes/levels/playable_level.tscn`: nivel inicial jugable construido desde `level_designs/levels/nivel-1.json`.
+- `scenes/sandbox/dungeon_test.tscn`: genera un dungeon recorrible y coloca al jugador en la sala de entrada.
+- `scenes/sandbox/weapon_test.tscn`: poligono con cajas de municion y blancos reutilizables.
+- `scenes/sandbox/block_lab.tscn`: laboratorio configurable de habitaciones y bloques de objetivos.
 - `scenes/targets/target_spawn_volume_3d.tscn`: volumen configurable que distribuye pelotas estaticas y muestra sus limites de debug.
 - `scenes/ui/round_hud.tscn`: HUD reutilizable de vida, tiempo, precision y eventos de ronda.
 
@@ -21,7 +47,7 @@ Al iniciar el proyecto se carga el nivel JSON configurado. Sus salas, puertas, c
 
 Los bloques JSON admiten color, velocidad individual y múltiples oleadas. Al destruir el último objetivo de una oleada aparece la siguiente; el bloque se cierra al completar todas. Los bloques spawnean ventanas estilo Windows, que se rompen disparando a la X, a un boton o a un cartel.
 
-El orden jugable se define en `level-designs/level-sequence.json`. Por ahora F7 y F8 cambian de nivel manualmente. El avance automático queda deliberadamente desacoplado hasta implementar la condición de victoria.
+El orden jugable se define en `level_designs/level-sequence.json`. Por ahora F7 y F8 cambian de nivel manualmente. El avance automático queda deliberadamente desacoplado hasta implementar la condición de victoria.
 
 Las pelotas siguen disponibles como objetivo alternativo del bloque. Se destruyen con un impacto, y las variantes azules de penalizacion desaparecen a los 8 segundos y restan 15 HP si no son destruidas. Ni las pelotas ni las ventanas se mueven o reaparecen por su cuenta.
 
@@ -59,7 +85,7 @@ Las ventanas estilo Windows son los objetivos con personalidad que reemplazaran 
 
 Hay dos estilos con su propio theme y template: Windows XP y retro gris. Para crear una ventana nueva se duplica el template correspondiente de `scenes/windows/templates/`. El procedimiento completo esta en [`docs/ventanas.md`](docs/ventanas.md).
 
-`level-designs/levels/nivel-ventanas.json` es el nivel de pruebas del sistema. Esta al final del catalogo, asi que se llega con F7 desde el nivel inicial.
+`level_designs/levels/nivel-ventanas.json` es el nivel de pruebas del sistema. Esta al final del catalogo, asi que se llega con F7 desde el nivel inicial.
 
 Prueba del sistema de ventanas:
 
@@ -76,7 +102,7 @@ Prueba del sistema de ventanas:
 
 ## Editor de niveles
 
-`tools/level-editor/` contiene un editor web local para componer salas desde arriba, conectarlas y configurar los bloques y objetivos de cada una. Los diseños exportados se guardan en `level-designs/` como JSON versionable. Las instrucciones de uso están en [`tools/level-editor/README.md`](tools/level-editor/README.md).
+`tools/level-editor/` contiene un editor web local para componer salas desde arriba, conectarlas y configurar los bloques y objetivos de cada una. Los diseños exportados se guardan en `level_designs/` como JSON versionable. Las instrucciones de uso están en [`tools/level-editor/README.md`](tools/level-editor/README.md).
 
 Prueba automatizada del sistema:
 
@@ -115,6 +141,6 @@ El workflow [`.github/workflows/deploy-to-itch.yml`](.github/workflows/deploy-to
 ### Notas tecnicas del export Web
 
 - El proyecto corre en **Forward+** en escritorio, pero el export a Web solo soporta el renderer **Compatibility (WebGL2)**. Por eso `project.godot` define `renderer/rendering_method.web="gl_compatibility"`. Los efectos exclusivos de Forward+ (SDFGI, niebla volumetrica, SSAO/SSIL) no se ven en el build web.
-- `export_presets.cfg` usa `include_filter="*.json"` porque los niveles de `level-designs/` se leen en runtime con `FileAccess` y no son recursos importados: sin ese filtro no viajarian dentro del `.pck`.
+- `export_presets.cfg` usa `include_filter="*.json"` porque los niveles de `level_designs/` se leen en runtime con `FileAccess` y no son recursos importados: sin ese filtro no viajarian dentro del `.pck`.
 - El preset exporta sin soporte de hilos (`variant/thread_support=false`), que es la variante mas compatible con itch.io.
 - La version de Godot del pipeline se controla con `GODOT_VERSION` / `GODOT_STATUS` en el workflow y debe coincidir con la del editor (hoy `4.7-stable`).

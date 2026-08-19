@@ -8,7 +8,7 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	change_scene_to_file("res://scenes/weapon_test.tscn")
+	change_scene_to_file("res://scenes/sandbox/weapon_test.tscn")
 	await process_frame
 	await process_frame
 	var player := _find_player()
@@ -125,7 +125,7 @@ func _run() -> void:
 
 	# Las cajas del poligono solo suman municion a la reserva de la Glock.
 	slot.reserve_ammo = 0
-	var ammo_pickup: WeaponPickUp = preload("res://Player_Controller/Spawnable_Objects/Weapons/glock_ammo_pickup.tscn").instantiate()
+	var ammo_pickup: WeaponPickUp = preload("res://scenes/weapons/glock_ammo_pickup.tscn").instantiate()
 	player.add_sibling(ammo_pickup)
 	var box_rounds: int = ammo_pickup.weapon.current_ammo + ammo_pickup.weapon.reserve_ammo
 	manager._on_pick_up_detection_body_entered(ammo_pickup)

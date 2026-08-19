@@ -1,14 +1,14 @@
 class_name PlayableLevel
 extends Node3D
 
-const PLAYER_SCENE := preload("res://Player_Controller/player_character.tscn")
-const ROOM_LIGHT_SCENE := preload("res://scenes/room_light.tscn")
+const PLAYER_SCENE := preload("res://scenes/player/player_character.tscn")
+const ROOM_LIGHT_SCENE := preload("res://scenes/environment/room_light.tscn")
 const WALL_HEIGHT := 6.0
 const WALL_THICKNESS := 0.35
 const DOOR_WIDTH := 3.5
 const CORRIDOR_WIDTH := 3.5
 
-@export_file("*.json") var level_definition_path := "res://level-designs/levels/nivel-1.json"
+@export_file("*.json") var level_definition_path := "res://level_designs/levels/nivel-1.json"
 @export_range(0.05, 5.0, 0.05) var moving_block_speed := 0.65
 @export_range(0.0, 100.0, 1.0) var block_crossing_damage := 15.0
 
@@ -40,13 +40,13 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	match event.keycode:
 		KEY_F1:
-			get_tree().change_scene_to_file("res://scenes/dungeon_test.tscn")
+			get_tree().change_scene_to_file("res://scenes/sandbox/dungeon_test.tscn")
 		KEY_F2:
-			get_tree().change_scene_to_file("res://scenes/weapon_test.tscn")
+			get_tree().change_scene_to_file("res://scenes/sandbox/weapon_test.tscn")
 		KEY_F3:
 			get_tree().reload_current_scene()
 		KEY_F4:
-			get_tree().change_scene_to_file("res://scenes/block_lab.tscn")
+			get_tree().change_scene_to_file("res://scenes/sandbox/block_lab.tscn")
 		KEY_F6:
 			get_tree().reload_current_scene()
 		KEY_F7:

@@ -3,9 +3,9 @@ import fs from "node:fs";
 
 const html = fs.readFileSync("tools/level-editor/index.html", "utf8");
 const script = fs.readFileSync("tools/level-editor/app.js", "utf8");
-const schema = JSON.parse(fs.readFileSync("level-designs/schema.json", "utf8"));
-const example = JSON.parse(fs.readFileSync("level-designs/three-room-example.json", "utf8"));
-const levelOne = JSON.parse(fs.readFileSync("level-designs/levels/nivel-1.json", "utf8"));
+const schema = JSON.parse(fs.readFileSync("level_designs/schema.json", "utf8"));
+const example = JSON.parse(fs.readFileSync("level_designs/three-room-example.json", "utf8"));
+const levelOne = JSON.parse(fs.readFileSync("level_designs/levels/nivel-1.json", "utf8"));
 
 for (const id of [
   "level-canvas",

@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" path="res://scripts/windows/window_panel_3d.gd" id="1_panel"]
 [ext_resource type="Script" path="res://scripts/windows/window_hit_zone.gd" id="2_zone"]
-[ext_resource type="Theme" path="res://assets/UI/retro/retro_theme.tres" id="3_theme"]
-[ext_resource type="Texture2D" path="res://assets/UI/retro/window_frame.png" id="4_frame"]
-[ext_resource type="Texture2D" path="res://assets/UI/retro/icon_close.png" id="5_icon_close"]
+[ext_resource type="Theme" path="res://resources/themes/retro_theme.tres" id="3_theme"]
+[ext_resource type="Texture2D" path="res://assets/textures/ui/retro/window_frame.png" id="4_frame"]
+[ext_resource type="Texture2D" path="res://assets/textures/ui/retro/icon_close.png" id="5_icon_close"]
 
 [sub_resource type="ViewportTexture" id="ScreenTexture"]
 viewport_path = NodePath("SubViewport")

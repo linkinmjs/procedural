@@ -1,15 +1,15 @@
 # Niveles JSON jugables
 
-La escena inicial `scenes/levels/playable_level.tscn` construye el nivel definido en `level-designs/levels/nivel-1.json` cada vez que comienza la partida.
+La escena inicial `scenes/levels/playable_level.tscn` construye el nivel definido en `level_designs/levels/nivel-1.json` cada vez que comienza la partida.
 
 ## Flujo de trabajo
 
 1. Diseñar o importar un nivel en `tools/level-editor/index.html`.
-2. Descargar el JSON dentro de `level-designs/levels/`.
-3. Agregar su ID y ruta a `level-designs/level-sequence.json` en el orden deseado.
+2. Descargar el JSON dentro de `level_designs/levels/`.
+3. Agregar su ID y ruta a `level_designs/level-sequence.json` en el orden deseado.
 4. Ejecutar el proyecto. No es necesario convertir manualmente el JSON en una escena `.tscn`.
 
-Los niveles que forman parte de la campaña se ordenan en `level-designs/level-sequence.json`. `LevelSequence` conserva el índice actual al recargar la escena y permite navegar manualmente con F7 y F8.
+Los niveles que forman parte de la campaña se ordenan en `level_designs/level-sequence.json`. `LevelSequence` conserva el índice actual al recargar la escena y permite navegar manualmente con F7 y F8.
 
 ## Qué se construye
 

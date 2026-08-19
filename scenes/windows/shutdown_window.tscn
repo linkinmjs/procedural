@@ -2,10 +2,10 @@
 
 [ext_resource type="Script" uid="uid://bar1jkde2yc1j" path="res://scripts/windows/window_panel_3d.gd" id="1_panel"]
 [ext_resource type="Script" uid="uid://bagfisyhke2t4" path="res://scripts/windows/window_hit_zone.gd" id="2_zone"]
-[ext_resource type="Theme" uid="uid://dbyf6q2y8j7k0" path="res://assets/UI/xp/xp_theme.tres" id="3_theme"]
-[ext_resource type="Texture2D" uid="uid://ycov4a7atr8g" path="res://assets/UI/xp/window_body.png" id="4_body"]
-[ext_resource type="Texture2D" uid="uid://bot5tbh7puxnp" path="res://assets/UI/xp/titlebar_active.png" id="5_titlebar"]
-[ext_resource type="Texture2D" uid="uid://ho6rl1ishvaa" path="res://assets/UI/xp/close_button.png" id="6_close"]
+[ext_resource type="Theme" uid="uid://dbyf6q2y8j7k0" path="res://resources/themes/xp_theme.tres" id="3_theme"]
+[ext_resource type="Texture2D" uid="uid://ycov4a7atr8g" path="res://assets/textures/ui/xp/window_body.png" id="4_body"]
+[ext_resource type="Texture2D" uid="uid://bot5tbh7puxnp" path="res://assets/textures/ui/xp/titlebar_active.png" id="5_titlebar"]
+[ext_resource type="Texture2D" uid="uid://ho6rl1ishvaa" path="res://assets/textures/ui/xp/close_button.png" id="6_close"]
 
 [sub_resource type="ViewportTexture" id="ScreenTexture"]
 viewport_path = NodePath("SubViewport")

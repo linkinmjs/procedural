@@ -7,7 +7,7 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	change_scene_to_file("res://scenes/block_lab.tscn")
+	change_scene_to_file("res://scenes/sandbox/block_lab.tscn")
 	await process_frame
 	await process_frame
 	var lab := current_scene

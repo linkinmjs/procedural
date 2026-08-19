@@ -3,7 +3,7 @@ extends Node
 ## Captura el arma en primera persona en reposo, disparando y recargando para
 ## revisar a ojo la pose del modelo y el fogonazo.
 
-const PLAYER_SCENE := preload("res://Player_Controller/player_character.tscn")
+const PLAYER_SCENE := preload("res://scenes/player/player_character.tscn")
 
 var _player: CharacterBody3D
 

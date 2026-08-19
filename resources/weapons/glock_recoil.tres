@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="RecoilProfile" format=3 uid="uid://cvog27a2ly5ct"]
+
+[ext_resource type="Script" uid="uid://bxsy6nkfv28nj" path="res://scripts/weapons/recoil_profile.gd" id="1_recoil"]
+
+[resource]
+script = ExtResource("1_recoil")
+vertical_kick = 1.1
+vertical_kick_growth = 0.35
+max_vertical_kick = 3.5
+horizontal_kick = 0.18
+horizontal_kick_growth = 0.15
+max_horizontal_kick = 1.2
+kick_snappiness = 26.0
+recovery_speed = 4.5
+base_spread = 0.0
+spread_per_shot = 0.75
+max_shot_spread = 3.0
+spread_recovery = 2.5
+move_spread = 1.8
+air_spread = 3.0
+crouch_multiplier = 0.55
+max_spread = 6.0
+shot_reset_time = 0.35

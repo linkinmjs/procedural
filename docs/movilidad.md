@@ -1,6 +1,6 @@
 # Movilidad
 
-El controlador de [`player_character.gd`](../Player_Controller/scripts/Player_Character/player_character.gd)
+El controlador de [`player_character.gd`](../scripts/player/player_character.gd)
 sigue el modelo de Quake que usa Counter-Strike 1.6: se corre siempre, no hay
 estamina, y la velocidad se gobierna con friccion y aceleracion vectorial en vez
 de interpolar hacia una velocidad objetivo.

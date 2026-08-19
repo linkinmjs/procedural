@@ -6,5 +6,7 @@
 /builds/*
 !/builds/.gitkeep
 
-# Assets crudos descargados (zips sin procesar, no se versionan)
-/assets/_raw/
+# Assets crudos descargados (zips, proyectos de Reaper: no se versionan).
+# El .gdignore si se versiona: le dice a Godot que no importe nada de ahi.
+/assets/_raw/*
+!/assets/_raw/.gdignore

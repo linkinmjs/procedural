@@ -20,7 +20,7 @@ Abrir `http://localhost:8080` en el navegador.
 - Configurar una o más oleadas de objetivos; la siguiente aparece al destruir la anterior.
 - Definir el tiempo límite global del nivel en minutos y segundos.
 - Guardar con el selector de archivos del navegador o descargar el JSON.
-- Colocar los archivos definitivos en `level-designs/`.
+- Colocar los archivos definitivos en `level_designs/`.
 
 El editor conserva automáticamente un borrador en el almacenamiento local del navegador. Ese borrador es una comodidad y no reemplaza a los JSON versionados en Git.
 

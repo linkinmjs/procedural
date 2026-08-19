@@ -1,0 +1,169 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/sandbox/weapon_test.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/targets/test_target.tscn" id="2_target"]
+[ext_resource type="PackedScene" path="res://scenes/targets/target_spawn_volume_3d.tscn" id="3_spawn_volume"]
+[ext_resource type="PackedScene" path="res://scenes/ui/round_hud.tscn" id="4_round_hud"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
+sky_top_color = Color(0.035, 0.055, 0.09, 1)
+sky_horizon_color = Color(0.22, 0.28, 0.38, 1)
+ground_bottom_color = Color(0.02, 0.025, 0.035, 1)
+ground_horizon_color = Color(0.14, 0.17, 0.22, 1)
+
+[sub_resource type="Sky" id="Sky"]
+sky_material = SubResource("SkyMaterial")
+
+[sub_resource type="Environment" id="Environment"]
+background_mode = 2
+sky = SubResource("Sky")
+ambient_light_source = 3
+ambient_light_energy = 0.65
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
+albedo_color = Color(0.11, 0.14, 0.18, 1)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="WallMaterial"]
+albedo_color = Color(0.18, 0.24, 0.31, 1)
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="LaneMaterial"]
+albedo_color = Color(0.18, 0.55, 0.78, 1)
+emission_enabled = true
+emission = Color(0.04, 0.18, 0.3, 1)
+
+[sub_resource type="StyleBoxFlat" id="PanelStyle"]
+bg_color = Color(0.035, 0.045, 0.07, 0.86)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="LabelSettings" id="TitleSettings"]
+font_size = 22
+font_color = Color(1, 0.75, 0.28, 1)
+
+[sub_resource type="BoxMesh" id="LaneMesh"]
+material = SubResource("LaneMaterial")
+size = Vector3(0.08, 0.015, 44)
+
+[node name="WeaponTest" type="Node3D" groups=["World"]]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-55, -25, 0)
+light_energy = 1.25
+shadow_enabled = true
+
+[node name="Floor" type="CSGBox3D" parent="."]
+position = Vector3(0, -0.15, 0)
+size = Vector3(40, 0.3, 50)
+material = SubResource("FloorMaterial")
+use_collision = true
+
+[node name="BackWall" type="CSGBox3D" parent="."]
+position = Vector3(0, 3, -25)
+size = Vector3(40, 6, 0.5)
+material = SubResource("WallMaterial")
+use_collision = true
+
+[node name="LeftWall" type="CSGBox3D" parent="."]
+position = Vector3(-20, 3, 0)
+size = Vector3(0.5, 6, 50)
+material = SubResource("WallMaterial")
+use_collision = true
+
+[node name="RightWall" type="CSGBox3D" parent="."]
+position = Vector3(20, 3, 0)
+size = Vector3(0.5, 6, 50)
+material = SubResource("WallMaterial")
+use_collision = true
+
+[node name="LaneLeft" type="MeshInstance3D" parent="."]
+position = Vector3(-4, 0.02, -2)
+mesh = SubResource("LaneMesh")
+
+[node name="LaneRight" type="MeshInstance3D" parent="."]
+position = Vector3(4, 0.02, -2)
+mesh = SubResource("LaneMesh")
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 0.05, 18)
+
+[node name="PickupMarkers" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="BlasterN" type="Marker3D" parent="PickupMarkers"]
+position = Vector3(-6, 1, 12)
+
+[node name="BlasterL" type="Marker3D" parent="PickupMarkers"]
+position = Vector3(-2, 1, 12)
+
+[node name="BlasterM" type="Marker3D" parent="PickupMarkers"]
+position = Vector3(2, 1, 12)
+
+[node name="BlasterQ" type="Marker3D" parent="PickupMarkers"]
+position = Vector3(6, 1, 12)
+
+[node name="TargetNearLeft" parent="." instance=ExtResource("2_target")]
+position = Vector3(-6, 1.25, -5)
+max_health = 50.0
+
+[node name="TargetNearRight" parent="." instance=ExtResource("2_target")]
+position = Vector3(6, 1.25, -5)
+max_health = 50.0
+
+[node name="TargetMidLeft" parent="." instance=ExtResource("2_target")]
+position = Vector3(-4, 1.25, -13)
+
+[node name="TargetMidRight" parent="." instance=ExtResource("2_target")]
+position = Vector3(4, 1.25, -13)
+
+[node name="TargetFar" parent="." instance=ExtResource("2_target")]
+position = Vector3(0, 1.25, -22)
+max_health = 200.0
+
+[node name="TargetSpawnVolume" parent="." instance=ExtResource("3_spawn_volume")]
+position = Vector3(0, 3.0, -18)
+target_count = 8
+penalty_target_count = 3
+size = Vector3(12, 4.5, 0.6)
+minimum_separation = Vector2(1.15, 1.15)
+
+[node name="RoundHUD" parent="." instance=ExtResource("4_round_hud")]
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="PanelContainer" parent="Interface"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -675.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = 110.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("PanelStyle")
+
+[node name="Margin" type="MarginContainer" parent="Interface/Panel"]
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="Interface/Panel/Margin"]
+
+[node name="Title" type="Label" parent="Interface/Panel/Margin/VBox"]
+layout_mode = 2
+text = "POLIGONO DE ARMAS"
+label_settings = SubResource("TitleSettings")
+
+[node name="Help" type="Label" parent="Interface/Panel/Margin/VBox"]
+layout_mode = 2
+text = "Bloque celeste: spawn de pelotas | F3: reiniciar | F1: dungeon"

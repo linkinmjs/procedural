@@ -45,13 +45,9 @@ down={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"physical_keycode":83)]
 }
-sprint={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":4194325)]
-}
 walk={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":4194326)]
+"events": [Object(InputEventKey,"physical_keycode":4194325), Object(InputEventKey,"physical_keycode":4194326)]
 }
 crouch={
 "deadzone": 0.5,

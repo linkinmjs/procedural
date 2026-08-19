@@ -227,8 +227,8 @@ func _current_spread_degrees() -> float:
 	var body := owner as CharacterBody3D
 	
 	if body:
-		var declared_speed: Variant = body.get("base_speed")
-		var reference_speed: float = maxf(float(declared_speed), 0.001) if declared_speed != null else 4.0
+		var declared_speed: Variant = body.get("run_speed")
+		var reference_speed: float = maxf(float(declared_speed), 0.001) if declared_speed != null else 6.4
 		var planar_speed := Vector2(body.velocity.x, body.velocity.z).length()
 		spread += profile.move_spread * clampf(planar_speed / reference_speed, 0.0, 1.0)
 		

@@ -4,7 +4,7 @@
 (() => {
   "use strict";
 
-  const SCHEMA_VERSION = 5;
+  const SCHEMA_VERSION = 6;
 
   const ROOM_PRESETS = {
     small: { label: "Habitación pequeña", width: 14, depth: 14 },
@@ -13,6 +13,15 @@
     custom: { label: "Personalizada", width: 14, depth: 14 }
   };
   const ROLE_LABELS = { start: "Inicio", transition: "Tránsito", exit: "Salida" };
+  // Los identificadores tienen que coincidir con SkyCatalog.SKIES en
+  // scripts/environment/sky_catalog.gd, que es quien los construye en el juego.
+  const SKY_LABELS = {
+    "clear-day": "Día despejado",
+    overcast: "Nublado",
+    sunset: "Atardecer",
+    night: "Noche"
+  };
+  const DEFAULT_SKY = "clear-day";
   const SLOT_LABELS = { left: "Izquierdo", front: "Frontal", right: "Derecho" };
   const TEXTURE_SLOTS = { walls: "Paredes", floor: "Suelo", ceiling: "Techo", door: "Puertas", block: "Bloques" };
   const WALLS = ["north", "east", "south", "west"];
@@ -27,7 +36,7 @@
   // 0 grados mira al norte y los grados crecen hacia el este, igual que una brújula.
   const WALL_DEGREES = { north: 0, east: 90, south: 180, west: 270 };
 
-  const LEVEL_KEYS = ["schemaVersion", "id", "name", "description", "timeLimitSeconds", "gridSize", "startingAmmo", "defaults", "rooms", "connections"];
+  const LEVEL_KEYS = ["schemaVersion", "id", "name", "description", "timeLimitSeconds", "gridSize", "startingAmmo", "sky", "defaults", "rooms", "connections"];
   const ROOM_KEYS = ["id", "name", "type", "role", "position", "size", "entry", "facing", "wallHeight", "hasCeiling", "ammoReward", "textures", "blocks"];
   const CONNECTION_KEYS = ["id", "fromRoomId", "toRoomId", "fromWall", "toWall", "width"];
 
@@ -75,6 +84,7 @@
       timeLimitSeconds: 90,
       gridSize: 1,
       startingAmmo: { magazine: LIMITS.magazine.fallback, reserve: LIMITS.reserve.fallback },
+      sky: DEFAULT_SKY,
       defaults: {
         wallHeight: LIMITS.wallHeight.fallback,
         hasCeiling: true,
@@ -328,6 +338,7 @@
       magazine: clampInt(level.startingAmmo?.magazine, LIMITS.magazine),
       reserve: clampInt(level.startingAmmo?.reserve, LIMITS.reserve)
     };
+    level.sky = SKY_LABELS[level.sky] ? level.sky : DEFAULT_SKY;
     level.defaults = {
       wallHeight: clamp(level.defaults?.wallHeight, LIMITS.wallHeight),
       hasCeiling: level.defaults?.hasCeiling !== false,
@@ -394,6 +405,8 @@
     SCHEMA_VERSION,
     ROOM_PRESETS,
     ROLE_LABELS,
+    SKY_LABELS,
+    DEFAULT_SKY,
     SLOT_LABELS,
     TEXTURE_SLOTS,
     WALLS,

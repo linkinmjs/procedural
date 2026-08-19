@@ -1,10 +1,29 @@
 {
-  "schemaVersion": 1,
-  "description": "Catálogo de texturas disponibles para las salas. El editor lo carga para ofrecer sugerencias; mientras esté vacío, los campos de textura aceptan texto libre y el runtime usa los materiales procedurales actuales.",
-  "sourcePacks": [
-    "assets/_raw/textures/SBS - Horror Texture Pack (128/256/512)",
-    "assets/_raw/textures/SBS - Tiny Texture Pack (128/256/512)",
-    "assets/_raw/textures/SBS - Tiny Texture Pack 2 (128/256/512)"
+  "schemaVersion": 2,
+  "description": "Texturas disponibles para las superficies de cada sala. Lo leen la herramienta (para ofrecer la lista) y TextureCatalog en Godot (para armar los materiales), así que es la única fuente de la relación identificador -> archivo.",
+  "license": "Screaming Brain Studios — CC0 / dominio público. Ver third_party/README.md.",
+  "packs": [
+    { "id": "horror", "label": "Horror", "note": "Fotográfico, sucio y desaturado." },
+    { "id": "tiny1", "label": "Tiny 1", "note": "Pintado a mano, ladrillo y madera." },
+    { "id": "tiny2", "label": "Tiny 2", "note": "Pintado plano, bloques grandes y saturados." }
   ],
-  "textures": []
+  "textures": [
+    { "id": "horror/wall", "pack": "horror", "label": "Horror · Pared descascarada", "path": "res://assets/textures/packs/horror/wall.png", "tile": 2.0 },
+    { "id": "horror/brick", "pack": "horror", "label": "Horror · Ladrillo", "path": "res://assets/textures/packs/horror/brick.png", "tile": 2.0 },
+    { "id": "horror/floor", "pack": "horror", "label": "Horror · Piso gastado", "path": "res://assets/textures/packs/horror/floor.png", "tile": 2.0 },
+    { "id": "horror/stone", "pack": "horror", "label": "Horror · Piedra oscura", "path": "res://assets/textures/packs/horror/stone.png", "tile": 2.0 },
+    { "id": "horror/metal", "pack": "horror", "label": "Horror · Chapa acanalada", "path": "res://assets/textures/packs/horror/metal.png", "tile": 2.0 },
+
+    { "id": "tiny1/brick", "pack": "tiny1", "label": "Tiny 1 · Ladrillo", "path": "res://assets/textures/packs/tiny1/brick.png", "tile": 2.0 },
+    { "id": "tiny1/stone", "pack": "tiny1", "label": "Tiny 1 · Piedra", "path": "res://assets/textures/packs/tiny1/stone.png", "tile": 2.0 },
+    { "id": "tiny1/floor", "pack": "tiny1", "label": "Tiny 1 · Adoquín", "path": "res://assets/textures/packs/tiny1/floor.png", "tile": 2.0 },
+    { "id": "tiny1/ceiling", "pack": "tiny1", "label": "Tiny 1 · Madera oscura", "path": "res://assets/textures/packs/tiny1/ceiling.png", "tile": 2.0 },
+    { "id": "tiny1/door", "pack": "tiny1", "label": "Tiny 1 · Madera roja", "path": "res://assets/textures/packs/tiny1/door.png", "tile": 2.0 },
+
+    { "id": "tiny2/brick", "pack": "tiny2", "label": "Tiny 2 · Bloque de piedra", "path": "res://assets/textures/packs/tiny2/brick.png", "tile": 2.0 },
+    { "id": "tiny2/plaster", "pack": "tiny2", "label": "Tiny 2 · Revoque", "path": "res://assets/textures/packs/tiny2/plaster.png", "tile": 2.0 },
+    { "id": "tiny2/floor", "pack": "tiny2", "label": "Tiny 2 · Baldosa hexagonal", "path": "res://assets/textures/packs/tiny2/floor.png", "tile": 2.0 },
+    { "id": "tiny2/stone", "pack": "tiny2", "label": "Tiny 2 · Arenisca", "path": "res://assets/textures/packs/tiny2/stone.png", "tile": 2.0 },
+    { "id": "tiny2/metal", "pack": "tiny2", "label": "Tiny 2 · Chapa antideslizante", "path": "res://assets/textures/packs/tiny2/metal.png", "tile": 2.0 }
+  ]
 }

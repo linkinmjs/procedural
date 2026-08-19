@@ -1,13 +1,13 @@
 {
   "schemaVersion": 6,
-  "id": "f4-three-room-example",
-  "name": "Circuito de tres salas",
-  "description": "Ejemplo editable con sala pequeña, sala grande y pasillo.",
-  "timeLimitSeconds": 90,
+  "id": "nivel-texturas",
+  "name": "Comparador de texturas",
+  "description": "Tres salas iguales, un pack de texturas en cada una, para decidir cual usar.",
+  "timeLimitSeconds": 600,
   "gridSize": 1,
   "startingAmmo": {
     "magazine": 17,
-    "reserve": 34
+    "reserve": 51
   },
   "sky": "clear-day",
   "defaults": {
@@ -24,17 +24,17 @@
   },
   "rooms": [
     {
-      "id": "room-entry",
-      "name": "Entrada",
-      "type": "small",
+      "id": "room-horror",
+      "name": "Horror",
+      "type": "large",
       "role": "start",
       "position": {
-        "x": -18,
-        "z": 8
+        "x": 0,
+        "z": 0
       },
       "size": {
-        "width": 14,
-        "depth": 14
+        "width": 22,
+        "depth": 18
       },
       "entry": {
         "wall": "west",
@@ -49,11 +49,11 @@
         "color": "#f4bc59"
       },
       "textures": {
-        "walls": "",
-        "floor": "",
-        "ceiling": "",
-        "door": "",
-        "block": ""
+        "walls": "horror/wall",
+        "floor": "horror/floor",
+        "ceiling": "horror/stone",
+        "door": "horror/metal",
+        "block": "horror/brick"
       },
       "blocks": {
         "left": {
@@ -64,13 +64,11 @@
           "waves": []
         },
         "front": {
-          "enabled": true,
+          "enabled": false,
           "movement": "static",
           "movementSpeed": 0.65,
           "color": "#2ed5c5",
-          "waves": [
-            4
-          ]
+          "waves": []
         },
         "right": {
           "enabled": false,
@@ -82,87 +80,24 @@
       }
     },
     {
-      "id": "room-arena",
-      "name": "Arena",
+      "id": "room-tiny1",
+      "name": "Tiny 1",
       "type": "large",
       "role": "transition",
       "position": {
-        "x": 4,
-        "z": 5
+        "x": 34,
+        "z": 0
       },
       "size": {
-        "width": 24,
+        "width": 22,
         "depth": 18
       },
       "entry": {
         "wall": "west",
         "offset": 0
       },
-      "facing": 270,
-      "wallHeight": 9,
-      "hasCeiling": false,
-      "ammoReward": {
-        "enabled": true,
-        "amount": 40,
-        "color": "#f4bc59"
-      },
-      "textures": {
-        "walls": "",
-        "floor": "",
-        "ceiling": "",
-        "door": "",
-        "block": ""
-      },
-      "blocks": {
-        "left": {
-          "enabled": true,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#35d4c7",
-          "waves": [
-            5
-          ]
-        },
-        "front": {
-          "enabled": true,
-          "movement": "opposite",
-          "movementSpeed": 0.8,
-          "color": "#f4bc59",
-          "waves": [
-            3,
-            6
-          ]
-        },
-        "right": {
-          "enabled": true,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#35d4c7",
-          "waves": [
-            5
-          ]
-        }
-      }
-    },
-    {
-      "id": "room-corridor",
-      "name": "Pasillo de salida",
-      "type": "corridor",
-      "role": "exit",
-      "position": {
-        "x": 22,
-        "z": -11
-      },
-      "size": {
-        "width": 10,
-        "depth": 28
-      },
-      "entry": {
-        "wall": "north",
-        "offset": 0
-      },
-      "facing": 0,
-      "wallHeight": 4,
+      "facing": 90,
+      "wallHeight": null,
       "hasCeiling": null,
       "ammoReward": {
         "enabled": false,
@@ -170,21 +105,19 @@
         "color": "#f4bc59"
       },
       "textures": {
-        "walls": "",
-        "floor": "",
-        "ceiling": "",
-        "door": "",
-        "block": ""
+        "walls": "tiny1/brick",
+        "floor": "tiny1/floor",
+        "ceiling": "tiny1/ceiling",
+        "door": "tiny1/door",
+        "block": "tiny1/stone"
       },
       "blocks": {
         "left": {
-          "enabled": true,
-          "movement": "opposite",
+          "enabled": false,
+          "movement": "static",
           "movementSpeed": 0.65,
           "color": "#2ed5c5",
-          "waves": [
-            4
-          ]
+          "waves": []
         },
         "front": {
           "enabled": false,
@@ -194,32 +127,86 @@
           "waves": []
         },
         "right": {
-          "enabled": true,
-          "movement": "opposite",
+          "enabled": false,
+          "movement": "static",
           "movementSpeed": 0.65,
           "color": "#2ed5c5",
-          "waves": [
-            4
-          ]
+          "waves": []
+        }
+      }
+    },
+    {
+      "id": "room-tiny2",
+      "name": "Tiny 2",
+      "type": "large",
+      "role": "exit",
+      "position": {
+        "x": 68,
+        "z": 0
+      },
+      "size": {
+        "width": 22,
+        "depth": 18
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "facing": 90,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "tiny2/brick",
+        "floor": "tiny2/floor",
+        "ceiling": "tiny2/plaster",
+        "door": "tiny2/metal",
+        "block": "tiny2/stone"
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "front": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "right": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
         }
       }
     }
   ],
   "connections": [
     {
-      "id": "connection-entry-arena",
-      "fromRoomId": "room-entry",
-      "toRoomId": "room-arena",
+      "id": "c7e16db2-158d-44c6-8a27-33280208b024",
+      "fromRoomId": "room-horror",
+      "toRoomId": "room-tiny1",
       "fromWall": "east",
       "toWall": "west",
       "width": 3.5
     },
     {
-      "id": "connection-arena-corridor",
-      "fromRoomId": "room-arena",
-      "toRoomId": "room-corridor",
-      "fromWall": "south",
-      "toWall": "north",
+      "id": "f3875902-77d7-4558-8481-35568c0eb6ff",
+      "fromRoomId": "room-tiny1",
+      "toRoomId": "room-tiny2",
+      "fromWall": "east",
+      "toWall": "west",
       "width": 3.5
     }
   ]

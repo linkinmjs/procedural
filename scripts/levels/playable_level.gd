@@ -22,6 +22,8 @@ const LINTEL_HEIGHT := 0.6
 ## siguiente nivel de la secuencia.
 @export_range(0.0, 30.0, 0.1) var level_transition_delay := 3.0
 
+@onready var world_environment: WorldEnvironment = $WorldEnvironment
+@onready var sun: DirectionalLight3D = $DirectionalLight3D
 @onready var room_geometry: Node3D = %RoomGeometry
 @onready var connection_geometry: Node3D = %ConnectionGeometry
 @onready var encounters: Node3D = %Encounters
@@ -90,6 +92,7 @@ func load_and_build_level() -> void:
 		status_label.text = level_definition_path
 		return
 	level_name_label.text = "%s // %s" % [str(level_data.get("name", "Configured level")).to_upper(), sequence.get_position_text()]
+	SkyCatalog.apply(LevelDefinitionLoader.get_sky_id(level_data), world_environment, sun)
 	room_order = _resolve_room_order()
 	_build_shell()
 	_build_rooms()
@@ -217,6 +220,9 @@ func _build_rooms() -> void:
 		var width := float(room.size.width)
 		var depth := float(room.size.depth)
 		var wall_height := LevelDefinitionLoader.get_room_wall_height(level_data, room)
+		var floor_material := TextureCatalog.resolve(level_data, room, "floor", _floor_material)
+		var wall_material := TextureCatalog.resolve(level_data, room, "walls", _wall_material)
+		var ceiling_material := TextureCatalog.resolve(level_data, room, "ceiling", _ceiling_material)
 		# El marcador sostiene lo que no es geometria solida: luz, cartel y las
 		# puertas, que se mueven aparte del casco del nivel.
 		var room_marker := Node3D.new()
@@ -226,14 +232,14 @@ func _build_rooms() -> void:
 		room_nodes[room_id] = room_marker
 
 		_add_box(_shell, "%sFloor" % safe_name, center + Vector3(0.0, -0.15, 0.0),
-				Vector3(width, 0.3, depth), _floor_material)
+				Vector3(width, 0.3, depth), floor_material)
 		if LevelDefinitionLoader.room_has_ceiling(level_data, room):
 			_add_box(_shell, "%sCeiling" % safe_name, center + Vector3(0.0, wall_height + CEILING_THICKNESS * 0.5, 0.0),
-					Vector3(width, CEILING_THICKNESS, depth), _ceiling_material)
+					Vector3(width, CEILING_THICKNESS, depth), ceiling_material)
 		var room_openings: Dictionary = openings.get(room_id, {}) as Dictionary
 		var doors: Array[RoomDoor3D] = []
 		for wall in ["north", "east", "south", "west"]:
-			_add_room_wall(safe_name, center, wall, width, depth, wall_height)
+			_add_room_wall(safe_name, center, wall, width, depth, wall_height, wall_material)
 			var opening_width := float(room_openings.get(wall, 0.0))
 			if opening_width <= 0.0:
 				continue
@@ -272,13 +278,13 @@ func _collect_room_openings() -> Dictionary:
 
 ## Cada pared se levanta entera. Los vanos se restan despues, asi la union no
 ## deja los cantos de dos medias paredes a los lados de cada puerta.
-func _add_room_wall(safe_name: String, center: Vector3, wall: String, width: float, depth: float, wall_height: float) -> void:
+func _add_room_wall(safe_name: String, center: Vector3, wall: String, width: float, depth: float, wall_height: float, wall_material: Material) -> void:
 	var is_horizontal := wall == "north" or wall == "south"
 	var length := width if is_horizontal else depth
 	var offset := _wall_offset(wall, width, depth)
 	var size := Vector3(length, wall_height, WALL_THICKNESS) if is_horizontal else Vector3(WALL_THICKNESS, wall_height, length)
 	var position := center + Vector3(offset.x, wall_height * 0.5, offset.y)
-	_add_box(_shell, "%s%sWall" % [safe_name, wall.capitalize()], position, size, _wall_material)
+	_add_box(_shell, "%s%sWall" % [safe_name, wall.capitalize()], position, size, wall_material)
 
 
 ## Marca el vano para recortarlo y cuelga la barrera que lo sella.
@@ -412,7 +418,12 @@ func _build_connections() -> void:
 				_door_height_for(LevelDefinitionLoader.get_room_wall_height(level_data, from_room)),
 				_door_height_for(LevelDefinitionLoader.get_room_wall_height(level_data, to_room)))
 		var plan := _corridor_plan(from_room, to_room, connection, corridor_width)
-		_add_corridor(plan.points, float(plan.width), corridor_height)
+		var surfaces := {
+			"floor": TextureCatalog.resolve(level_data, from_room, "floor", _corridor_material),
+			"walls": TextureCatalog.resolve(level_data, from_room, "walls", _wall_material),
+			"ceiling": TextureCatalog.resolve(level_data, from_room, "ceiling", _ceiling_material),
+		}
+		_add_corridor(plan.points, float(plan.width), corridor_height, surfaces)
 
 
 ## Traza el pasillo entre dos salas y decide su ancho efectivo. Es el mismo
@@ -450,15 +461,15 @@ func _corridor_plan(from_room: Dictionary, to_room: Dictionary, connection: Dict
 ## dos paredes, y cada codo se cierra con un cubo del ancho del pasillo. Los
 ## extremos que dan a un codo se recortan medio ancho, o las paredes del tramo
 ## cruzarian el giro y lo taparian.
-func _add_corridor(points: PackedVector2Array, corridor_width: float, corridor_height: float) -> void:
+func _add_corridor(points: PackedVector2Array, corridor_width: float, corridor_height: float, surfaces: Dictionary) -> void:
 	for index in points.size() - 1:
 		_add_corridor_segment(points[index], points[index + 1], corridor_width, corridor_height,
-				index > 0, index < points.size() - 2)
+				index > 0, index < points.size() - 2, surfaces)
 	for index in range(1, points.size() - 1):
-		_add_corridor_corner(points[index - 1], points[index], points[index + 1], corridor_width, corridor_height)
+		_add_corridor_corner(points[index - 1], points[index], points[index + 1], corridor_width, corridor_height, surfaces)
 
 
-func _add_corridor_segment(start: Vector2, end: Vector2, corridor_width: float, corridor_height: float, trim_start: bool, trim_end: bool) -> void:
+func _add_corridor_segment(start: Vector2, end: Vector2, corridor_width: float, corridor_height: float, trim_start: bool, trim_end: bool, surfaces: Dictionary) -> void:
 	var delta := end - start
 	var full_length := delta.length()
 	if full_length < 0.05:
@@ -472,25 +483,25 @@ func _add_corridor_segment(start: Vector2, end: Vector2, corridor_width: float, 
 	var center := (trimmed_start + trimmed_end) * 0.5
 	var horizontal := absf(delta.x) >= absf(delta.y)
 	var floor_size := Vector3(length, 0.3, corridor_width) if horizontal else Vector3(corridor_width, 0.3, length)
-	_add_box(_shell, "CorridorFloor", Vector3(center.x, -0.15, center.y), floor_size, _corridor_material)
+	_add_box(_shell, "CorridorFloor", Vector3(center.x, -0.15, center.y), floor_size, surfaces.floor)
 	var ceiling_size := Vector3(length, CEILING_THICKNESS, corridor_width) if horizontal else Vector3(corridor_width, CEILING_THICKNESS, length)
-	_add_box(_shell, "CorridorCeiling", Vector3(center.x, corridor_height + CEILING_THICKNESS * 0.5, center.y), ceiling_size, _ceiling_material)
+	_add_box(_shell, "CorridorCeiling", Vector3(center.x, corridor_height + CEILING_THICKNESS * 0.5, center.y), ceiling_size, surfaces.ceiling)
 	_add_corridor_light(center, full_length, corridor_height)
 	for side in [-1.0, 1.0]:
 		var wall_size := Vector3(length, corridor_height, WALL_THICKNESS) if horizontal else Vector3(WALL_THICKNESS, corridor_height, length)
 		var wall_position := Vector3(center.x, corridor_height * 0.5, center.y + side * (corridor_width + WALL_THICKNESS) * 0.5) if horizontal else Vector3(center.x + side * (corridor_width + WALL_THICKNESS) * 0.5, corridor_height * 0.5, center.y)
-		_add_box(_shell, "CorridorWall", wall_position, wall_size, _wall_material)
+		_add_box(_shell, "CorridorWall", wall_position, wall_size, surfaces.walls)
 
 
 ## Cierra un codo: piso y techo del giro, y pared en las dos caras por las que
 ## el pasillo no entra ni sale.
-func _add_corridor_corner(previous: Vector2, corner: Vector2, next: Vector2, corridor_width: float, corridor_height: float) -> void:
+func _add_corridor_corner(previous: Vector2, corner: Vector2, next: Vector2, corridor_width: float, corridor_height: float, surfaces: Dictionary) -> void:
 	var incoming := (corner - previous).normalized()
 	var outgoing := (next - corner).normalized()
 	_add_box(_shell, "CorridorCornerFloor", Vector3(corner.x, -0.15, corner.y),
-			Vector3(corridor_width, 0.3, corridor_width), _corridor_material)
+			Vector3(corridor_width, 0.3, corridor_width), surfaces.floor)
 	_add_box(_shell, "CorridorCornerCeiling", Vector3(corner.x, corridor_height + CEILING_THICKNESS * 0.5, corner.y),
-			Vector3(corridor_width, CEILING_THICKNESS, corridor_width), _ceiling_material)
+			Vector3(corridor_width, CEILING_THICKNESS, corridor_width), surfaces.ceiling)
 	for face in [Vector2.RIGHT, Vector2.LEFT, Vector2.DOWN, Vector2.UP]:
 		if face.is_equal_approx(-incoming) or face.is_equal_approx(outgoing):
 			continue
@@ -499,7 +510,7 @@ func _add_corridor_corner(previous: Vector2, corner: Vector2, next: Vector2, cor
 		var wall_length := corridor_width + WALL_THICKNESS * 2.0
 		var wall_size := Vector3(WALL_THICKNESS, corridor_height, wall_length) if horizontal_face else Vector3(wall_length, corridor_height, WALL_THICKNESS)
 		var wall_position := Vector3(corner.x + face.x * offset, corridor_height * 0.5, corner.y + face.y * offset)
-		_add_box(_shell, "CorridorCornerWall", wall_position, wall_size, _wall_material)
+		_add_box(_shell, "CorridorCornerWall", wall_position, wall_size, surfaces.walls)
 
 
 func _add_corridor_light(center: Vector2, length: float, corridor_height: float) -> void:

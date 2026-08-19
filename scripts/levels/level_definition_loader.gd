@@ -1,7 +1,7 @@
 class_name LevelDefinitionLoader
 extends RefCounted
 
-const SUPPORTED_SCHEMA_VERSION := 5
+const SUPPORTED_SCHEMA_VERSION := 6
 const VALID_ROOM_TYPES := ["small", "large", "corridor", "custom"]
 const VALID_WALLS := ["north", "east", "south", "west"]
 const VALID_BLOCK_SLOTS := ["left", "front", "right"]
@@ -33,6 +33,13 @@ static func load_level(path: String) -> Dictionary:
 	if not _validate_level(level, path):
 		return {}
 	return level
+
+
+## Cielo declarado por el nivel. Si no nombra ninguno, o nombra uno que ya no
+## existe, se usa el que trae SkyCatalog por defecto.
+static func get_sky_id(level: Dictionary) -> String:
+	var sky := str(level.get("sky", ""))
+	return sky if SkyCatalog.has_sky(sky) else SkyCatalog.DEFAULT_ID
 
 
 ## Sala en la que aparece el jugador. Un nivel declara una sola.
@@ -131,6 +138,9 @@ static func _validate_level(level: Dictionary, path: String) -> bool:
 	if not _validate_starting_ammo(level, path):
 		return false
 	if not _validate_defaults(level, path):
+		return false
+	if not SkyCatalog.has_sky(str(level.get("sky", ""))):
+		push_error("Level declares an unknown sky: %s" % path)
 		return false
 	var room_ids: Dictionary = {}
 	for room_variant in level.rooms:

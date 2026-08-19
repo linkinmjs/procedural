@@ -6,18 +6,19 @@ Esta carpeta contiene las definiciones versionadas creadas con `tools/level-edit
 - Cada nivel vive en un archivo JSON independiente dentro de `levels/`.
 - `old_levels/` guarda diseños que ya no forman parte de la campaña.
 - `schema.json` documenta y valida el formato actual.
-- `texture-catalog.json` lista las texturas disponibles para las salas.
+- `texture-catalog.json` lista las texturas disponibles: lo leen la herramienta y `TextureCatalog` en Godot, así que es la única fuente de la relación identificador → archivo.
 - `three-room-example.json` sirve como referencia editable.
 - Las posiciones y dimensiones están expresadas en metros, que son las mismas unidades que usa Godot.
 
 ## Formato actual
 
-El formato usa `schemaVersion: 5`.
+El formato usa `schemaVersion: 6`.
 
 ### Nivel
 
 - `timeLimitSeconds`: tiempo límite global. El editor lo presenta en minutos y segundos.
 - `startingAmmo`: `{ magazine, reserve }`, las balas con las que el jugador empieza el nivel. El cargador se recorta a la capacidad del arma.
+- `sky`: cielo del nivel — `clear-day`, `overcast`, `sunset` o `night`. Además de pintar el cielo, coloca la luz direccional, así la iluminación de las salas acompaña a lo que se ve arriba. Si falta o nombra uno desconocido se usa `clear-day`.
 - `defaults`: valores que heredan las salas y los pasillos.
   - `wallHeight`: altura de paredes en metros, entre 2 y 20.
   - `hasCeiling`: si las salas se cierran arriba.
@@ -32,7 +33,7 @@ El formato usa `schemaVersion: 5`.
 - `wallHeight`: altura propia en metros, o `null` para heredar la del nivel.
 - `hasCeiling`: `true` cerrada, `false` a cielo abierto, `null` para heredar.
 - `ammoReward`: `{ enabled, amount, color }`. Con `enabled` en `true`, al destruir el último bloque de la sala aparece un bloque con `amount` balas.
-- `textures`: texturas propias por superficie. Una cadena vacía hereda la del nivel; si el nivel tampoco define una, se usa el material procedural actual.
+- `textures`: identificadores del catálogo `texture-catalog.json`, por superficie. Una cadena vacía hereda la del nivel; si el nivel tampoco define una, se usa el material de color plano. El juego aplica hoy `walls`, `floor` y `ceiling`; `door` y `block` se guardan pero todavía no se dibujan.
 - `blocks`: cada bloque define color, velocidad y una lista ordenada de oleadas. Los lados `left`, `front` y `right` son relativos a `entry.wall`: con una entrada `south`, el bloque `front` cae sobre la pared `north`. Cada bloque cubre su pared completa, de piso a techo.
 
 ### Conexión

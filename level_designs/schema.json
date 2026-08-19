@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://procedural-map.local/schemas/level-design-v5.json",
+  "$id": "https://procedural-map.local/schemas/level-design-v6.json",
   "title": "Procedural Map level design",
   "type": "object",
   "required": [
@@ -10,13 +10,14 @@
     "timeLimitSeconds",
     "gridSize",
     "startingAmmo",
+    "sky",
     "defaults",
     "rooms",
     "connections"
   ],
   "properties": {
     "schemaVersion": {
-      "const": 5
+      "const": 6
     },
     "id": {
       "type": "string",
@@ -43,6 +44,9 @@
     "startingAmmo": {
       "$ref": "#/$defs/startingAmmo",
       "description": "Munición con la que el jugador arranca el nivel."
+    },
+    "sky": {
+      "$ref": "#/$defs/sky"
     },
     "defaults": {
       "$ref": "#/$defs/levelDefaults",
@@ -411,6 +415,16 @@
       "minimum": 0,
       "maximum": 359,
       "description": "Direccion en grados hacia la que mira el jugador. 0 es norte, 90 este. Solo se usa en la sala de inicio."
+    },
+    "sky": {
+      "enum": [
+        "clear-day",
+        "overcast",
+        "sunset",
+        "night"
+      ],
+      "default": "clear-day",
+      "description": "Cielo del nivel. Coloca tambien la luz direccional para que la iluminacion acompanie."
     }
   }
 }

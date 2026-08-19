@@ -61,6 +61,36 @@ for (const key of ["role", "facing", "wallHeight", "hasCeiling", "ammoReward", "
   assert.ok(schema.$defs.room.required.includes(key), `La sala debe declarar ${key}`);
 }
 assert.ok(Array.isArray(catalog.textures), "El catálogo de texturas debe listar sus entradas");
+assert.ok(catalog.textures.length > 0, "El catálogo de texturas ya no puede estar vacío");
+assert.ok(Array.isArray(catalog.packs) && catalog.packs.length >= 3, "El catálogo debe declarar sus packs");
+const catalogPacks = new Set(catalog.packs.map((pack) => pack.id));
+for (const entry of catalog.textures) {
+  assert.match(entry.id, /^[a-z0-9]+\/[a-z0-9-]+$/, `Identificador de textura inválido: ${entry.id}`);
+  assert.ok(catalogPacks.has(entry.pack), `${entry.id} pertenece a un pack no declarado`);
+  assert.match(entry.path, /^res:\/\/assets\/textures\//, `${entry.id} debe apuntar a assets/textures`);
+  assert.ok(fs.existsSync(entry.path.replace("res://", "")), `Falta el archivo de ${entry.id}`);
+  assert.ok(entry.tile > 0, `${entry.id} necesita un tamaño de mosaico`);
+}
+assert.match(script, /fillTextureSelect/, "El editor debe poblar los desplegables de textura");
+
+// Los cielos que ofrece la herramienta son los que sabe construir el juego.
+const skyCatalogSource = fs.readFileSync("scripts/environment/sky_catalog.gd", "utf8");
+const catalogBody = skyCatalogSource.slice(skyCatalogSource.indexOf("const SKIES := {"));
+const runtimeSkies = [...catalogBody.matchAll(/^	"([a-z-]+)": \{$/gm)].map((match) => match[1]);
+assert.deepEqual(
+  Object.keys(LevelFormat.SKY_LABELS).sort(),
+  runtimeSkies.sort(),
+  "SKY_LABELS y SkyCatalog.SKIES deben ofrecer los mismos cielos"
+);
+assert.deepEqual(
+  [...schema.$defs.sky.enum].sort(),
+  runtimeSkies.sort(),
+  "El schema debe aceptar exactamente los cielos del catálogo"
+);
+const runtimeDefault = skyCatalogSource.match(/const DEFAULT_ID := "([a-z-]+)"/)[1];
+assert.equal(LevelFormat.DEFAULT_SKY, runtimeDefault, "El cielo por defecto debe coincidir con el del juego");
+assert.match(html, /id=["']level-sky["']/, "Falta el selector de cielo");
+assert.match(script, /SKY_LABELS/, "El editor debe poblar el selector de cielo");
 
 // --- Inferencia de la entrada ------------------------------------------------
 
@@ -179,6 +209,7 @@ const singleRoom = LevelFormat.normalizeLevel({
   connections: []
 });
 assert.equal(singleRoom.rooms[0].role, "start", "Un nivel de una sala arranca en ella");
+assert.equal(singleRoom.sky, LevelFormat.DEFAULT_SKY, "Sin cielo declarado se usa el de por defecto");
 assert.equal(singleRoom.rooms.filter((room) => room.role === "exit").length, 0, "Sin salida separada no se inventa una");
 
 // --- Migración de archivos anteriores ----------------------------------------
@@ -208,6 +239,7 @@ for (const path of levelPaths) {
   assert.equal(level.rooms.filter((room) => room.role === "start").length, 1, `${path} necesita una sala de inicio`);
   assert.ok(level.rooms.filter((room) => room.role === "exit").length <= 1, `${path} no puede tener dos salidas`);
   assert.ok(level.defaults.corridorWidth >= 1.5, `${path} necesita un ancho de pasillo válido`);
+  assert.ok(LevelFormat.SKY_LABELS[level.sky], `${path} declara un cielo desconocido: ${level.sky}`);
   const roomIds = new Set(level.rooms.map((room) => room.id));
   assert.equal(roomIds.size, level.rooms.length, `${path}: los IDs de sala deben ser únicos`);
   for (const room of level.rooms) {

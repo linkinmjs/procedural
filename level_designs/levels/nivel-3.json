@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "id": "level-1787122932397",
   "name": "Nivel 3",
   "description": "",
@@ -9,6 +9,7 @@
     "magazine": 17,
     "reserve": 51
   },
+  "sky": "clear-day",
   "defaults": {
     "wallHeight": 6,
     "hasCeiling": true,

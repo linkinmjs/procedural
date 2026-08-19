@@ -6,8 +6,14 @@ func _initialize() -> void:
 	if level.is_empty():
 		_fail("The saved level definition should load.")
 		return
-	if int(level.schemaVersion) != 5 or int(level.timeLimitSeconds) != 90:
-		_fail("The loader should preserve schema version 5 and the 90 second limit.")
+	if int(level.schemaVersion) != LevelDefinitionLoader.SUPPORTED_SCHEMA_VERSION:
+		_fail("The loader should preserve the supported schema version.")
+		return
+	if int(level.timeLimitSeconds) != 90:
+		_fail("The loader should preserve the 90 second limit of nivel-1.")
+		return
+	if not SkyCatalog.has_sky(LevelDefinitionLoader.get_sky_id(level)):
+		_fail("The loader should resolve the sky of the level.")
 		return
 	var starting_ammo := LevelDefinitionLoader.get_starting_ammo(level)
 	if int(starting_ammo.magazine) != int(level.startingAmmo.magazine) or int(starting_ammo.reserve) != int(level.startingAmmo.reserve):

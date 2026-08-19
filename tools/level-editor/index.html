@@ -27,48 +27,6 @@
       <p class="sidebar-title">Configuración del nivel</p>
 
       <details class="panel" open>
-        <summary>Identidad</summary>
-        <div class="panel-body">
-          <label>Nombre
-            <input id="level-name" type="text" maxlength="80">
-          </label>
-          <label>Descripción
-            <textarea id="level-description" rows="2" maxlength="300"></textarea>
-          </label>
-        </div>
-      </details>
-
-      <details class="panel" open>
-        <summary>Reglas</summary>
-        <div class="panel-body">
-          <div class="field-row">
-            <label>Minutos<input id="level-time-minutes" type="number" min="0" max="60" step="1"></label>
-            <label>Segundos<input id="level-time-seconds" type="number" min="0" max="59" step="1"></label>
-          </div>
-          <p class="hint">Tiempo límite de la ronda.</p>
-          <div class="field-row">
-            <label>Cargador<input id="level-ammo-magazine" type="number" min="0" max="200" step="1"></label>
-            <label>Reserva<input id="level-ammo-reserve" type="number" min="0" max="999" step="1"></label>
-          </div>
-          <p class="hint">Balas iniciales. El cargador se recorta a la capacidad del arma.</p>
-        </div>
-      </details>
-
-      <details class="panel" open>
-        <summary>Predeterminados de sala</summary>
-        <div class="panel-body">
-          <div class="field-row">
-            <label>Altura (m)<input id="level-wall-height" type="number" min="2" max="20" step="0.5"></label>
-            <label>Pasillos (m)<input id="level-corridor-width" type="number" min="1.5" max="12" step="0.5"></label>
-          </div>
-          <label class="switch">
-            <input id="level-has-ceiling" type="checkbox"> Las salas llevan techo
-          </label>
-          <p class="hint">Cada sala y cada pasillo puede usar su propio valor.</p>
-        </div>
-      </details>
-
-      <details class="panel" open>
         <summary>Salas</summary>
         <div class="panel-body">
           <div class="preset-row">
@@ -86,6 +44,58 @@
           <button id="connect-mode" type="button" aria-pressed="false">Unir dos salas</button>
           <p id="connect-help" class="hint">Seleccioná una sala para editarla.</p>
           <ul id="connection-list" class="connection-list"></ul>
+        </div>
+      </details>
+
+      <details class="panel">
+        <summary>Identidad</summary>
+        <div class="panel-body">
+          <label>Nombre
+            <input id="level-name" type="text" maxlength="80">
+          </label>
+          <label>Descripción
+            <textarea id="level-description" rows="2" maxlength="300"></textarea>
+          </label>
+        </div>
+      </details>
+
+      <details class="panel">
+        <summary>Reglas</summary>
+        <div class="panel-body">
+          <div class="field-row">
+            <label>Minutos<input id="level-time-minutes" type="number" min="0" max="60" step="1"></label>
+            <label>Segundos<input id="level-time-seconds" type="number" min="0" max="59" step="1"></label>
+          </div>
+          <p class="hint">Tiempo límite de la ronda.</p>
+          <div class="field-row">
+            <label>Cargador<input id="level-ammo-magazine" type="number" min="0" max="200" step="1"></label>
+            <label>Reserva<input id="level-ammo-reserve" type="number" min="0" max="999" step="1"></label>
+          </div>
+          <p class="hint">Balas iniciales. El cargador se recorta a la capacidad del arma.</p>
+        </div>
+      </details>
+
+      <details class="panel">
+        <summary>Entorno</summary>
+        <div class="panel-body">
+          <label>Cielo
+            <select id="level-sky"></select>
+          </label>
+          <p class="hint">Pinta el cielo y coloca el sol, así la luz del nivel acompaña.</p>
+        </div>
+      </details>
+
+      <details class="panel">
+        <summary>Predeterminados de sala</summary>
+        <div class="panel-body">
+          <div class="field-row">
+            <label>Altura (m)<input id="level-wall-height" type="number" min="2" max="20" step="0.5"></label>
+            <label>Pasillos (m)<input id="level-corridor-width" type="number" min="1.5" max="12" step="0.5"></label>
+          </div>
+          <label class="switch">
+            <input id="level-has-ceiling" type="checkbox"> Las salas llevan techo
+          </label>
+          <p class="hint">Cada sala y cada pasillo puede usar su propio valor.</p>
         </div>
       </details>
     </aside>
@@ -244,7 +254,7 @@
         </div>
 
         <div class="tab-panel" data-tab-panel="textures" role="tabpanel" hidden>
-          <p class="hint">Un campo vacío usa el material procedural actual. El catálogo se completa desde <code>level_designs/texture-catalog.json</code>.</p>
+          <p class="hint">Las texturas salen de <code>level_designs/texture-catalog.json</code>. Sin textura, la superficie usa el material de color plano.</p>
           <div id="texture-fields"></div>
           <p id="texture-catalog-status" class="hint"></p>
         </div>
@@ -252,7 +262,6 @@
     </aside>
   </main>
 
-  <datalist id="texture-catalog-options"></datalist>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="level-format.js"></script>
   <script src="app.js"></script>

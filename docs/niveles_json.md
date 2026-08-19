@@ -23,6 +23,7 @@ La escena inicial `scenes/levels/playable_level.tscn` construye el nivel activo 
 - El jugador dentro de la sala marcada como `start`, orientado según su `facing`, con la munición de `startingAmmo`.
 - Un bloque de munición en el centro de las salas que declaran `ammoReward`, al caer su último bloque.
 - El HUD y el tiempo de ronda de `timeLimitSeconds`.
+- El cielo declarado por `sky`, que además coloca el sol.
 
 ## Geometría sólida
 
@@ -77,6 +78,26 @@ El bloque se elimina solamente al completar su última oleada. Una lista vacía 
 
 El panel cubre su pared entera menos `WALL_MARGIN` (0,4 m) a lo ancho y a lo alto, de modo que no queda hueco por el que colarse mientras avanza hacia el lado contrario.
 
-## Pendiente: texturas
+## Cielos
 
-`defaults.textures` y `room.textures` se leen con `LevelDefinitionLoader.get_room_texture(level, room, slot)` y quedan reservadas hasta importar los packs de `assets/_raw/textures/`. Una cadena vacía significa "usar el material procedural actual". Al encararlo hay que elegir pack y resolución, extraer los archivos, importarlos, poblar `level_designs/texture-catalog.json` y cambiar los `StandardMaterial3D` procedurales de `PlayableLevel` por materiales con `albedo_texture` y `uv_scale` por superficie.
+`SkyCatalog` (`scripts/environment/sky_catalog.gd`) define los cielos disponibles: `clear-day`, `overcast`, `sunset` y `night`. Cada uno arma un `ShaderMaterial` sobre `assets/skies/sky.gdshader` —un shader de cielo procedural, con nubes de ruido y estrellas— y **coloca la luz direccional**: el shader deduce la hora del día de `LIGHT0_DIRECTION`, así que mover el sol es lo que cambia el cielo de día a noche y lo que hace que la iluminación de la escena acompañe a lo que se ve arriba.
+
+La lista está escrita dos veces, en `SkyCatalog.SKIES` y en `SKY_LABELS` de `tools/level-editor/level-format.js`. `tests/level_editor_smoke_test.mjs` lee el `.gd` y compara ambas contra el enum del schema, así que agregar un cielo en un solo lado falla la prueba.
+
+Un `sky` desconocido cae en el cielo por defecto en vez de romper la carga.
+
+## Texturas
+
+`TextureCatalog` (`scripts/environment/texture_catalog.gd`) lee `level_designs/texture-catalog.json` —el mismo archivo que la herramienta usa para ofrecer la lista— y arma un `StandardMaterial3D` por identificador. La relación identificador → archivo vive en un solo lugar, así que la tool y el juego no pueden divergir.
+
+Cada sala texturiza `walls`, `floor` y `ceiling`; el pasillo hereda las de la sala de la que sale. Un identificador vacío o desconocido cae en el material de color plano de siempre, así que un nivel sin texturas se construye igual que antes.
+
+### Por qué proyección triplanar
+
+Las cajas CSG traen UV de 0 a 1 **por cara**, no en metros: mapear por UV estira el mosaico según la proporción de cada superficie, y un piso de 22 × 18 y una pared de 22 × 6 muestran la textura a escalas distintas. Por eso los materiales usan `uv1_triplanar` con `uv1_world_triplanar`: la textura se proyecta desde el espacio de mundo, el mosaico mide lo mismo en todas las superficies y además calza entre cajas vecinas. El campo `tile` de cada entrada dice cuántos metros mide un mosaico.
+
+### Assets
+
+Sólo se versiona la selección en uso, en 256 × 256, bajo `assets/textures/packs/<pack>/`. Los paquetes completos siguen comprimidos en `assets/_raw/textures/`, fuera de Git. Para sumar una textura: extraerla, copiarla a su pack, agregar la entrada al catálogo y ya aparece en la herramienta y en el juego.
+
+`level_designs/levels/nivel-texturas.json` es el nivel comparador: tres salas idénticas, un pack en cada una, para mirarlos uno al lado del otro antes de decidir.

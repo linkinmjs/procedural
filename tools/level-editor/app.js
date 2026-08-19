@@ -2,7 +2,7 @@
   "use strict";
 
   const {
-    ROOM_PRESETS, ROLE_LABELS, SLOT_LABELS, TEXTURE_SLOTS, WALL_LABELS, RELATIVE_WALLS, LIMITS,
+    ROOM_PRESETS, ROLE_LABELS, SKY_LABELS, SLOT_LABELS, TEXTURE_SLOTS, WALL_LABELS, RELATIVE_WALLS, LIMITS,
     clamp, clampInt, newId, createEmptyLevel, createRoom, createConnection, chooseConnectionWalls,
     degreesToWall, assignRole, normalizeRoles, resolveEntryWalls, normalizeLevel, corridorPlan, corridorOutline
   } = window.LevelFormat;
@@ -22,6 +22,7 @@
   let panState = null;
   let view = { x: -35, y: -28, width: 70, height: 56 };
   let textureCatalog = [];
+  let texturePacks = [];
   let saveHandle = null;
   let toastTimer = null;
 
@@ -61,30 +62,63 @@
     }
   }
 
-  // El catálogo es opcional: si el editor se abre con file:// el fetch falla y
-  // los campos de textura siguen aceptando texto libre.
+  // El catálogo es opcional: si el editor se abre con file:// el fetch falla,
+  // los desplegables quedan sólo con lo que el nivel ya tenía y el aviso lo
+  // explica. Sirviendo la carpeta del repo se llenan solos.
   async function loadTextureCatalog() {
+    let packs = [];
     try {
       const response = await fetch("../../level_designs/texture-catalog.json", { cache: "no-store" });
       if (!response.ok) throw new Error(String(response.status));
       const catalog = await response.json();
       textureCatalog = Array.isArray(catalog.textures) ? catalog.textures : [];
+      packs = Array.isArray(catalog.packs) ? catalog.packs : [];
     } catch (error) {
       textureCatalog = [];
     }
-    const options = $("#texture-catalog-options");
-    options.replaceChildren();
-    for (const entry of textureCatalog) {
-      const id = typeof entry === "string" ? entry : String(entry?.id ?? "");
-      if (!id) continue;
-      const option = document.createElement("option");
-      option.value = id;
-      if (entry?.label) option.label = String(entry.label);
-      options.append(option);
-    }
+    texturePacks = packs;
     $("#texture-catalog-status").textContent = textureCatalog.length
-      ? `${textureCatalog.length} texturas en el catálogo.`
-      : "Catálogo vacío: los packs de assets/_raw/textures todavía no se importaron.";
+      ? `${textureCatalog.length} texturas en ${packs.length || 1} packs.`
+      : "No se pudo leer el catálogo. Serví el repositorio con un servidor local para elegir texturas.";
+    renderInspector();
+  }
+
+  /** Agrupa las texturas por pack para que el desplegable se lea de un vistazo. */
+  function fillTextureSelect(select, current) {
+    select.replaceChildren();
+    const none = document.createElement("option");
+    none.value = "";
+    none.textContent = "Sin textura";
+    select.append(none);
+    const grouped = new Map();
+    for (const entry of textureCatalog) {
+      const id = String(entry?.id ?? "");
+      if (!id) continue;
+      const pack = String(entry?.pack ?? "otros");
+      if (!grouped.has(pack)) grouped.set(pack, []);
+      grouped.get(pack).push({ id, label: String(entry?.label ?? id) });
+    }
+    for (const [pack, entries] of grouped) {
+      const group = document.createElement("optgroup");
+      const meta = texturePacks.find((item) => item.id === pack);
+      group.label = meta ? String(meta.label) : pack;
+      for (const entry of entries) {
+        const option = document.createElement("option");
+        option.value = entry.id;
+        option.textContent = entry.label;
+        group.append(option);
+      }
+      select.append(group);
+    }
+    // Un identificador que no está en el catálogo se conserva en vez de
+    // borrarse por elegir de una lista incompleta.
+    if (current && !textureCatalog.some((entry) => String(entry?.id) === current)) {
+      const orphan = document.createElement("option");
+      orphan.value = current;
+      orphan.textContent = `${current} (fuera del catálogo)`;
+      select.append(orphan);
+    }
+    select.value = current;
   }
 
   /** Toda mutación pasa por acá: reconcilia los datos derivados y redibuja. */
@@ -443,10 +477,7 @@
       renderWaveEditor(slot, config);
     }
     for (const slot of Object.keys(TEXTURE_SLOTS)) {
-      $(`[data-texture="${slot}"]`).value = room.textures[slot];
-      $(`[data-texture-inherit="${slot}"]`).textContent = level.defaults.textures[slot]
-        ? `Nivel: ${level.defaults.textures[slot]}`
-        : "";
+      fillTextureSelect($(`[data-texture="${slot}"]`), room.textures[slot]);
     }
   }
 
@@ -510,6 +541,7 @@
     ];
     if (rewarded) parts.push(`+${rewarded} de recompensa`);
     if (openRooms) parts.push(`${openRooms} a cielo abierto`);
+    parts.push(SKY_LABELS[level.sky].toLowerCase());
     $("#level-stats").textContent = parts.join(" · ");
   }
 
@@ -523,6 +555,7 @@
     $("#level-wall-height").value = level.defaults.wallHeight;
     $("#level-corridor-width").value = level.defaults.corridorWidth;
     $("#level-has-ceiling").checked = level.defaults.hasCeiling;
+    $("#level-sky").value = level.sky;
     renderStats();
     renderCorridors();
     renderRooms();
@@ -559,13 +592,21 @@
     }
   }
 
+  function makeSkyOptions() {
+    const select = $("#level-sky");
+    for (const [id, label] of Object.entries(SKY_LABELS)) {
+      const option = document.createElement("option");
+      option.value = id;
+      option.textContent = label;
+      select.append(option);
+    }
+  }
+
   function makeTextureEditors() {
     const container = $("#texture-fields");
     for (const [slot, label] of Object.entries(TEXTURE_SLOTS)) {
       const field = document.createElement("label");
-      field.innerHTML = `${label}
-        <input type="text" list="texture-catalog-options" maxlength="120" placeholder="Sin textura" data-texture="${slot}">
-        <span class="hint texture-inherit" data-texture-inherit="${slot}"></span>`;
+      field.innerHTML = `${label}<select data-texture="${slot}"></select>`;
       container.append(field);
     }
   }
@@ -706,6 +747,10 @@
     $("#level-has-ceiling").addEventListener("change", (event) => {
       level.defaults.hasCeiling = event.target.checked;
       commit("Techo predeterminado actualizado");
+    });
+    $("#level-sky").addEventListener("change", (event) => {
+      level.sky = SKY_LABELS[event.target.value] ? event.target.value : level.sky;
+      commit(`Cielo: ${SKY_LABELS[level.sky].toLowerCase()}`);
     });
   }
 
@@ -963,7 +1008,7 @@
       $(`[data-texture="${slot}"]`).addEventListener("change", (event) => {
         const room = selectedRoom();
         if (!room) return;
-        room.textures[slot] = event.target.value.trim();
+        room.textures[slot] = event.target.value;
         commit("Textura actualizada");
       });
     }
@@ -991,6 +1036,7 @@
   }
 
   makeBlockEditors();
+  makeSkyOptions();
   makeTextureEditors();
   bindLevelFields();
   bindFileActions();

@@ -16,11 +16,14 @@ La pantalla separa lo que se configura por nivel (columna izquierda) de lo que s
 
 ## Configuración del nivel
 
-- **Identidad**: nombre y descripción.
-- **Reglas**: tiempo límite en minutos y segundos, y munición inicial. El cargador se recorta a la capacidad del arma: la Glock lleva 10 balas, así que un valor mayor entra igual pero se guarda el resto en la reserva.
-- **Predeterminados de sala**: altura de paredes, ancho de pasillos y si las salas llevan techo. Cada sala y cada pasillo puede usar su propio valor.
+El panel de **Salas** y el de **Conexiones** quedan arriba de todo, porque son los que más se usan al componer; el resto arranca plegado.
+
 - **Salas**: agregar pequeñas, grandes o pasillos, y seleccionarlas desde la lista.
 - **Conexiones**: unir dos salas y ajustar el ancho de cada pasillo.
+- **Identidad**: nombre y descripción.
+- **Reglas**: tiempo límite en minutos y segundos, y munición inicial. El cargador se recorta a la capacidad del arma: la Glock lleva 10 balas, así que un valor mayor entra igual pero se guarda el resto en la reserva.
+- **Entorno**: el cielo del nivel — día despejado, nublado, atardecer o noche. Además de pintar el cielo coloca el sol, así la luz de las salas acompaña. Sin elegir ninguno se usa el día despejado.
+- **Predeterminados de sala**: altura de paredes, ancho de pasillos y si las salas llevan techo. Cada sala y cada pasillo puede usar su propio valor.
 
 ## Configuración de la sala
 
@@ -46,7 +49,7 @@ En la pestaña **Bloques**:
 - Color, movimiento estático o hacia el lado contrario, velocidad y oleadas.
 - **Recompensa al limpiar**: un bloque de munición con la cantidad de balas indicada, que aparece cuando cae el último bloque y se abren las puertas.
 
-En la pestaña **Texturas**: paredes, suelo, techo, puertas y bloques.
+En la pestaña **Texturas**: paredes, suelo, techo, puertas y bloques, con las texturas del catálogo agrupadas por pack. Sin textura, la superficie usa el material de color plano. Hoy el juego aplica `walls`, `floor` y `ceiling`; los pasillos heredan las de la sala de la que salen.
 
 ## Plano
 
@@ -79,8 +82,12 @@ node tools/level-editor/migrate-level.js level_designs/levels/nivel-1.json
 
 ## Texturas
 
-Los campos de textura guardan identificadores del catálogo `level_designs/texture-catalog.json`. Ese catálogo todavía está vacío: los packs viven comprimidos en `assets/_raw/textures/` y hay que importarlos antes de poder elegirlos. Mientras tanto los campos aceptan texto libre y una cadena vacía significa "usar el material procedural actual".
+Los desplegables se llenan desde `level_designs/texture-catalog.json`, así que **el editor hay que servirlo** (ver *Uso*): abierto con `file://` el navegador no puede leer el catálogo y los campos quedan vacíos.
+
+Hay tres packs cargados —Horror, Tiny 1 y Tiny 2, todos CC0—. Para compararlos, el nivel `nivel-texturas` tiene tres salas idénticas con un pack en cada una.
+
+Para sumar texturas: extraer las que falten de `assets/_raw/textures/`, copiarlas a `assets/textures/packs/<pack>/` y agregar su entrada al catálogo.
 
 ## Alcance actual
 
-El runtime ya construye todo lo que declara el formato salvo las texturas: alturas, techos, pasillos con su ancho, roles, orientación inicial, munición y recompensas.
+El runtime construye todo lo que declara el formato: alturas, techos, pasillos con su ancho, roles, orientación inicial, munición, recompensas, cielo y las texturas de paredes, suelo y techo. Los slots `door` y `block` se guardan pero todavía no se aplican.

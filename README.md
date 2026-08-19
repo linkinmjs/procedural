@@ -43,7 +43,7 @@ campania.
 - Mouse izquierdo: disparar; R: recargar; F: melee.
 - F1: dungeon; F2: armas; F3: reiniciar escena; F4: laboratorio de bloques; F5: regenerar dungeon; F6: nivel JSON actual; F7/F8: nivel siguiente/anterior.
 
-Al iniciar el proyecto se carga el nivel JSON configurado. Sus salas, techos, puertas, pasillos, luces, bloques de objetivos, municion y tiempo de ronda se construyen en runtime. Los encuentros aparecen al entrar en cada sala.
+Al iniciar el proyecto se carga el nivel JSON configurado. Sus salas, techos, puertas, pasillos, luces, cielo, texturas, bloques de objetivos, municion y tiempo de ronda se construyen en runtime. Los encuentros aparecen al entrar en cada sala.
 
 Al entrar a una sala que tiene bloques, sus vanos se sellan con una barrera roja
 y no se abren hasta que caiga el ultimo bloque. Las salas sin bloques (Entrada,
@@ -111,7 +111,7 @@ Prueba del sistema de ventanas:
 
 ## Editor de niveles
 
-`tools/level-editor/` contiene un editor web local para componer salas desde arriba, unirlas con pasillos y configurar los bloques y objetivos de cada una. Por nivel define el tiempo, la munición inicial y los valores que heredan las salas; por sala, su rol (inicio, tránsito o salida), la altura de las paredes, si tiene techo o queda a cielo abierto, cuántas balas entrega al limpiarla y sus texturas. La pared por la que se entra a cada sala no se elige: sale del recorrido desde la sala de inicio. Los diseños exportados se guardan en `level_designs/` como JSON versionable (`schemaVersion: 5`). Las instrucciones de uso están en [`tools/level-editor/README.md`](tools/level-editor/README.md).
+`tools/level-editor/` contiene un editor web local para componer salas desde arriba, unirlas con pasillos y configurar los bloques y objetivos de cada una. Por nivel define el tiempo, la munición inicial y los valores que heredan las salas; por sala, su rol (inicio, tránsito o salida), la altura de las paredes, si tiene techo o queda a cielo abierto, cuántas balas entrega al limpiarla y sus texturas. La pared por la que se entra a cada sala no se elige: sale del recorrido desde la sala de inicio. Por nivel también elige el cielo, que además coloca el sol. Los diseños exportados se guardan en `level_designs/` como JSON versionable (`schemaVersion: 6`). Las instrucciones de uso están en [`tools/level-editor/README.md`](tools/level-editor/README.md).
 
 Prueba del editor y de los diseños versionados:
 

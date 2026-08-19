@@ -17,6 +17,10 @@ jobs:
     container: barichello/godot-ci:4.7
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Los assets binarios (png/res/glb/ogg) estan en Git LFS.
+          # Sin esto el checkout deja punteros de texto y el import falla.
+          lfs: true
       - name: Marcar el workspace como seguro para git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Cache import assets
@@ -32,6 +36,10 @@ jobs:
     needs: import-assets
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Los assets binarios (png/res/glb/ogg) estan en Git LFS.
+          # Sin esto el checkout deja punteros de texto y el import falla.
+          lfs: true
       - uses: actions/cache@v4
         with:
           path: .godot/imported/

@@ -2,24 +2,8 @@
   "schemaVersion": 1,
   "levels": [
     {
-      "id": "level-1787116788228",
+      "id": "level-1787164129302",
       "path": "res://level_designs/levels/nivel-1.json"
-    },
-    {
-      "id": "level-1787120515723",
-      "path": "res://level_designs/levels/nivel-2.json"
-    },
-    {
-      "id": "level-1787122932397",
-      "path": "res://level_designs/levels/nivel-3.json"
-    },
-    {
-      "id": "level-1787153734276",
-      "path": "res://level_designs/levels/nivel-4.json"
-    },
-    {
-      "id": "nivel-texturas",
-      "path": "res://level_designs/levels/nivel-texturas.json"
     }
   ]
 }

@@ -254,6 +254,7 @@ func _build_rooms() -> void:
 		encounter.movement_speed = moving_block_speed
 		encounter.crossing_damage = block_crossing_damage
 		encounter.wall_height = wall_height
+		encounter.max_block_height = LevelDefinitionLoader.get_max_block_height(level_data)
 		encounter.configure(room)
 		encounter.encounter_started.connect(_on_encounter_started)
 		encounter.encounter_cleared.connect(_on_encounter_cleared)

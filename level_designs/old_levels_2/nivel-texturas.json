@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 6,
-  "id": "level-1787122932397",
-  "name": "Nivel 3",
-  "description": "",
-  "timeLimitSeconds": 90,
+  "schemaVersion": 8,
+  "id": "nivel-texturas",
+  "name": "Comparador de texturas",
+  "description": "Tres salas iguales, un pack de texturas en cada una, para decidir cual usar.",
+  "timeLimitSeconds": 600,
   "gridSize": 1,
   "startingAmmo": {
     "magazine": 17,
@@ -12,6 +12,7 @@
   "sky": "clear-day",
   "defaults": {
     "wallHeight": 6,
+    "maxBlockHeight": 6,
     "hasCeiling": true,
     "corridorWidth": 3.5,
     "textures": {
@@ -24,23 +25,23 @@
   },
   "rooms": [
     {
-      "id": "0519429d-7c60-41ef-8a12-8720fad507b2",
-      "name": "Sala 1",
-      "type": "small",
+      "id": "room-horror",
+      "name": "Horror",
+      "type": "large",
       "role": "start",
       "position": {
-        "x": 8,
-        "z": -33
+        "x": 0,
+        "z": 0
       },
       "size": {
-        "width": 14,
-        "depth": 14
+        "width": 22,
+        "depth": 18
       },
       "entry": {
-        "wall": "south",
+        "wall": "west",
         "offset": 0
       },
-      "facing": 0,
+      "facing": 90,
       "wallHeight": null,
       "hasCeiling": null,
       "ammoReward": {
@@ -49,11 +50,11 @@
         "color": "#f4bc59"
       },
       "textures": {
-        "walls": "",
-        "floor": "",
-        "ceiling": "",
-        "door": "",
-        "block": ""
+        "walls": "horror/wall",
+        "floor": "horror/floor",
+        "ceiling": "horror/stone",
+        "door": "horror/metal",
+        "block": "horror/brick"
       },
       "blocks": {
         "left": {
@@ -80,96 +81,92 @@
       }
     },
     {
-      "id": "d6834843-4ef0-430b-bcd5-a15f30c7c612",
-      "name": "Sala 2",
-      "type": "corridor",
+      "id": "room-tiny1",
+      "name": "Tiny 1",
+      "type": "large",
       "role": "transition",
       "position": {
-        "x": 8,
-        "z": -11
+        "x": 34,
+        "z": 0
       },
       "size": {
-        "width": 10,
-        "depth": 28
-      },
-      "entry": {
-        "wall": "north",
-        "offset": 0
-      },
-      "facing": 0,
-      "wallHeight": 4,
-      "hasCeiling": true,
-      "ammoReward": {
-        "enabled": false,
-        "amount": 30,
-        "color": "#f4bc59"
-      },
-      "textures": {
-        "walls": "",
-        "floor": "",
-        "ceiling": "",
-        "door": "",
-        "block": ""
-      },
-      "blocks": {
-        "left": {
-          "enabled": true,
-          "movement": "opposite",
-          "movementSpeed": 0.5,
-          "color": "#2ed5c5",
-          "waves": [
-            5
-          ]
-        },
-        "front": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
-        },
-        "right": {
-          "enabled": true,
-          "movement": "opposite",
-          "movementSpeed": 0.5,
-          "color": "#2ed5c5",
-          "waves": [
-            5
-          ]
-        }
-      }
-    },
-    {
-      "id": "d1aeaa89-8691-40a2-968f-01330ab4e5d3",
-      "name": "Sala 3",
-      "type": "small",
-      "role": "exit",
-      "position": {
-        "x": 25,
-        "z": -23
-      },
-      "size": {
-        "width": 14,
-        "depth": 14
+        "width": 22,
+        "depth": 18
       },
       "entry": {
         "wall": "west",
         "offset": 0
       },
-      "facing": 0,
-      "wallHeight": 10,
-      "hasCeiling": false,
+      "facing": 90,
+      "wallHeight": null,
+      "hasCeiling": null,
       "ammoReward": {
         "enabled": false,
         "amount": 30,
         "color": "#f4bc59"
       },
       "textures": {
-        "walls": "",
-        "floor": "",
-        "ceiling": "",
-        "door": "",
-        "block": ""
+        "walls": "tiny1/brick",
+        "floor": "tiny1/floor",
+        "ceiling": "tiny1/ceiling",
+        "door": "tiny1/door",
+        "block": "tiny1/stone"
+      },
+      "blocks": {
+        "left": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "front": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        },
+        "right": {
+          "enabled": false,
+          "movement": "static",
+          "movementSpeed": 0.65,
+          "color": "#2ed5c5",
+          "waves": []
+        }
+      }
+    },
+    {
+      "id": "room-tiny2",
+      "name": "Tiny 2",
+      "type": "large",
+      "role": "exit",
+      "position": {
+        "x": 68,
+        "z": 0
+      },
+      "size": {
+        "width": 22,
+        "depth": 18
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "facing": 90,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "tiny2/brick",
+        "floor": "tiny2/floor",
+        "ceiling": "tiny2/plaster",
+        "door": "tiny2/metal",
+        "block": "tiny2/stone"
       },
       "blocks": {
         "left": {
@@ -198,17 +195,17 @@
   ],
   "connections": [
     {
-      "id": "156051b9-2015-4915-a7d3-d45e571d5627",
-      "fromRoomId": "0519429d-7c60-41ef-8a12-8720fad507b2",
-      "toRoomId": "d6834843-4ef0-430b-bcd5-a15f30c7c612",
-      "fromWall": "south",
-      "toWall": "north",
+      "id": "c7e16db2-158d-44c6-8a27-33280208b024",
+      "fromRoomId": "room-horror",
+      "toRoomId": "room-tiny1",
+      "fromWall": "east",
+      "toWall": "west",
       "width": 3.5
     },
     {
-      "id": "6d4b2d7c-d33f-49fc-9672-b6720dbcfd06",
-      "fromRoomId": "d6834843-4ef0-430b-bcd5-a15f30c7c612",
-      "toRoomId": "d1aeaa89-8691-40a2-968f-01330ab4e5d3",
+      "id": "f3875902-77d7-4558-8481-35568c0eb6ff",
+      "fromRoomId": "room-tiny1",
+      "toRoomId": "room-tiny2",
       "fromWall": "east",
       "toWall": "west",
       "width": 3.5

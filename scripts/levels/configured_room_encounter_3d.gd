@@ -13,6 +13,8 @@ const TARGET_BLOCK_SCENE := preload("res://scenes/targets/target_block_3d.tscn")
 const WALL_MARGIN := 0.4
 ## Separacion entre el bloque y la pared en la que arranca.
 const WALL_OFFSET := 0.65
+## Alto minimo del bloque: por debajo de esto no entra ninguna ventana.
+const MIN_BLOCK_HEIGHT := 2.0
 
 const RELATIVE_WALLS := {
 	"north": {"left": "east", "front": "south", "right": "west"},
@@ -24,8 +26,11 @@ const RELATIVE_WALLS := {
 var room_id := ""
 var room_label := "Room"
 var room_size := Vector2(14.0, 14.0)
-## Altura de las paredes de la sala: el bloque las cubre de piso a techo.
+## Altura de las paredes de la sala: el bloque las cubre desde el piso.
 var wall_height := 6.0
+## Alto maximo del bloque. Una pared muy alta llevaria las ventanas a donde no
+## se apunta comodo, asi que el bloque se recorta acá y deja el resto libre.
+var max_block_height := 6.0
 var entry_wall := "south"
 var blocks_config: Dictionary = {}
 var movement_speed := 0.65
@@ -84,9 +89,7 @@ func _spawn_block(slot: String, config: Dictionary) -> void:
 	var absolute_wall: String = RELATIVE_WALLS[entry_wall][slot]
 	var block := TARGET_BLOCK_SCENE.instantiate() as TargetBlock3D
 	block.block_label = "%s // %s" % [room_label, slot]
-	var configured_waves: Array[int] = []
-	for count_variant in config.get("waves", []):
-		configured_waves.append(int(count_variant))
+	var configured_waves := LevelDefinitionLoader.get_wave_counts(config)
 	block.waves = configured_waves
 	block.target_count = configured_waves[0] if not configured_waves.is_empty() else 0
 	block.block_color = Color.from_string(str(config.get("color", "#2ed5c5")), Color(0.08, 0.78, 1.0, 1.0))
@@ -117,10 +120,12 @@ func _mark_cleared() -> void:
 	encounter_cleared.emit(self)
 
 
-## El bloque cubre la pared entera menos un margen minimo, para que no quede
-## ningun hueco por el que esquivarlo mientras avanza.
+## El bloque cubre el ancho entero de la pared menos un margen minimo, para que
+## no quede ningun hueco por el que esquivarlo mientras avanza. A lo alto llega
+## hasta el techo o hasta max_block_height, lo que sea menor.
 func _get_wall_setup(wall: String) -> Dictionary:
-	var block_height := maxf(wall_height - WALL_MARGIN, 2.0)
+	var available_height := maxf(wall_height - WALL_MARGIN, MIN_BLOCK_HEIGHT)
+	var block_height := minf(available_height, maxf(max_block_height, MIN_BLOCK_HEIGHT))
 	var center_y := block_height * 0.5
 	var horizontal := wall == "north" or wall == "south"
 	var block_width := maxf((room_size.x if horizontal else room_size.y) - WALL_MARGIN, 2.0)

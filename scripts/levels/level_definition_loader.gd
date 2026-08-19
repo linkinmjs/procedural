@@ -1,15 +1,27 @@
 class_name LevelDefinitionLoader
 extends RefCounted
 
-const SUPPORTED_SCHEMA_VERSION := 6
+const SUPPORTED_SCHEMA_VERSION := 8
 const VALID_ROOM_TYPES := ["small", "large", "corridor", "custom"]
 const VALID_WALLS := ["north", "east", "south", "west"]
 const VALID_BLOCK_SLOTS := ["left", "front", "right"]
 const VALID_TEXTURE_SLOTS := ["walls", "floor", "ceiling", "door", "block"]
 const VALID_ROLES := ["start", "transition", "exit"]
+## Familias de ventana que puede declarar una oleada. Tienen que coincidir con
+## WINDOW_TYPES en tools/level-editor/level-format.js, que es lo que escribe los
+## archivos. Solo "normal" tiene comportamiento propio: el resto se spawnea como
+## una ventana normal hasta que exista su escena.
+const VALID_WINDOW_TYPES := [
+	"normal", "popup", "download", "firewall", "critical-error", "confirm",
+	"ad", "fake-close", "task-manager", "corrupt-file", "installer",
+]
+const MAX_WAVE_TARGETS := 64
 const MIN_CORRIDOR_WIDTH := 1.5
 const MAX_CORRIDOR_WIDTH := 12.0
 const DEFAULT_CORRIDOR_WIDTH := 3.5
+const MIN_BLOCK_HEIGHT := 2.0
+const MAX_BLOCK_HEIGHT := 12.0
+const DEFAULT_MAX_BLOCK_HEIGHT := 6.0
 const MIN_WALL_HEIGHT := 2.0
 const MAX_WALL_HEIGHT := 20.0
 const DEFAULT_WALL_HEIGHT := 6.0
@@ -90,6 +102,14 @@ static func get_room_wall_height(level: Dictionary, room: Dictionary) -> float:
 	if room_height == null:
 		return clampf(inherited, MIN_WALL_HEIGHT, MAX_WALL_HEIGHT)
 	return clampf(float(room_height), MIN_WALL_HEIGHT, MAX_WALL_HEIGHT)
+
+
+## Alto maximo del bloque de ventanas. El bloque cubre la pared hasta aca y deja
+## libre lo que sobre, para que los objetivos no queden donde no se apunta comodo.
+static func get_max_block_height(level: Dictionary) -> float:
+	var defaults: Dictionary = level.get("defaults", {}) as Dictionary
+	var declared := float(defaults.get("maxBlockHeight", DEFAULT_MAX_BLOCK_HEIGHT))
+	return clampf(declared, MIN_BLOCK_HEIGHT, MAX_BLOCK_HEIGHT)
 
 
 ## false deja la sala a cielo abierto. Un valor nulo hereda el del nivel.
@@ -220,6 +240,10 @@ static func _validate_defaults(level: Dictionary, path: String) -> bool:
 	if wall_height < MIN_WALL_HEIGHT or wall_height > MAX_WALL_HEIGHT:
 		push_error("Level defaults.wallHeight must be between %.0f and %.0f: %s" % [MIN_WALL_HEIGHT, MAX_WALL_HEIGHT, path])
 		return false
+	var max_block_height := float(defaults.get("maxBlockHeight", 0.0))
+	if max_block_height < MIN_BLOCK_HEIGHT or max_block_height > MAX_BLOCK_HEIGHT:
+		push_error("Level defaults.maxBlockHeight must be between %.0f and %.0f: %s" % [MIN_BLOCK_HEIGHT, MAX_BLOCK_HEIGHT, path])
+		return false
 	if not defaults.get("hasCeiling", null) is bool:
 		push_error("Level defaults.hasCeiling must be a boolean: %s" % path)
 		return false
@@ -287,12 +311,52 @@ static func _validate_room(room: Dictionary, room_id: String) -> bool:
 		if not block.get("waves", null) is Array:
 			push_error("Room %s needs a block waves array." % room_id)
 			return false
-		for count_variant in block.waves:
-			var wave_count := int(count_variant)
-			if wave_count < 1 or wave_count > 64:
-				push_error("Room %s has an invalid wave target count." % room_id)
+		for wave_variant in block.waves:
+			if not _validate_wave(wave_variant, room_id):
 				return false
 	return true
+
+
+## Una oleada declara cuantas ventanas de cada familia aparecen a la vez.
+static func _validate_wave(wave_variant: Variant, room_id: String) -> bool:
+	if not wave_variant is Dictionary:
+		push_error("Room %s has a wave that is not an object." % room_id)
+		return false
+	var windows_variant: Variant = (wave_variant as Dictionary).get("windows", null)
+	if not windows_variant is Dictionary:
+		push_error("Room %s has a wave without its windows object." % room_id)
+		return false
+	var total := 0
+	for type_variant in (windows_variant as Dictionary):
+		var window_type := str(type_variant)
+		if not VALID_WINDOW_TYPES.has(window_type):
+			push_error("Room %s declares the unknown window type %s." % [room_id, window_type])
+			return false
+		var count := int((windows_variant as Dictionary)[type_variant])
+		if count < 1 or count > MAX_WAVE_TARGETS:
+			push_error("Room %s has an invalid %s window count." % [room_id, window_type])
+			return false
+		total += count
+	if total < 1 or total > MAX_WAVE_TARGETS:
+		push_error("Room %s has an invalid wave target count." % room_id)
+		return false
+	return true
+
+
+## Cuantos objetivos spawnea cada oleada de un bloque. Mientras las familias de
+## ventana no tengan comportamiento propio, al bloque solo le importa el total.
+static func get_wave_counts(block: Dictionary) -> Array[int]:
+	var counts: Array[int] = []
+	for wave_variant in block.get("waves", []):
+		if not wave_variant is Dictionary:
+			continue
+		var windows: Dictionary = (wave_variant as Dictionary).get("windows", {})
+		var total := 0
+		for type_variant in windows:
+			total += int(windows[type_variant])
+		if total > 0:
+			counts.append(total)
+	return counts
 
 
 static func _validate_ammo_reward(room: Dictionary, room_id: String) -> bool:

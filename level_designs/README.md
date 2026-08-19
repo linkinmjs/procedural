@@ -12,7 +12,7 @@ Esta carpeta contiene las definiciones versionadas creadas con `tools/level-edit
 
 ## Formato actual
 
-El formato usa `schemaVersion: 6`.
+El formato usa `schemaVersion: 8`.
 
 ### Nivel
 
@@ -21,6 +21,7 @@ El formato usa `schemaVersion: 6`.
 - `sky`: cielo del nivel — `clear-day`, `overcast`, `sunset` o `night`. Además de pintar el cielo, coloca la luz direccional, así la iluminación de las salas acompaña a lo que se ve arriba. Si falta o nombra uno desconocido se usa `clear-day`.
 - `defaults`: valores que heredan las salas y los pasillos.
   - `wallHeight`: altura de paredes en metros, entre 2 y 20.
+  - `maxBlockHeight`: alto máximo del bloque de ventanas, entre 2 y 12. El bloque cubre el ancho entero de la pared y se levanta desde el piso hasta el techo o hasta este valor, lo que sea menor, para que los objetivos no queden fuera del ángulo cómodo de puntería. Por defecto, 6.
   - `hasCeiling`: si las salas se cierran arriba.
   - `corridorWidth`: ancho por defecto de los pasillos.
   - `textures`: texturas por defecto para `walls`, `floor`, `ceiling`, `door` y `block`.
@@ -34,7 +35,21 @@ El formato usa `schemaVersion: 6`.
 - `hasCeiling`: `true` cerrada, `false` a cielo abierto, `null` para heredar.
 - `ammoReward`: `{ enabled, amount, color }`. Con `enabled` en `true`, al destruir el último bloque de la sala aparece un bloque con `amount` balas.
 - `textures`: identificadores del catálogo `texture-catalog.json`, por superficie. Una cadena vacía hereda la del nivel; si el nivel tampoco define una, se usa el material de color plano. El juego aplica hoy `walls`, `floor` y `ceiling`; `door` y `block` se guardan pero todavía no se dibujan.
-- `blocks`: cada bloque define color, velocidad y una lista ordenada de oleadas. Los lados `left`, `front` y `right` son relativos a `entry.wall`: con una entrada `south`, el bloque `front` cae sobre la pared `north`. Cada bloque cubre su pared completa, de piso a techo.
+- `blocks`: cada bloque define color, velocidad y una lista ordenada de oleadas. Los lados `left`, `front` y `right` son relativos a `entry.wall`: con una entrada `south`, el bloque `front` cae sobre la pared `north`. Cada bloque cubre el ancho completo de su pared y se levanta desde el piso hasta `defaults.maxBlockHeight`, o hasta el techo si la sala es más baja.
+
+### Oleada
+
+Cada elemento de `blocks.<slot>.waves` declara cuántas ventanas de cada familia aparecen a la vez:
+
+```json
+{ "windows": { "normal": 4, "firewall": 2 } }
+```
+
+Las familias válidas son `normal`, `popup`, `download`, `firewall`, `critical-error`, `confirm`, `ad`, `fake-close`, `task-manager`, `corrupt-file` e `installer`, y salen de los comportamientos que enumera `docs/gdd_atractivo_y_progresion.md`. La lista vive en `WINDOW_TYPES` (`tools/level-editor/level-format.js`) y en `VALID_WINDOW_TYPES` (`scripts/levels/level_definition_loader.gd`), que tienen que coincidir.
+
+Sólo se guardan las familias con al menos una ventana, y el total de una oleada va de 1 a 64. Hoy el runtime únicamente usa ese total: mientras una familia no tenga su comportamiento propio, el bloque la spawnea como una ventana normal. El editor las marca como *pronto* para que se vea qué está declarado y qué está construido.
+
+El formato anterior escribía la oleada como un número suelto (`"waves": [5]`); al importar o migrar se convierte en `{ "windows": { "normal": 5 } }`.
 
 ### Conexión
 

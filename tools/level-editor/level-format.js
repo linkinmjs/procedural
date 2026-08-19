@@ -4,7 +4,7 @@
 (() => {
   "use strict";
 
-  const SCHEMA_VERSION = 6;
+  const SCHEMA_VERSION = 8;
 
   const ROOM_PRESETS = {
     small: { label: "Habitación pequeña", width: 14, depth: 14 },
@@ -23,6 +23,25 @@
   };
   const DEFAULT_SKY = "clear-day";
   const SLOT_LABELS = { left: "Izquierdo", front: "Frontal", right: "Derecho" };
+  // Catalogo de ventanas que puede spawnear un bloque. `ready` es lo que el
+  // juego ya sabe construir; `planned` son las familias del GDD que todavia no
+  // tienen comportamiento propio — se guardan en el archivo y el runtime las
+  // trata como ventanas normales hasta que existan. Los identificadores tienen
+  // que coincidir con WINDOW_TYPES en scripts/levels/level_definition_loader.gd.
+  const WINDOW_TYPES = {
+    normal: { label: "Ventana normal", glyph: "N", color: "#2ed5c5", status: "ready", hint: "Se cierra al acertarle a su control." },
+    popup: { label: "Popup", glyph: "P", color: "#8ab4ff", status: "planned", hint: "Se multiplica si queda abierta demasiado tiempo." },
+    download: { label: "Descarga", glyph: "D", color: "#6ee7a8", status: "planned", hint: "Penaliza cuando su barra llega al final." },
+    firewall: { label: "Firewall", glyph: "F", color: "#f4bc59", status: "planned", hint: "Protege a las demas hasta que se lo desactiva." },
+    "critical-error": { label: "Error critico", glyph: "!", color: "#ff6577", status: "planned", hint: "Castiga los disparos en la zona equivocada." },
+    confirm: { label: "Confirmacion", glyph: "OK", color: "#c9a6ff", status: "planned", hint: "Pide acertar sus controles en orden." },
+    ad: { label: "Publicidad", glyph: "AD", color: "#f08bd0", status: "planned", hint: "Tapa parcialmente a otros objetivos." },
+    "fake-close": { label: "Falsa X", glyph: "X?", color: "#ff9f6b", status: "planned", hint: "Esconde su control real entre senuelos." },
+    "task-manager": { label: "Administrador", glyph: "TM", color: "#7fd4ff", status: "planned", hint: "Afecta a varias ventanas de una vez." },
+    "corrupt-file": { label: "Archivo corrupto", glyph: "C", color: "#9fb3c8", status: "planned", hint: "Cambia de lugar o de forma al recibir impactos." },
+    installer: { label: "Instalador", glyph: "I", color: "#5ad1a0", status: "planned", hint: "Necesita varias etapas antes de cerrarse." }
+  };
+  const DEFAULT_WINDOW_TYPE = "normal";
   const TEXTURE_SLOTS = { walls: "Paredes", floor: "Suelo", ceiling: "Techo", door: "Puertas", block: "Bloques" };
   const WALLS = ["north", "east", "south", "west"];
   const WALL_LABELS = { north: "N", east: "E", south: "S", west: "O" };
@@ -43,12 +62,16 @@
   const LIMITS = {
     timeLimit: { min: 1, max: 3600, fallback: 90 },
     wallHeight: { min: 2, max: 20, fallback: 6 },
+    // Alto del bloque de ventanas. El tope existe para que los objetivos no
+    // trepen por encima de lo que se apunta comodo en una pared muy alta.
+    maxBlockHeight: { min: 2, max: 12, fallback: 6 },
     corridorWidth: { min: 1.5, max: 12, fallback: 3.5 },
     magazine: { min: 0, max: 200, fallback: 17 },
     reserve: { min: 0, max: 999, fallback: 51 },
     ammoReward: { min: 1, max: 999, fallback: 30 },
     movementSpeed: { min: 0.05, max: 5, fallback: 0.65 },
     wave: { min: 1, max: 64, fallback: 5 },
+    windowCount: { min: 0, max: 64, fallback: 1 },
     facing: { min: 0, max: 359, fallback: 0 }
   };
 
@@ -73,6 +96,37 @@
 
   const blankBlock = () => ({ enabled: false, movement: "static", movementSpeed: 0.65, color: "#2ed5c5", waves: [] });
 
+  /** Una oleada declara cuantas ventanas de cada tipo aparecen a la vez. */
+  const blankWave = (count = LIMITS.wave.fallback) => ({
+    windows: { [DEFAULT_WINDOW_TYPE]: clampInt(count, LIMITS.wave) }
+  });
+
+  const waveTotal = (wave) => Object.values(wave?.windows || {})
+    .reduce((total, count) => total + (Number(count) || 0), 0);
+
+  /**
+   * Acepta la oleada como numero suelto — el formato anterior, cuando la unica
+   * ventana posible era la normal — o como conteo por tipo. Los tipos fuera del
+   * catalogo se descartan y los ceros no se guardan, asi el archivo dice solo lo
+   * que la oleada realmente spawnea. El total se recorta al maximo por oleada
+   * recortando los tipos desde el final.
+   */
+  function normalizeWave(source) {
+    const counts = (typeof source === "number" || typeof source === "string")
+      ? { [DEFAULT_WINDOW_TYPE]: source }
+      : (source?.windows || {});
+    const windows = {};
+    let total = 0;
+    for (const type of Object.keys(WINDOW_TYPES)) {
+      if (!(type in counts)) continue;
+      const value = Math.min(clampInt(counts[type], LIMITS.windowCount), LIMITS.wave.max - total);
+      if (value <= 0) continue;
+      windows[type] = value;
+      total += value;
+    }
+    return { windows };
+  }
+
   const blankAmmoReward = () => ({ enabled: false, amount: LIMITS.ammoReward.fallback, color: "#f4bc59" });
 
   function createEmptyLevel() {
@@ -87,6 +141,7 @@
       sky: DEFAULT_SKY,
       defaults: {
         wallHeight: LIMITS.wallHeight.fallback,
+        maxBlockHeight: LIMITS.maxBlockHeight.fallback,
         hasCeiling: true,
         corridorWidth: LIMITS.corridorWidth.fallback,
         textures: blankTextures()
@@ -341,6 +396,7 @@
     level.sky = SKY_LABELS[level.sky] ? level.sky : DEFAULT_SKY;
     level.defaults = {
       wallHeight: clamp(level.defaults?.wallHeight, LIMITS.wallHeight),
+      maxBlockHeight: clamp(level.defaults?.maxBlockHeight, LIMITS.maxBlockHeight),
       hasCeiling: level.defaults?.hasCeiling !== false,
       corridorWidth: clamp(level.defaults?.corridorWidth, LIMITS.corridorWidth),
       textures: blankTextures(level.defaults?.textures)
@@ -372,9 +428,10 @@
       for (const slot of Object.keys(SLOT_LABELS)) {
         const source = room.blocks[slot] || {};
         const legacyTargetCount = Math.max(0, Math.round(Number(source.targetCount) || 0));
-        const waves = Array.isArray(source.waves)
-          ? source.waves.map((count) => clampInt(count, LIMITS.wave))
+        const rawWaves = Array.isArray(source.waves)
+          ? source.waves
           : (legacyTargetCount > 0 ? [legacyTargetCount] : []);
+        const waves = rawWaves.map(normalizeWave).filter((wave) => waveTotal(wave) > 0);
         const block = { ...blankBlock(), ...source, waves };
         block.movementSpeed = clamp(block.movementSpeed, LIMITS.movementSpeed);
         block.color = isHexColor(block.color) ? block.color : "#2ed5c5";
@@ -408,6 +465,8 @@
     SKY_LABELS,
     DEFAULT_SKY,
     SLOT_LABELS,
+    WINDOW_TYPES,
+    DEFAULT_WINDOW_TYPE,
     TEXTURE_SLOTS,
     WALLS,
     WALL_LABELS,
@@ -425,6 +484,9 @@
     ordered,
     blankTextures,
     blankBlock,
+    blankWave,
+    waveTotal,
+    normalizeWave,
     blankAmmoReward,
     createEmptyLevel,
     createRoom,

@@ -41,6 +41,8 @@ func _run() -> void:
 		return
 	if not await _check_blocks(level):
 		return
+	if not _check_block_height_cap():
+		return
 	if ProjectSettings.get_setting("application/run/main_scene") != "res://scenes/levels/playable_level.tscn":
 		_fail("The configured JSON level should be the project main scene.")
 		return
@@ -129,10 +131,7 @@ func _check_blocks(level: PlayableLevel) -> bool:
 			var config := room.blocks[slot] as Dictionary
 			if not bool(config.enabled):
 				continue
-			var waves: Array[int] = []
-			for count_variant in config.waves:
-				waves.append(int(count_variant))
-			expected_waves.append(waves)
+			expected_waves.append(LevelDefinitionLoader.get_wave_counts(config))
 		var encounter: ConfiguredRoomEncounter3D = level.room_encounters[str(room.id)]
 		encounter.activate()
 		await process_frame
@@ -144,6 +143,57 @@ func _check_blocks(level: PlayableLevel) -> bool:
 			if blocks[index].waves != expected_waves[index]:
 				_fail("Room %s should deploy the waves declared in its JSON." % str(room.name))
 				return false
+		if not _check_block_height(level, room, blocks):
+			return false
+	return true
+
+
+## El bloque llega hasta el techo o hasta el tope del nivel, lo que sea menor:
+## en una pared alta las ventanas no tienen que treparse fuera de la mira.
+func _check_block_height(level: PlayableLevel, room: Dictionary, blocks: Array[TargetBlock3D]) -> bool:
+	var wall_height := LevelDefinitionLoader.get_room_wall_height(level.level_data, room)
+	var max_height := LevelDefinitionLoader.get_max_block_height(level.level_data)
+	var expected := minf(wall_height - ConfiguredRoomEncounter3D.WALL_MARGIN, max_height)
+	for block in blocks:
+		if block.block_size.y > max_height + 0.01:
+			_fail("A block of %s should not go over the %.1f m cap." % [str(room.name), max_height])
+			return false
+		if block.block_size.y > wall_height + 0.01:
+			_fail("A block of %s should not go through its ceiling." % str(room.name))
+			return false
+		if not is_equal_approx(block.block_size.y, expected):
+			_fail("A block of %s should be %.1f m tall." % [str(room.name), expected])
+			return false
+		if not is_equal_approx(block.position.y, block.block_size.y * 0.5):
+			_fail("A block of %s should stand on the floor." % str(room.name))
+			return false
+	return true
+
+
+## Una pared mas alta que el tope recorta el bloque; una mas baja lo sigue. El
+## caso alto no aparece en los niveles versionados, asi que se prueba aparte.
+func _check_block_height_cap() -> bool:
+	var cases := [
+		{"wall": 20.0, "cap": 6.0, "expected": 6.0},
+		{"wall": 4.0, "cap": 6.0, "expected": 4.0 - ConfiguredRoomEncounter3D.WALL_MARGIN},
+	]
+	for case_variant in cases:
+		var case := case_variant as Dictionary
+		var encounter := ConfiguredRoomEncounter3D.new()
+		encounter.room_size = Vector2(14.0, 14.0)
+		encounter.wall_height = float(case.wall)
+		encounter.max_block_height = float(case.cap)
+		var setup := encounter._get_wall_setup("north")
+		encounter.free()
+		var size: Vector2 = setup.size
+		if not is_equal_approx(size.y, float(case.expected)):
+			_fail("A %.1f m wall with a %.1f m cap should raise a %.1f m block, not %.1f m." % [
+				float(case.wall), float(case.cap), float(case.expected), size.y])
+			return false
+		var position: Vector3 = setup.position
+		if not is_equal_approx(position.y, size.y * 0.5):
+			_fail("The capped block should still stand on the floor.")
+			return false
 	return true
 
 

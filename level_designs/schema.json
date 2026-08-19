@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://procedural-map.local/schemas/level-design-v6.json",
+  "$id": "https://procedural-map.local/schemas/level-design-v8.json",
   "title": "Procedural Map level design",
   "type": "object",
   "required": [
@@ -17,7 +17,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 6
+      "const": 8
     },
     "id": {
       "type": "string",
@@ -135,6 +135,7 @@
       "type": "object",
       "required": [
         "wallHeight",
+        "maxBlockHeight",
         "hasCeiling",
         "corridorWidth",
         "textures"
@@ -143,6 +144,13 @@
         "wallHeight": {
           "$ref": "#/$defs/wallHeight",
           "default": 6
+        },
+        "maxBlockHeight": {
+          "type": "number",
+          "minimum": 2,
+          "maximum": 12,
+          "default": 6,
+          "description": "Alto máximo del bloque de ventanas, aunque la pared sea más alta."
         },
         "hasCeiling": {
           "type": "boolean",
@@ -216,6 +224,37 @@
         "waves": {
           "type": "array",
           "items": {
+            "$ref": "#/$defs/wave"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "wave": {
+      "type": "object",
+      "required": [
+        "windows"
+      ],
+      "properties": {
+        "windows": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "enum": [
+              "normal",
+              "popup",
+              "download",
+              "firewall",
+              "critical-error",
+              "confirm",
+              "ad",
+              "fake-close",
+              "task-manager",
+              "corrupt-file",
+              "installer"
+            ]
+          },
+          "additionalProperties": {
             "type": "integer",
             "minimum": 1,
             "maximum": 64

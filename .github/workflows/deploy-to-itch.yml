@@ -2,7 +2,7 @@ name: Godot Export and Upload to Itch
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
 
 env:
@@ -55,17 +55,38 @@ jobs:
     runs-on: ubuntu-latest
     needs: export-game
     # Solo se publica en itch desde la rama principal, nunca desde un PR.
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: HTML5
+      # Falla temprano y con un mensaje claro si falta algun dato de itch.
+      # Sin esto, butler recibe "/:web" y el error resultante no dice cual falta.
+      - name: Verificar credenciales de itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY || vars.BUTLER_API_KEY }}
+          ITCH_GAME: ${{ secrets.ITCHIO_GAME || vars.ITCHIO_GAME }}
+          ITCH_USER: ${{ secrets.ITCHIO_USERNAME || vars.ITCHIO_USERNAME }}
+        run: |
+          faltan=0
+          if [ -z "$BUTLER_API_KEY" ]; then echo "::error::Falta BUTLER_API_KEY"; faltan=1; fi
+          if [ -z "$ITCH_USER" ]; then echo "::error::Falta ITCHIO_USERNAME"; faltan=1; fi
+          if [ -z "$ITCH_GAME" ]; then echo "::error::Falta ITCHIO_GAME"; faltan=1; fi
+          if [ "$faltan" = "1" ]; then
+            echo "Revisa Settings > Secrets and variables > Actions del repositorio."
+            exit 1
+          fi
+          echo "Destino: $ITCH_USER/$ITCH_GAME:web"
+
       - name: Deploy to Itch.io (HTML5)
         uses: manleydev/butler-publish-itchio-action@master
         env:
-          BUTLER_CREDENTIALS: ${{ secrets.BUTLER_API_KEY }}
+          # butler lee BUTLER_API_KEY; la action reexporta BUTLER_CREDENTIALS
+          # hacia esa variable, asi que se pasan ambas.
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY || vars.BUTLER_API_KEY }}
+          BUTLER_CREDENTIALS: ${{ secrets.BUTLER_API_KEY || vars.BUTLER_API_KEY }}
           CHANNEL: web
-          ITCH_GAME: ${{ secrets.ITCHIO_GAME }}
-          ITCH_USER: ${{ secrets.ITCHIO_USERNAME }}
+          ITCH_GAME: ${{ secrets.ITCHIO_GAME || vars.ITCHIO_GAME }}
+          ITCH_USER: ${{ secrets.ITCHIO_USERNAME || vars.ITCHIO_USERNAME }}
           PACKAGE: Web.zip

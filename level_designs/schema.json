@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://procedural-map.local/schemas/level-design-v8.json",
-  "title": "Procedural Map level design",
+  "$id": "https://procedural.local/schemas/level-design-v8.json",
+  "title": "Procedural level design",
   "type": "object",
   "required": [
     "schemaVersion",

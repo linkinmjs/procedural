@@ -1,7 +1,10 @@
 extends Node
 
-## Revisa el HUD de puntaje sin abrir el editor: arma una cadena, la deja a la
-## vista y despues captura el resumen de nivel. Guarda dos PNG en .godot/.
+## Revisa el HUD de puntaje sin abrir el editor: arma una cadena, la captura
+## viva y despues cobrada. Guarda dos PNG en .godot/.
+##
+## El desglose del nivel no se prueba aca porque el HUD ya no lo muestra: es la
+## pantalla de resultados, que tiene su propia vista en menu_visual_smoke_test.
 
 
 func _ready() -> void:
@@ -37,20 +40,11 @@ func _ready() -> void:
 	if not _save("res://.godot/score-hud-bank.png"):
 		return
 
+	# Cerrar el nivel no dibuja ningun resumen en el HUD: solo suelta el
+	# contador cuando termina de mostrar el ultimo cobro.
 	controller.complete_round()
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
-	if not hud.results_panel.visible:
-		_fail("Finishing the level should show the results panel.")
-		return
-	if not _inside_viewport(hud.results_panel):
-		_fail("The results panel should sit inside the reference viewport.")
-		return
-	if hud.results_rows.get_child_count() <= 0:
-		_fail("The results panel should list the closing bonuses.")
-		return
-	if not _save("res://.godot/score-hud-results.png"):
-		return
 	print("Score HUD visual smoke test passed.")
 	get_tree().quit()
 

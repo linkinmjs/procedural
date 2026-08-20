@@ -13,14 +13,17 @@ const WALL_THICKNESS := 0.35
 const DOOR_HEIGHT := 3.0
 ## Pared que queda como minimo sobre el vano.
 const LINTEL_HEIGHT := 0.6
+## Lo que puede rodear al numero en el nombre de un nivel sin volverlo un nombre
+## propio: separadores y digitos.
+const GENERIC_NAME_FILLER := " -_.0123456789"
 
 
 @export_file("*.json") var level_definition_path := "res://level_designs/levels/nivel-1.json"
 @export_range(0.05, 5.0, 0.05) var moving_block_speed := 0.65
 @export_range(0.0, 100.0, 1.0) var block_crossing_damage := 15.0
-## Segundos que el jugador pasa en la ultima habitacion antes de arrancar el
-## siguiente nivel de la secuencia.
-@export_range(0.0, 30.0, 0.1) var level_transition_delay := 3.0
+## Segundos entre el cierre del nivel y la pantalla de resultados. El cobro de
+## la ultima cadena sigue a la vista durante ese rato.
+@export_range(0.0, 30.0, 0.1) var results_delay := 3.0
 
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 @onready var sun: DirectionalLight3D = $DirectionalLight3D
@@ -40,6 +43,11 @@ var room_encounters: Dictionary = {}
 var room_doors: Dictionary = {}
 ## IDs de las salas ordenadas de la entrada a la salida, siguiendo las conexiones.
 var room_order: Array[String] = []
+## Si este nivel se presento con su intertitulo al construirse. Queda como
+## registro aunque la presentacion ya se haya ido de pantalla.
+var announced := false
+## La presentacion, mientras sigue en pantalla. Se libera sola al terminar.
+var level_intro: LevelIntro
 var _round_started := false
 var _round_completed := false
 ## Encuentro de la ultima sala. Si tiene objetivos, la ronda cierra cuando cae el
@@ -69,6 +77,16 @@ func _ready() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event.pressed or event.echo:
 		return
+	if event.is_action_pressed("pause"):
+		get_viewport().set_input_as_handled()
+		_open_pause_menu()
+		return
+	# Reintentar no pregunta nada ni pasa por ningun menu: en un modo de puntaje
+	# volver a empezar tiene que costar menos de un segundo.
+	if event.is_action_pressed("restart_level"):
+		get_viewport().set_input_as_handled()
+		_level_sequence().restart_current_level()
+		return
 	match event.keycode:
 		KEY_F1:
 			get_tree().change_scene_to_file("res://scenes/sandbox/dungeon_test.tscn")
@@ -92,10 +110,13 @@ func load_and_build_level() -> void:
 	var active_level_path := sequence_path if not sequence_path.is_empty() else level_definition_path
 	level_data = LevelDefinitionLoader.load_level(active_level_path)
 	if level_data.is_empty():
-		level_name_label.text = "LEVEL LOAD FAILED"
+		level_name_label.text = "HUD_LEVEL_LOAD_FAILED"
 		status_label.text = level_definition_path
 		return
-	level_name_label.text = "%s // %s" % [str(level_data.get("name", "Configured level")).to_upper(), sequence.get_position_text()]
+	level_name_label.text = tr("HUD_LEVEL_HEADER").format({
+		"name": str(level_data.get("name", "")).to_upper(),
+		"position": sequence.get_position_text(),
+	})
 	SkyCatalog.apply(LevelDefinitionLoader.get_sky_id(level_data), world_environment, sun)
 	room_order = _resolve_room_order()
 	_build_shell()
@@ -108,9 +129,43 @@ func load_and_build_level() -> void:
 	# El techo de puntaje y el par salen del contenido del nivel, asi que el
 	# puntaje necesita su definicion antes de que arranque la ronda.
 	score_controller.prepare_level(str(level_data.get("id", "")), level_data)
+	score_controller.level_scored.connect(_on_level_scored)
 	round_controller.arm_round()
 	_wire_round_triggers()
-	status_label.text = "%d ROOMS // %d CONNECTIONS // F7 NEXT // F8 PREVIOUS" % [level_data.rooms.size(), level_data.connections.size()]
+	status_label.text = tr("HUD_LEVEL_STATUS").format({
+		"rooms": level_data.rooms.size(),
+		"connections": level_data.connections.size(),
+	})
+	_announce_level(sequence)
+
+
+## Presenta el nivel al entrar. La secuencia decide si toca: reintentar recarga
+## la escena igual que entrar, pero no vuelve a anunciarla.
+func _announce_level(sequence: Node) -> void:
+	if not sequence.consume_announcement():
+		return
+	announced = true
+	var number := int(sequence.get_current_number())
+	var title := tr("INTRO_LEVEL").format({"number": number})
+	var level_name := str(level_data.get("name", ""))
+	# El nombre propio del nivel solo acompaña al numero si dice algo mas que el
+	# numero. Hoy los niveles se llaman "Nivel-1" y repetirlo no aporta nada.
+	var subtitle := level_name.to_upper() if _has_own_name(level_name) else ""
+	level_intro = LevelIntro.create(title, subtitle)
+	add_child(level_intro)
+
+
+## Un nombre es propio cuando dice algo mas que "nivel" y un numero. Se compara
+## contra la palabra en los tres idiomas y no contra el titulo ya traducido: el
+## nombre sale del JSON del nivel, que esta escrito en un idioma solo.
+func _has_own_name(level_name: String) -> bool:
+	var rest := level_name.to_upper()
+	for word in ["NIVEL", "NÍVEL", "LEVEL"]:
+		rest = rest.replace(word, "")
+	for character in rest:
+		if not GENERIC_NAME_FILLER.contains(character):
+			return true
+	return false
 
 
 ## El cronometro arranca en cuanto hay algo que cronometrar: al dejar la primera
@@ -159,7 +214,7 @@ func _on_last_room_entered(body: Node3D) -> void:
 	if _round_completed or body != player:
 		return
 	if _exit_encounter != null and not _exit_encounter.cleared:
-		round_controller.add_log("FINAL ROOM // CLEAR IT TO FINISH", "system")
+		round_controller.add_log(tr("LOG_FINAL_ROOM"), "system")
 		return
 	_complete_round()
 
@@ -169,17 +224,33 @@ func _complete_round() -> void:
 		return
 	_round_completed = true
 	round_controller.complete_round()
-	_start_level_transition()
 
 
-## Llegar a la ultima habitacion cierra el nivel: tras una pausa arranca el
-## siguiente de la secuencia, con el jugador en su habitacion de entrada.
-func _start_level_transition() -> void:
-	if not _level_sequence().has_next_level():
-		round_controller.add_log("CAMPAIGN COMPLETE // NO NEXT LEVEL", "system")
+## Cerrar el nivel ya no arrastra al siguiente: el puntaje se resuelve, se
+## muestra el resultado y el jugador decide si reintenta, avanza o se va.
+func _on_level_scored(summary: Dictionary) -> void:
+	round_controller.add_log(tr("LOG_RESULTS_IN").format({"seconds": "%.0f" % results_delay}), "system")
+	get_tree().create_timer(results_delay).timeout.connect(_show_results.bind(summary))
+
+
+func _show_results(summary: Dictionary) -> void:
+	var menus := _menus()
+	if menus.is_open():
 		return
-	round_controller.add_log("EXIT REACHED // NEXT LEVEL IN %.0fS" % level_transition_delay, "system")
-	get_tree().create_timer(level_transition_delay).timeout.connect(_navigate_level.bind(true))
+	var level_title := str(level_data.get("name", "Nivel"))
+	menus.open(LevelResults.create(summary, level_title, _level_sequence().has_next_level()))
+
+
+func _open_pause_menu() -> void:
+	var menus := _menus()
+	if menus.is_open():
+		return
+	var level_title := str(level_data.get("name", "Nivel"))
+	menus.open(PauseMenu.create(level_title, _level_sequence().get_position_text(), score_controller.total_score))
+
+
+func _menus() -> Node:
+	return get_node("/root/MenuStack")
 
 
 func _level_sequence() -> Node:
@@ -224,9 +295,9 @@ func _navigate_level(forward: bool) -> void:
 	var sequence := _level_sequence()
 	var changed: bool = sequence.select_next_level() if forward else sequence.select_previous_level()
 	if changed:
-		get_tree().reload_current_scene()
+		sequence.play_current_level()
 		return
-	round_controller.add_log("NO %s LEVEL" % ("NEXT" if forward else "PREVIOUS"), "info")
+	round_controller.add_log(tr("LOG_NO_NEXT_LEVEL" if forward else "LOG_NO_PREVIOUS_LEVEL"), "info")
 
 
 ## Contenedor unico de la geometria solida. La colision sale del resultado ya
@@ -394,7 +465,7 @@ func _on_encounter_started(encounter: ConfiguredRoomEncounter3D) -> void:
 		return
 	for door in doors:
 		door.request_close(player)
-	round_controller.add_log("%s SEALED" % encounter.room_label.to_upper(), "danger")
+	round_controller.add_log(tr("LOG_ROOM_SEALED").format({"room": encounter.room_label.to_upper()}), "danger")
 
 
 func _on_encounter_cleared(encounter: ConfiguredRoomEncounter3D) -> void:
@@ -404,7 +475,7 @@ func _on_encounter_cleared(encounter: ConfiguredRoomEncounter3D) -> void:
 		was_sealed = was_sealed or door.is_closed
 		door.open()
 	if was_sealed:
-		round_controller.add_log("%s CLEAR // DOORS OPEN" % encounter.room_label.to_upper(), "system")
+		round_controller.add_log(tr("LOG_ROOM_CLEAR").format({"room": encounter.room_label.to_upper()}), "system")
 	_spawn_ammo_reward(encounter.room_id)
 	# El puntaje de la sala ya se cobro arriba, asi que cerrar aca deja el
 	# resumen del nivel con la ultima sala ya contada.
@@ -427,7 +498,10 @@ func _spawn_ammo_reward(room_id: String) -> void:
 	pickup.weapon.current_ammo = mini(int(reward.amount), magazine)
 	pickup.weapon.reserve_ammo = maxi(int(reward.amount) - magazine, 0)
 	add_child(pickup)
-	round_controller.add_log("%s // +%d ROUNDS" % [str(room.name).to_upper(), int(reward.amount)], "system")
+	round_controller.add_log(tr("LOG_AMMO_REWARD").format({
+		"room": str(room.name).to_upper(),
+		"amount": int(reward.amount),
+	}), "system")
 
 
 func _room_by_id(room_id: String) -> Dictionary:

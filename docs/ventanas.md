@@ -19,6 +19,8 @@ El layout manda: mover un botón en 2D recalcula su zona 3D sola. No hay coorden
 
 Cada theme concentra fuente, botones y estilos. Cambiar el aspecto de todas las ventanas de un estilo se hace en un solo archivo. El theme retro además define `ProgressBar`, por si la ventana necesita una barra de progreso.
 
+Estos dos themes son de las ventanas **disparables**, y el de XP lo comparte además el menú principal, que es un escritorio. Los menús que aparecen durante la partida —pausa, confirmación, resultados— usan [`game_theme.tres`](../resources/themes/game_theme.tres), que no es un estilo de ventana: es el del HUD. La razón es que a estas ventanas se les dispara, así que un menú que se viera igual sería ambiguo.
+
 ## Crear una ventana nueva
 
 1. Duplicar el template del estilo elegido dentro de `scenes/windows/` (clic derecho en el FileSystem, **Duplicate**).

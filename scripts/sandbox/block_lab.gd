@@ -161,7 +161,7 @@ func _apply_configuration() -> void:
 	_reset_player_at_entrance()
 	_encounter_spawned = false
 	round_controller.start_round()
-	round_controller.add_log("LAB CONFIGURED // ENTER THE ROOM", "system")
+	round_controller.add_log(tr("LOG_LAB_CONFIGURED"), "system")
 	_set_config_visible(false)
 
 
@@ -276,7 +276,7 @@ func _spawn_block(slot: String, block_position: Vector3, block_rotation: Vector3
 	block.position = block_position
 	block.rotation = block_rotation
 	blocks_container.add_child(block)
-	round_controller.add_log("%s BLOCK DEPLOYED" % slot.to_upper(), "info")
+	round_controller.add_log(tr("LOG_BLOCK_DEPLOYED").format({"slot": slot.to_upper()}), "info")
 
 
 func _clear_blocks() -> void:

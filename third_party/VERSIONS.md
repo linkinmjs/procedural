@@ -4,6 +4,12 @@
 - SimpleDungeons: `majikayogames/SimpleDungeons` commit `15b32406e2f10c55cdb864e18661137bacfead89` (CC0-1.0).
 - Texturas: Screaming Brain Studios — Horror Texture Pack, Tiny Texture Pack y Tiny Texture Pack 2 (CC0-1.0 / dominio publico).
 - Cielo: shader de cielo procedural con nubes, sol, luna y estrellas, en `assets/skies/`.
+- UI de Windows XP: pack de NullTale (`assets/_raw/WinXp.zip`). De ahi salen el theme de ventana, la barra de tareas, el boton de inicio, los iconos del escritorio y el fondo de pantalla.
+- UI retro gris: RetroWindowsGUI (`assets/_raw/RetroWindowsGUI.zip`), usado por el theme retro de las ventanas disparables.
+
+De los packs de UI, igual que con las texturas, solo se versiona el recorte en
+uso bajo `assets/textures/ui/<estilo>/`. Los packs completos quedan comprimidos
+en `assets/_raw/`, fuera de Git.
 
 De los packs de texturas solo se versiona la seleccion en uso, bajo
 `assets/textures/packs/<pack>/`, en 256x256. Los paquetes completos quedan

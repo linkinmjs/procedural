@@ -135,7 +135,7 @@ func _check_hud() -> bool:
 	# el jugador nunca veria cuanto acumulo.
 	if not hud.combo_box.visible:
 		return _fail("The combo counter should hold the banked result after the chain closes.")
-	if not hud.pending_value.text.ends_with(ScoreHUD._thousands(_score._best_bank)):
+	if not hud.pending_value.text.ends_with(ScoreBreakdown.thousands(_score._best_bank)):
 		return _fail("The held counter should show what the chain actually paid.")
 	return true
 

@@ -2,12 +2,23 @@ extends Node
 
 
 func _ready() -> void:
+	var level := $PlayableLevel as PlayableLevel
+
+	# El nivel se presenta antes de dejarse ver. Se congela el titulo a la vista
+	# para retratarlo y despues se saltea, asi las demas vistas muestran el
+	# nivel y no el velo.
+	if is_instance_valid(level.level_intro):
+		level.level_intro.hold()
+		await RenderingServer.frame_post_draw
+		if not _save_viewport("res://.godot/level-intro.png"):
+			return
+		level.level_intro.skip()
+
 	await get_tree().process_frame
 	await get_tree().physics_frame
 	await RenderingServer.frame_post_draw
 	if not _save_viewport("res://.godot/playable-level-entry.png"):
 		return
-	var level := $PlayableLevel as PlayableLevel
 	var sala_one := _find_room(level.level_data.rooms, "Sala 1")
 	level.player.global_position = Vector3(float(sala_one.position.x), 0.05, float(sala_one.position.z) - 6.5)
 	level.player.rotation = Vector3(0.0, PI, 0.0)

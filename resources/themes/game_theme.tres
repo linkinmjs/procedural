@@ -1,0 +1,135 @@
+[gd_resource type="Theme" format=3]
+
+; Theme del juego: la misma paleta que el HUD del nivel (paneles oscuros, acento
+; cian, bordes finos). Es lo que usan los menus que aparecen durante la partida.
+;
+; No comparte nada con xp_theme.tres a proposito: ese es el del escritorio y el
+; de las ventanas disparables, y si los menus del juego se vieran igual que un
+; objetivo al que hay que dispararle, el jugador no sabria a que le esta
+; apuntando.
+
+[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+bg_color = Color(0.04, 0.09, 0.14, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.08, 0.46, 0.58, 0.85)
+
+[sub_resource type="StyleBoxFlat" id="ButtonHover"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+bg_color = Color(0.06, 0.18, 0.26, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.76, 0.92, 1)
+
+[sub_resource type="StyleBoxFlat" id="ButtonPressed"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+bg_color = Color(0.0, 0.36, 0.46, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.42, 0.9, 1, 1)
+
+; El foco se ve mas que el hover: es lo que hace que el mando y el teclado se
+; puedan usar sin tocar el mouse.
+[sub_resource type="StyleBoxFlat" id="ButtonFocus"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+bg_color = Color(0.06, 0.18, 0.26, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.42, 0.9, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="ButtonDisabled"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+bg_color = Color(0.025, 0.05, 0.075, 0.75)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.07, 0.24, 0.3, 0.7)
+
+[sub_resource type="StyleBoxFlat" id="PanelDark"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.015, 0.025, 0.045, 0.93)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.08, 0.46, 0.58, 0.85)
+
+[sub_resource type="StyleBoxLine" id="Separator"]
+color = Color(0.08, 0.46, 0.58, 0.6)
+thickness = 1
+
+[sub_resource type="StyleBoxFlat" id="SliderTrack"]
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.025, 0.08, 0.12, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.05, 0.35, 0.45, 1)
+
+[sub_resource type="StyleBoxFlat" id="SliderFill"]
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.0, 0.82, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="SliderFillHighlight"]
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.45, 0.95, 1, 1)
+
+; El foco del slider no puede pintarse encima de la barra: el estilo que trae
+; Godot por defecto es opaco y tapaba el relleno del que estaba enfocado. El
+; foco se ve en el relleno resaltado, no en un recuadro.
+[sub_resource type="StyleBoxEmpty" id="SliderFocus"]
+
+[resource]
+default_font_size = 13
+Button/colors/font_color = Color(0.86, 0.96, 1, 1)
+Button/colors/font_disabled_color = Color(0.36, 0.45, 0.53, 1)
+Button/colors/font_focus_color = Color(1, 1, 1, 1)
+Button/colors/font_hover_color = Color(1, 1, 1, 1)
+Button/colors/font_pressed_color = Color(1, 1, 1, 1)
+Button/font_sizes/font_size = 13
+Button/styles/disabled = SubResource("ButtonDisabled")
+Button/styles/focus = SubResource("ButtonFocus")
+Button/styles/hover = SubResource("ButtonHover")
+Button/styles/normal = SubResource("ButtonNormal")
+Button/styles/pressed = SubResource("ButtonPressed")
+HSeparator/constants/separation = 6
+HSeparator/styles/separator = SubResource("Separator")
+Label/colors/font_color = Color(0.86, 0.96, 1, 1)
+Label/font_sizes/font_size = 13
+PanelContainer/styles/panel = SubResource("PanelDark")
+HSlider/styles/grabber_area = SubResource("SliderFill")
+HSlider/styles/slider = SubResource("SliderTrack")
+HSlider/styles/focus = SubResource("SliderFocus")
+HSlider/styles/grabber_area_highlight = SubResource("SliderFillHighlight")

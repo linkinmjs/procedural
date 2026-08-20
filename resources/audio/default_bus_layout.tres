@@ -1,0 +1,19 @@
+[gd_resource type="AudioBusLayout" format=3]
+
+; Tres buses: el general y dos hijos. Hoy solo suena la Glock, que va por SFX y
+; Music esta vacio, pero el hueco queda hecho: el dia que haya musica no hay que
+; retocar el menu de opciones ni migrar los ajustes ya guardados del jugador.
+
+[resource]
+bus/1/name = &"Music"
+bus/1/solo = false
+bus/1/mute = false
+bus/1/bypass_fx = false
+bus/1/volume_db = 0.0
+bus/1/send = &"Master"
+bus/2/name = &"SFX"
+bus/2/solo = false
+bus/2/mute = false
+bus/2/bypass_fx = false
+bus/2/volume_db = 0.0
+bus/2/send = &"Master"

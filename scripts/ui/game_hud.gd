@@ -44,9 +44,9 @@ func bind(controller: RoundController) -> void:
 	_on_time_changed(controller.time_remaining)
 	_on_accuracy_changed(controller.hits, controller.attacks, controller.get_accuracy_percent())
 	_on_ammo_changed(controller.magazine_ammo, controller.reserve_ammo)
-	status_value.text = "ROUND // ACTIVE" if controller.is_running else "ROUND // STANDBY"
+	status_value.text = "HUD_ROUND_ACTIVE" if controller.is_running else "HUD_ROUND_STANDBY"
 	if _logs.is_empty():
-		_on_log_added("ROUND STARTED" if controller.is_running else "ROUND STANDBY", "system")
+		_on_log_added(tr("LOG_ROUND_STARTED" if controller.is_running else "LOG_ROUND_STANDBY"), "system")
 
 
 func _bind_available_controller() -> void:
@@ -72,7 +72,10 @@ func _on_time_changed(seconds_remaining: float) -> void:
 
 func _on_accuracy_changed(hit_count: int, attack_count: int, percent: float) -> void:
 	accuracy_value.text = "%.1f%%" % percent
-	accuracy_detail.text = "%02d HIT / %02d SHOT" % [hit_count, attack_count]
+	accuracy_detail.text = tr("HUD_HIT_SHOT").format({
+		"hits": "%02d" % hit_count,
+		"shots": "%02d" % attack_count,
+	})
 
 
 func _on_ammo_changed(magazine: int, reserve: int) -> void:
@@ -90,12 +93,12 @@ func _on_log_added(message: String, event_kind: String) -> void:
 
 
 func _on_round_ended(reason: String) -> void:
-	status_value.text = "ROUND // FAILED" if reason == "health_depleted" else "ROUND // COMPLETE"
+	status_value.text = "HUD_ROUND_FAILED" if reason == "health_depleted" else "HUD_ROUND_COMPLETE"
 
 
 func _on_round_armed() -> void:
-	status_value.text = "ROUND // STANDBY"
+	status_value.text = "HUD_ROUND_STANDBY"
 
 
 func _on_round_started() -> void:
-	status_value.text = "ROUND // ACTIVE"
+	status_value.text = "HUD_ROUND_ACTIVE"

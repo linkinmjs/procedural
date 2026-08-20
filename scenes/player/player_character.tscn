@@ -2364,6 +2364,7 @@ gizmo_extents = 0.21
 [node name="FireAudio" type="AudioStreamPlayer3D" parent="Camera/LeanPivot/MainCamera/Weapons_Manager" unique_id=785176849]
 unit_size = 14.0
 max_db = 0.0
+bus = &"SFX"
 panning_strength = 0.0
 
 [node name="Melee_Hitbox" type="ShapeCast3D" parent="Camera/LeanPivot/MainCamera/Weapons_Manager" unique_id=51698041]

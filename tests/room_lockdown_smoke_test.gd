@@ -17,7 +17,7 @@ func _run() -> void:
 	if level == null or level.level_data.is_empty():
 		_fail("The playable level did not load.")
 		return
-	level.level_transition_delay = 30.0
+	level.results_delay = 30.0
 
 	var sala_one_id := _room_id(level, "Sala 1")
 	var entrada_id := _room_id(level, "Entrada")

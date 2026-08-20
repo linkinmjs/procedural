@@ -139,6 +139,7 @@ Prueba del sistema de ventanas:
 - [`docs/niveles_json.md`](docs/niveles_json.md): puente entre el editor web, los JSON versionados y la escena jugable de Godot.
 - [`docs/ventanas.md`](docs/ventanas.md): como armar ventanas disparables desde los templates, marcar zonas y probarlas.
 - [`docs/gdd_atractivo_y_progresion_ANEXO_puntuación.md`](docs/gdd_atractivo_y_progresion_ANEXO_puntuación.md): pozo, cadena, bonos, techo y rangos del sistema de puntuacion.
+- [`docs/gdd_atractivo_y_progresion_ANEXO_menus.md`](docs/gdd_atractivo_y_progresion_ANEXO_menus.md): mapa de pantallas de menu, direcciones esteticas y arquitectura de navegacion.
 - [`docs/arma.md`](docs/arma.md): la Glock, su cargador, el retroceso y la imprecision dinamica.
 - [`docs/movilidad.md`](docs/movilidad.md): velocidades, friccion, salto, airstrafe y bunny hop.
 - [`docs/deuda_tecnica.md`](docs/deuda_tecnica.md): hallazgos de la revision de codigo pendientes de corregir.

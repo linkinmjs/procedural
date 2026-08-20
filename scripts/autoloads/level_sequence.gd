@@ -8,6 +8,10 @@ const MAIN_MENU_SCENE := "res://scenes/ui/menus/main_menu.tscn"
 
 var _levels: Array[Dictionary] = []
 var _current_index := 0
+## Si el proximo nivel que se cargue se presenta con su intertitulo. Arranca en
+## true para que abrir el nivel a mano desde el editor tambien lo muestre; lo
+## unico que lo apaga es reintentar.
+var _announce_next := true
 
 
 func _ready() -> void:
@@ -38,6 +42,12 @@ func get_position_text() -> String:
 func get_level_count() -> int:
 	_ensure_catalog_loaded()
 	return _levels.size()
+
+
+## Numero del nivel actual, contando desde 1: es como se lo nombra en pantalla.
+func get_current_number() -> int:
+	_ensure_catalog_loaded()
+	return _current_index + 1
 
 
 func has_next_level() -> bool:
@@ -78,20 +88,33 @@ func select_first_level() -> bool:
 ## Carga el nivel actual de la campaña. Todas las transiciones pasan por aca
 ## para que el reintento y el avance no queden escritos en cada menu.
 func play_current_level() -> void:
+	_announce_next = true
 	_change_scene(LEVEL_SCENE)
 
 
 ## Reintentar es recargar el nivel actual. No pide confirmacion ni pasa por
-## ninguna otra pantalla: en un modo de puntaje tiene que costar nada.
+## ninguna otra pantalla: en un modo de puntaje tiene que costar nada. Tampoco
+## se presenta: quien reintenta ya sabe en que nivel esta.
 func restart_current_level() -> void:
+	_announce_next = false
 	_change_scene(LEVEL_SCENE)
 
 
 func play_next_level() -> bool:
 	if not select_next_level():
 		return false
+	_announce_next = true
 	_change_scene(LEVEL_SCENE)
 	return true
+
+
+## El nivel pregunta una sola vez si le toca presentarse, al construirse. La
+## respuesta se consume: recargar la escena de cualquier otra forma no repite
+## la presentacion por accidente.
+func consume_announcement() -> bool:
+	var announce := _announce_next
+	_announce_next = false
+	return announce
 
 
 func return_to_main_menu() -> void:

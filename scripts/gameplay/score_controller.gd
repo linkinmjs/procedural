@@ -80,7 +80,7 @@ func _process(delta: float) -> void:
 	if settings.step_for_hits(chain_hits) <= 0:
 		_bank(REASON_TIMEOUT)
 		return
-	_drop_steps(settings.timeout_step_drop, "TIMEOUT")
+	_drop_steps(settings.timeout_step_drop, "LOG_DROP_TIMEOUT")
 	_chain_timer = settings.grace_seconds
 
 
@@ -175,12 +175,12 @@ func _on_room_cleared(room_id: String, _room_label_unused: String) -> void:
 	for entry_variant in breakdown.bonuses:
 		var entry := entry_variant as Dictionary
 		_award(int(entry.points))
-		_log("BONUS // %s +%d" % [str(entry.label), int(entry.points)], "score")
+		_log(tr("LOG_BONUS").format({"label": str(entry.label), "points": int(entry.points)}), "score")
 	if _room_damage <= 0.0:
 		_rooms_clean += 1
 	if bool(breakdown.perfect):
 		_rooms_perfect += 1
-		_log("PERFECT ROOM // %s" % _room_label.to_upper(), "system")
+		_log(tr("LOG_PERFECT_ROOM").format({"room": _room_label.to_upper()}), "system")
 	breakdown["score"] = _room_score
 	breakdown["ceiling"] = plan.room_ceiling(room_id) if plan != null else 0
 	room_scored.emit(_room_label, breakdown)
@@ -194,7 +194,7 @@ func _warn_on_target_shortfall(declared: int) -> void:
 		return
 	var message := "%s resolved %d of the %d targets its level declares." % [_room_label, _room_resolved, declared]
 	push_warning("ScoreController: %s The room ceiling is out of reach." % message)
-	_log("CEILING UNREACHABLE // %d/%d TARGETS" % [_room_resolved, declared], "danger")
+	_log(tr("LOG_CEILING_UNREACHABLE").format({"resolved": _room_resolved, "declared": declared}), "danger")
 
 
 ## Una sala sin objetivos no paga bonos: no hay nada que resolver bien en ella.
@@ -204,19 +204,19 @@ func _room_bonuses(room_id: String) -> Dictionary:
 	var single_chain := _room_forced_banks <= 0
 	var intact := _room_chain_breaks <= 0
 	if clean:
-		bonuses.append({"label": "NO DAMAGE", "points": settings.room_clean_bonus})
+		bonuses.append({"label": tr("BONUS_NO_DAMAGE"), "points": settings.room_clean_bonus})
 	if single_chain:
-		bonuses.append({"label": "SINGLE CHAIN", "points": settings.room_single_chain_bonus})
+		bonuses.append({"label": tr("BONUS_SINGLE_CHAIN"), "points": settings.room_single_chain_bonus})
 	if intact:
-		bonuses.append({"label": "CHAIN INTACT", "points": settings.room_intact_chain_bonus})
+		bonuses.append({"label": tr("BONUS_CHAIN_INTACT"), "points": settings.room_intact_chain_bonus})
 	var accuracy := float(_room_hits) / float(_room_shots) if _room_shots > 0 else 0.0
 	var accuracy_bonus := settings.room_accuracy_bonus(accuracy)
 	if accuracy_bonus > 0:
-		bonuses.append({"label": "ACCURACY %d%%" % roundi(accuracy * 100.0), "points": accuracy_bonus})
+		bonuses.append({"label": tr("BONUS_ACCURACY").format({"percent": roundi(accuracy * 100.0)}), "points": accuracy_bonus})
 	var par := plan.room_par(room_id) if plan != null else 0.0
 	var saved := maxi(floori(par - (_now() - _room_started_at)), 0)
 	if saved > 0:
-		bonuses.append({"label": "UNDER PAR %ds" % saved, "points": saved * settings.par_second_bonus})
+		bonuses.append({"label": tr("BONUS_UNDER_PAR").format({"seconds": saved}), "points": saved * settings.par_second_bonus})
 	return {
 		"bonuses": bonuses,
 		"clean": clean,
@@ -230,7 +230,7 @@ func _on_target_resolved(kind: String, _label: String, zone_id: String, closed: 
 		return
 	if kind == "window" and settings.is_trap_zone(zone_id):
 		pot += settings.value_for_zone(zone_id)
-		_log("TRAP // %d // CHAIN LOST" % settings.value_for_zone(zone_id), "danger")
+		_log(tr("LOG_TRAP").format({"value": settings.value_for_zone(zone_id)}), "danger")
 		_bank(REASON_TRAP)
 		return
 	var value := settings.ball_value if kind == "ball" else settings.value_for_zone(zone_id)
@@ -246,7 +246,7 @@ func _on_target_resolved(kind: String, _label: String, zone_id: String, closed: 
 	var multiplier := get_multiplier()
 	if multiplier > _best_multiplier:
 		_best_multiplier = multiplier
-		_log("CHAIN x%s // %d HITS" % [_format_multiplier(multiplier), chain_hits], "score")
+		_log(tr("LOG_CHAIN").format({"multiplier": _format_multiplier(multiplier), "hits": chain_hits}), "score")
 	_emit_chain()
 
 
@@ -262,7 +262,7 @@ func _on_shot_resolved(hit: bool) -> void:
 		return
 	_consecutive_misses += 1
 	_room_chain_breaks += 1
-	_drop_steps(settings.miss_drop_for(_consecutive_misses), "SPRAY" if _consecutive_misses > 1 else "MISS")
+	_drop_steps(settings.miss_drop_for(_consecutive_misses), "LOG_DROP_SPRAY" if _consecutive_misses > 1 else "LOG_DROP_MISS")
 
 
 func _on_damage_taken(_amount: float) -> void:
@@ -271,7 +271,7 @@ func _on_damage_taken(_amount: float) -> void:
 	_room_damage += _amount
 	_level_damage += _amount
 	if pot > 0 or chain_hits > 0:
-		_log("HIT TAKEN // %d BANKED AT x1" % pot, "danger")
+		_log(tr("LOG_HIT_TAKEN").format({"pot": pot}), "danger")
 	_bank(REASON_DAMAGE)
 
 
@@ -289,7 +289,7 @@ func _on_round_ended(reason: String) -> void:
 			_award(int(entry.points))
 	var ceiling := get_ceiling()
 	var ratio := float(total_score) / float(ceiling) if ceiling > 0 else 0.0
-	var rank := settings.rank_for_ratio(ratio) if completed else {"letter": "-", "label": "INCOMPLETE", "index": -1}
+	var rank := settings.rank_for_ratio(ratio) if completed else {"letter": "-", "label": tr("SCORE_INCOMPLETE"), "index": -1}
 	var summary := {
 		"completed": completed,
 		"reason": reason,
@@ -307,7 +307,7 @@ func _on_round_ended(reason: String) -> void:
 		"no_damage": _level_damage <= 0.0,
 	}
 	summary["record"] = _store_record(summary)
-	_log("SCORE %d // %s" % [total_score, str(rank.letter)], "system")
+	_log(tr("LOG_SCORE").format({"score": total_score, "rank": str(rank.letter)}), "system")
 	level_scored.emit(summary)
 
 
@@ -315,16 +315,16 @@ func _level_bonuses() -> Array[Dictionary]:
 	var bonuses: Array[Dictionary] = []
 	var ammo_left := _controller.magazine_ammo + _controller.reserve_ammo
 	if ammo_left > 0:
-		bonuses.append({"label": "AMMO LEFT %d" % ammo_left, "points": ammo_left * settings.ammo_bonus_per_round})
+		bonuses.append({"label": tr("BONUS_AMMO_LEFT").format({"amount": ammo_left}), "points": ammo_left * settings.ammo_bonus_per_round})
 	var seconds_left := floori(_controller.time_remaining)
 	if seconds_left > 0:
-		bonuses.append({"label": "TIME LEFT %ds" % seconds_left, "points": seconds_left * settings.time_bonus_per_second})
+		bonuses.append({"label": tr("BONUS_TIME_LEFT").format({"seconds": seconds_left}), "points": seconds_left * settings.time_bonus_per_second})
 	if _level_damage <= 0.0:
-		bonuses.append({"label": "NO DAMAGE", "points": settings.level_no_damage_bonus})
+		bonuses.append({"label": tr("BONUS_NO_DAMAGE"), "points": settings.level_no_damage_bonus})
 	if _rooms_with_targets > 0 and _rooms_clean >= _rooms_with_targets:
-		bonuses.append({"label": "ALL ROOMS CLEAN", "points": settings.level_all_rooms_clean_bonus})
+		bonuses.append({"label": tr("BONUS_ALL_ROOMS_CLEAN"), "points": settings.level_all_rooms_clean_bonus})
 	if _rooms_with_targets > 0 and _rooms_perfect >= _rooms_with_targets:
-		bonuses.append({"label": "PERFECT LEVEL", "points": settings.level_perfect_bonus})
+		bonuses.append({"label": tr("BONUS_PERFECT_LEVEL"), "points": settings.level_perfect_bonus})
 	return bonuses
 
 
@@ -366,20 +366,28 @@ func _bank(reason: String) -> void:
 	if reason == REASON_TIMEOUT:
 		_room_forced_banks += 1
 		_room_chain_breaks += 1
-		_log("CHAIN TIMED OUT // %d BANKED" % banked_pot, "info")
+		_log(tr("LOG_CHAIN_TIMED_OUT").format({"pot": banked_pot}), "info")
 	elif reason == REASON_ROOM_CLEARED:
-		_log("ROOM CLEARED // %d x%s = %d" % [banked_pot, _format_multiplier(multiplier), awarded], "score")
+		_log(tr("LOG_ROOM_CLEARED").format({
+			"pot": banked_pot,
+			"multiplier": _format_multiplier(multiplier),
+			"awarded": awarded,
+		}), "score")
 	chain_banked.emit(banked_hits, banked_pot, multiplier, awarded, reason)
 	_reset_chain()
 
 
-func _drop_steps(count: int, label: String) -> void:
+func _drop_steps(count: int, label_key: String) -> void:
 	var step := settings.step_for_hits(chain_hits)
 	var target := maxi(step - count, 0)
 	if target == step:
 		return
 	chain_hits = settings.hits_for_step(target)
-	_log("%s // x%s -> x%s" % [label, _format_multiplier(settings.multiplier_for_step(step)), _format_multiplier(settings.multiplier_for_step(target))], "miss")
+	_log(tr("LOG_CHAIN_DROP").format({
+		"label": tr(label_key),
+		"from": _format_multiplier(settings.multiplier_for_step(step)),
+		"to": _format_multiplier(settings.multiplier_for_step(target)),
+	}), "miss")
 	_emit_chain()
 
 

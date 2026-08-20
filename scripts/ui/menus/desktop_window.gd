@@ -104,7 +104,7 @@ func _build_title_bar(window_title: String, closable: bool) -> Control:
 	_close_button = TextureButton.new()
 	_close_button.texture_normal = CLOSE_TEXTURE
 	_close_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_close_button.tooltip_text = "Cerrar"
+	_close_button.tooltip_text = "MENU_CLOSE_TOOLTIP"
 	_close_button.pressed.connect(func() -> void: close_requested.emit())
 	row.add_child(_close_button)
 	return bar

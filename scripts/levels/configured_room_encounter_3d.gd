@@ -74,7 +74,7 @@ func activate() -> void:
 	activated = true
 	var controller := _get_round_controller()
 	if controller != null:
-		controller.add_log("ENTERED // %s" % room_label.to_upper(), "system")
+		controller.add_log(tr("LOG_ENTERED").format({"room": room_label.to_upper()}), "system")
 	for slot in ["left", "front", "right"]:
 		var config: Dictionary = blocks_config.get(slot, {})
 		if bool(config.get("enabled", false)):

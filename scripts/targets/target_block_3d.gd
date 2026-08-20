@@ -101,7 +101,12 @@ func _spawn_current_wave() -> void:
 		call_deferred("_on_wave_cleared")
 	var controller := _get_round_controller()
 	if controller != null:
-		controller.add_log("%s // WAVE %d/%d // %d TARGETS" % [block_label.to_upper(), _current_wave_index + 1, _wave_counts.size(), spawn_volume.target_count], "info")
+		controller.add_log(tr("LOG_WAVE").format({
+			"block": block_label.to_upper(),
+			"wave": _current_wave_index + 1,
+			"total": _wave_counts.size(),
+			"targets": spawn_volume.target_count,
+		}), "info")
 
 
 func _on_wave_cleared() -> void:
@@ -142,7 +147,7 @@ func _close() -> void:
 	_closing = true
 	var controller := _get_round_controller()
 	if controller != null:
-		controller.add_log("%s CLOSED" % block_label.to_upper(), "system")
+		controller.add_log(tr("LOG_BLOCK_CLOSED").format({"block": block_label.to_upper()}), "system")
 	closed.emit(self)
 	queue_free()
 

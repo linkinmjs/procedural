@@ -6,9 +6,9 @@ extends MenuScreen
 ## Solo lo destructivo pregunta: abandonar un nivel a la mitad o borrar
 ## records. Reanudar y reintentar nunca pasan por aca.
 
-var _title := "Confirmar"
+var _title := "MENU_CONFIRM_TITLE"
 var _message := ""
-var _confirm_text := "ACEPTAR"
+var _confirm_text := "MENU_ACCEPT"
 var _on_confirm := Callable()
 
 
@@ -25,7 +25,7 @@ func _ready() -> void:
 	build_window(_title)
 	add_line(_message)
 	add_separator()
-	add_button("CANCELAR", close)
+	add_button("MENU_CANCEL", close)
 	add_button(_confirm_text, _confirm)
 
 

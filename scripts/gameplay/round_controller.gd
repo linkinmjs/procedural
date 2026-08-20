@@ -69,7 +69,7 @@ func start_round() -> void:
 	is_running = true
 	_emit_round_state()
 	round_started.emit()
-	add_log("ROUND STARTED", "system")
+	add_log(tr("LOG_ROUND_STARTED"), "system")
 
 
 ## Cierra la ronda porque el jugador llego a la ultima habitacion.
@@ -151,7 +151,7 @@ func _resolve_pending_shots() -> void:
 
 
 func report_target_hit(target_label: String) -> void:
-	add_log("HIT // %s" % target_label.to_upper(), "hit")
+	add_log(tr("LOG_HIT").format({"target": target_label.to_upper()}), "hit")
 
 
 ## Una zona de ventana resuelta. closes indica si el impacto la cerro.
@@ -175,13 +175,19 @@ func report_room_cleared(room_id: String, room_label: String) -> void:
 
 
 func report_target_left(target_label: String, damage: float) -> void:
-	add_log("%s LEFT // -%d HP" % [target_label.to_upper(), roundi(damage)], "miss")
+	add_log(tr("LOG_TARGET_LEFT").format({
+		"target": target_label.to_upper(),
+		"damage": roundi(damage),
+	}), "miss")
 	if damage > 0.0:
 		apply_damage(damage)
 
 
 func report_block_crossed(block_label: String, damage: float) -> void:
-	add_log("CROSSED %s // -%d HP" % [block_label.to_upper(), roundi(damage)], "danger")
+	add_log(tr("LOG_CROSSED").format({
+		"block": block_label.to_upper(),
+		"damage": roundi(damage),
+	}), "danger")
 	if damage > 0.0:
 		apply_damage(damage)
 
@@ -216,11 +222,11 @@ func _finish_round(reason: String) -> void:
 	is_running = false
 	match reason:
 		"health_depleted":
-			add_log("ROUND FAILED // HP DEPLETED", "danger")
+			add_log(tr("LOG_ROUND_FAILED"), "danger")
 		"exit_reached":
-			add_log("ROUND COMPLETE // EXIT REACHED", "system")
+			add_log(tr("LOG_ROUND_COMPLETE_EXIT"), "system")
 		_:
-			add_log("ROUND COMPLETE // TIME EXPIRED", "system")
+			add_log(tr("LOG_ROUND_COMPLETE_TIME"), "system")
 	round_ended.emit(reason)
 
 

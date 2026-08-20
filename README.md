@@ -122,20 +122,37 @@ Pruebas del sistema de puntuacion:
 
 `Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/score_level_smoke_test.gd`
 
-Vista del HUD de puntaje, en `.godot/score-hud-chain.png` y `.godot/score-hud-results.png`:
+Vista del HUD de puntaje, en `.godot/score-hud-chain.png` (cadena viva) y `.godot/score-hud-bank.png` (cadena ya cobrada):
 
 `Godot_v4.7-stable_win64_console.exe --path . res://tests/score_hud_visual_smoke_test.tscn`
 
 ## Menus
 
-El juego arranca en un escritorio y cada menu es una ventana de ese escritorio,
-con el mismo theme que las ventanas disparables. `MenuStack` es un autoload que
-apila los menus sobre la escena en curso y es el unico que decide si el arbol
-esta pausado y como esta el mouse.
+El juego arranca en un escritorio de Windows: fondo, iconos, barra de tareas con
+boton de inicio y una ventana abierta. `MenuStack` es un autoload que apila los
+menus sobre la escena en curso y es el unico que decide si el arbol esta pausado
+y como esta el mouse.
 
-- Menu principal: jugar el nivel actual de la campania y salir. Seleccionar nivel y opciones todavia no existen.
+Los menus se dibujan con una de dos pieles, y cada una dice donde esta parado el
+jugador:
+
+- **Windows** ([`xp_theme.tres`](resources/themes/xp_theme.tres)): solo el menu
+  principal, porque ahi el sistema operativo no es decoracion sino el menu.
+- **Juego** ([`game_theme.tres`](resources/themes/game_theme.tres)): la pausa, la
+  confirmacion y los resultados, con los mismos paneles oscuros de acento cian
+  que el HUD del nivel.
+
+La separacion no es estetica: las ventanas de Windows son objetivos a los que se
+les dispara, asi que un menu que se viera igual seria ambiguo. La piel se elige
+con `skin` antes de llamar a `build_window()`.
+
+- Escritorio: iconos de `procedural.exe`, niveles, opciones, mi pc y papelera. Un clic selecciona, y solo uno queda seleccionado a la vez; el doble clic ejecuta. `procedural.exe` abre la ventana del juego; los demas hacen parpadear el boton de la ventana en la barra, como un aviso pendiente, para devolver al jugador al juego.
+- Barra de tareas: boton de inicio con su menu, boton de la ventana abierta y reloj. Cerrar la ventana la deja en la barra; su boton la vuelve a abrir. Si la ventana esta cerrada, el aviso queda encendido hasta que la abran.
+- Menu principal: jugar el nivel actual de la campania, opciones y salir. Seleccionar nivel todavia no existe.
+- Opciones: volumen general, musica y efectos; sensibilidad del mouse; idioma; ventana o pantalla completa y resolucion. Se abre desde el escritorio y desde la pausa.
+- Entrada al nivel: un velo con el numero del nivel que entra y se va en poco mas de dos segundos. Cualquier tecla lo saltea y reintentar no lo muestra.
 - Pausa: reanudar, reintentar y abandonar el nivel, que pide confirmacion.
-- Resultados: desglose animado del puntaje, rango y record, con reintentar, avanzar y volver al menu.
+- Resultados: unica pantalla de cierre del nivel. Desglose animado del puntaje, rango y record, con reintentar, avanzar y volver al menu. El HUD no repite el desglose: durante la espera deja a la vista el cobro de la ultima cadena.
 
 Reintentar nunca pide confirmacion ni pasa por un menu: tiene la tecla Retroceso
 durante la partida.
@@ -147,9 +164,59 @@ Prueba del flujo de menus:
 
 `Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/menu_flow_smoke_test.gd`
 
-Vista de los menus, en `.godot/menu-main.png`, `.godot/menu-pause.png` y `.godot/menu-results.png`:
+Prueba de las opciones:
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/options_smoke_test.gd`
+
+Vista de las opciones en las dos pieles, en `.godot/options-desktop.png` y `.godot/options-game.png`:
+
+`Godot_v4.7-stable_win64_console.exe --path . res://tests/options_visual_smoke_test.tscn`
+
+Vista de los menus, en `.godot/menu-main.png`, `.godot/menu-notify.png`, `.godot/menu-start.png`, `.godot/menu-pause.png` y `.godot/menu-results.png`:
 
 `Godot_v4.7-stable_win64_console.exe --path . res://tests/menu_visual_smoke_test.tscn`
+
+La entrada al nivel se ve en `.godot/level-intro.png`, que sale de la prueba
+visual del nivel jugable.
+
+## Opciones
+
+Los ajustes del jugador viven en `user://settings.cfg` y los administra el
+autoload [`Settings`](scripts/autoloads/settings.gd), unico lugar que toca
+`AudioServer`, `TranslationServer` y `DisplayServer`.
+
+- **Audio**: tres buses, `Master`, `Music` y `SFX`, definidos en [`resources/audio/default_bus_layout.tres`](resources/audio/default_bus_layout.tres). Hoy solo suena la Glock, que va por `SFX`. Volumen cero silencia el bus en vez de bajarlo a casi nada.
+- **Sensibilidad**: la lee el jugador del autoload, asi que cambiarla desde la pausa se siente sin recargar el nivel. Se guarda cruda y se muestra de 0 a 100.
+- **Idioma**: cambia en caliente. Los controles guardan claves, asi que Godot los retraduce solos.
+- **Pantalla**: ventana o pantalla completa, y resolucion.
+
+No hay boton de aceptar: cada cambio se aplica y se guarda en el momento.
+
+En la exportacion web el tamaño del lienzo lo decide la pagina que embebe el
+juego, asi que la fila de resolucion queda a la vista pero apagada, explicando
+por que. Pantalla completa si funciona, porque el navegador la concede cuando
+sale de un clic.
+
+## Idiomas
+
+El juego esta en espaniol, portugues e ingles. Todos los textos salen de
+[`resources/i18n/strings.csv`](resources/i18n/strings.csv), una fila por clave y
+una columna por idioma; Godot lo importa a un `.translation` por columna.
+
+Los controles guardan la **clave** en su texto (`MENU_PLAY`, `HUD_TIME`) y Godot
+la traduce al dibujar, asi que cambiar de idioma no necesita reconstruir la UI.
+Lo que lleva datos adentro se arma con `tr("CLAVE").format({...})` y nunca con
+`%s`: los idiomas no ordenan las palabras igual, y con nombres cada traduccion
+mueve los huecos a donde le queda bien.
+
+Los rangos (`GUEST`, `ADMIN`, `ROOT`, `KERNEL`) no se traducen a proposito: son
+los niveles de usuario del sistema operativo que el juego imita, no palabras
+sueltas. Tampoco se traducen los nombres de los niveles y las salas, que son
+contenido y viven en los JSON de `level_designs/`.
+
+El idioma sale del sistema, con espaniol como respaldo. Para probar otro:
+
+`Godot_v4.7-stable_win64_console.exe --path . --language pt res://tests/menu_visual_smoke_test.tscn`
 
 ## Ventanas disparables
 
@@ -171,6 +238,7 @@ Prueba del sistema de ventanas:
 - [`docs/ventanas.md`](docs/ventanas.md): como armar ventanas disparables desde los templates, marcar zonas y probarlas.
 - [`docs/gdd_atractivo_y_progresion_ANEXO_puntuación.md`](docs/gdd_atractivo_y_progresion_ANEXO_puntuación.md): pozo, cadena, bonos, techo y rangos del sistema de puntuacion.
 - [`docs/gdd_atractivo_y_progresion_ANEXO_menus.md`](docs/gdd_atractivo_y_progresion_ANEXO_menus.md): mapa de pantallas de menu, direcciones esteticas y arquitectura de navegacion.
+- [`docs/gdd_atractivo_y_progresion_ANEXO_sonido.md`](docs/gdd_atractivo_y_progresion_ANEXO_sonido.md): inventario priorizado de efectos, ambientes y musica, con estado de integracion y criterios de reproduccion.
 - [`docs/arma.md`](docs/arma.md): la Glock, su cargador, el retroceso y la imprecision dinamica.
 - [`docs/movilidad.md`](docs/movilidad.md): velocidades, friccion, salto, airstrafe y bunny hop.
 - [`docs/deuda_tecnica.md`](docs/deuda_tecnica.md): hallazgos de la revision de codigo pendientes de corregir.

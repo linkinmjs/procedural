@@ -17,25 +17,34 @@ static func rows_for(summary: Dictionary) -> Array[Dictionary]:
 		var entry := entry_variant as Dictionary
 		rows.append(_row(str(entry.label), "+%s" % thousands(int(entry.points))))
 	rows.append({"label": "", "value": "", "kind": Kind.SEPARATOR})
-	rows.append(_row("TOTAL", thousands(int(summary.total)), Kind.TOTAL))
+	rows.append(_row(_t("SCORE_TOTAL"), thousands(int(summary.total)), Kind.TOTAL))
 	var ceiling := int(summary.get("ceiling", 0))
 	if ceiling > 0:
-		rows.append(_row("LEVEL CEILING", "%s   %d%%" % [thousands(ceiling), roundi(float(summary.ratio) * 100.0)]))
-	rows.append(_row("BEST CHAIN", "%d HITS   x%.1f" % [int(summary.best_chain), float(summary.best_multiplier)]))
-	rows.append(_row("BIGGEST BANK", thousands(int(summary.best_bank))))
+		rows.append(_row(_t("SCORE_CEILING"), _t("SCORE_CEILING_VALUE").format({
+			"ceiling": thousands(ceiling),
+			"percent": roundi(float(summary.ratio) * 100.0),
+		})))
+	rows.append(_row(_t("SCORE_BEST_CHAIN"), _t("SCORE_CHAIN_VALUE").format({
+		"hits": int(summary.best_chain),
+		"multiplier": "%.1f" % float(summary.best_multiplier),
+	})))
+	rows.append(_row(_t("SCORE_BIGGEST_BANK"), thousands(int(summary.best_bank))))
 	var record: Dictionary = summary.get("record", {})
 	if bool(record.get("had_previous", false)):
 		var delta := int(record.delta)
-		rows.append(_row("PREVIOUS BEST", "%s   %s%s" % [thousands(int(record.previous)), "+" if delta >= 0 else "", thousands(delta)]))
+		rows.append(_row(_t("SCORE_PREVIOUS_BEST"), _t("SCORE_RECORD_VALUE").format({
+			"previous": thousands(int(record.previous)),
+			"delta": "%s%s" % ["+" if delta >= 0 else "", thousands(delta)],
+		})))
 	if bool(record.get("is_new", false)):
-		rows.append(_row("NEW PERSONAL BEST", "", Kind.RECORD))
+		rows.append(_row(_t("SCORE_NEW_RECORD"), "", Kind.RECORD))
 	return rows
 
 
 static func title_for(summary: Dictionary) -> String:
 	if bool(summary.get("completed", false)):
-		return "LEVEL COMPLETE"
-	return "RUN FAILED // %s" % str(summary.get("reason", "")).to_upper()
+		return _t("SCORE_LEVEL_COMPLETE")
+	return _t("SCORE_RUN_FAILED").format({"reason": reason_text(str(summary.get("reason", "")))})
 
 
 ## El rango solo tiene sentido en un nivel terminado: un intento cortado por el
@@ -44,7 +53,25 @@ static func rank_text(summary: Dictionary) -> String:
 	if not bool(summary.get("completed", false)):
 		return ""
 	var rank: Dictionary = summary.get("rank", {})
-	return "RANK %s - %s" % [str(rank.get("letter", "-")), str(rank.get("label", ""))]
+	return _t("SCORE_RANK").format({
+		"letter": str(rank.get("letter", "-")),
+		"label": str(rank.get("label", "")),
+	})
+
+
+## El motivo por el que cerro la ronda llega como identificador, no como texto.
+## Si alguno todavia no tiene traduccion se muestra el identificador en crudo,
+## que es mas util que una clave suelta en pantalla.
+static func reason_text(reason: String) -> String:
+	var key := "REASON_%s" % reason.to_upper()
+	var translated := _t(key)
+	return reason.to_upper().replace("_", " ") if translated == key else translated
+
+
+## ScoreBreakdown es RefCounted y sus metodos son estaticos, asi que no tiene el
+## tr() que traduce solo en los nodos.
+static func _t(key: String) -> String:
+	return TranslationServer.translate(key)
 
 
 static func thousands(value: int) -> String:

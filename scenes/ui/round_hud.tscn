@@ -94,7 +94,7 @@ theme_override_constants/separation = 4
 
 [node name="Header" type="Label" parent="GameHUD/BottomBar/Panels/LogPanel/Margin/VBox"]
 layout_mode = 2
-text = "// EVENT LOG"
+text = "HUD_EVENT_LOG"
 label_settings = SubResource("HeaderSettings")
 
 [node name="Divider" type="HSeparator" parent="GameHUD/BottomBar/Panels/LogPanel/Margin/VBox"]
@@ -107,7 +107,7 @@ size_flags_vertical = 3
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
-text = "SYSTEM ONLINE"
+text = "HUD_SYSTEM_ONLINE"
 theme_override_colors/default_color = Color(0.66, 0.82, 0.88, 1)
 theme_override_font_sizes/normal_font_size = 12
 
@@ -131,7 +131,7 @@ alignment = 1
 
 [node name="Header" type="Label" parent="GameHUD/BottomBar/Panels/AccuracyPanel/Margin/VBox"]
 layout_mode = 2
-text = "// PRECISION"
+text = "HUD_PRECISION"
 label_settings = SubResource("HeaderSettings")
 
 [node name="AccuracyValue" type="Label" parent="GameHUD/BottomBar/Panels/AccuracyPanel/Margin/VBox"]
@@ -144,7 +144,7 @@ horizontal_alignment = 1
 [node name="AccuracyDetail" type="Label" parent="GameHUD/BottomBar/Panels/AccuracyPanel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "00 HIT / 00 SHOT"
+text = "HUD_HIT_SHOT"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.65, 0.72, 0.8, 1)
 theme_override_font_sizes/font_size = 10
@@ -174,7 +174,7 @@ theme_override_constants/separation = 4
 
 [node name="Header" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox"]
 layout_mode = 2
-text = "// VITALS + ROUND"
+text = "HUD_VITALS"
 label_settings = SubResource("HeaderSettings")
 
 [node name="HealthRow" type="HBoxContainer" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox"]
@@ -183,7 +183,7 @@ layout_mode = 2
 [node name="HealthLabel" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/HealthRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "HP"
+text = "HUD_HP"
 theme_override_colors/font_color = Color(0.1, 0.88, 1, 1)
 
 [node name="HealthValue" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/HealthRow"]
@@ -206,7 +206,7 @@ layout_mode = 2
 [node name="AmmoLabel" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/AmmoRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "AMMO // MAG / STOCK"
+text = "HUD_AMMO"
 theme_override_colors/font_color = Color(0.1, 0.88, 1, 1)
 
 [node name="AmmoValue" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/AmmoRow"]
@@ -221,7 +221,7 @@ layout_mode = 2
 [node name="TimeLabel" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/TimeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "TIME REMAINING"
+text = "HUD_TIME"
 theme_override_colors/font_color = Color(0.1, 0.88, 1, 1)
 
 [node name="TimeValue" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/TimeRow"]
@@ -233,6 +233,6 @@ label_settings = SubResource("ValueSettings")
 [node name="StatusValue" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "ROUND // ACTIVE"
+text = "HUD_ROUND_ACTIVE"
 theme_override_colors/font_color = Color(0.46, 1, 0.56, 1)
 theme_override_font_sizes/font_size = 10

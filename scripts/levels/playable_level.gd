@@ -13,6 +13,9 @@ const WALL_THICKNESS := 0.35
 const DOOR_HEIGHT := 3.0
 ## Pared que queda como minimo sobre el vano.
 const LINTEL_HEIGHT := 0.6
+## Lo que puede rodear al numero en el nombre de un nivel sin volverlo un nombre
+## propio: separadores y digitos.
+const GENERIC_NAME_FILLER := " -_.0123456789"
 
 
 @export_file("*.json") var level_definition_path := "res://level_designs/levels/nivel-1.json"
@@ -40,6 +43,11 @@ var room_encounters: Dictionary = {}
 var room_doors: Dictionary = {}
 ## IDs de las salas ordenadas de la entrada a la salida, siguiendo las conexiones.
 var room_order: Array[String] = []
+## Si este nivel se presento con su intertitulo al construirse. Queda como
+## registro aunque la presentacion ya se haya ido de pantalla.
+var announced := false
+## La presentacion, mientras sigue en pantalla. Se libera sola al terminar.
+var level_intro: LevelIntro
 var _round_started := false
 var _round_completed := false
 ## Encuentro de la ultima sala. Si tiene objetivos, la ronda cierra cuando cae el
@@ -102,10 +110,13 @@ func load_and_build_level() -> void:
 	var active_level_path := sequence_path if not sequence_path.is_empty() else level_definition_path
 	level_data = LevelDefinitionLoader.load_level(active_level_path)
 	if level_data.is_empty():
-		level_name_label.text = "LEVEL LOAD FAILED"
+		level_name_label.text = "HUD_LEVEL_LOAD_FAILED"
 		status_label.text = level_definition_path
 		return
-	level_name_label.text = "%s // %s" % [str(level_data.get("name", "Configured level")).to_upper(), sequence.get_position_text()]
+	level_name_label.text = tr("HUD_LEVEL_HEADER").format({
+		"name": str(level_data.get("name", "")).to_upper(),
+		"position": sequence.get_position_text(),
+	})
 	SkyCatalog.apply(LevelDefinitionLoader.get_sky_id(level_data), world_environment, sun)
 	room_order = _resolve_room_order()
 	_build_shell()
@@ -121,7 +132,40 @@ func load_and_build_level() -> void:
 	score_controller.level_scored.connect(_on_level_scored)
 	round_controller.arm_round()
 	_wire_round_triggers()
-	status_label.text = "%d ROOMS // %d CONNECTIONS // F7 NEXT // F8 PREVIOUS" % [level_data.rooms.size(), level_data.connections.size()]
+	status_label.text = tr("HUD_LEVEL_STATUS").format({
+		"rooms": level_data.rooms.size(),
+		"connections": level_data.connections.size(),
+	})
+	_announce_level(sequence)
+
+
+## Presenta el nivel al entrar. La secuencia decide si toca: reintentar recarga
+## la escena igual que entrar, pero no vuelve a anunciarla.
+func _announce_level(sequence: Node) -> void:
+	if not sequence.consume_announcement():
+		return
+	announced = true
+	var number := int(sequence.get_current_number())
+	var title := tr("INTRO_LEVEL").format({"number": number})
+	var level_name := str(level_data.get("name", ""))
+	# El nombre propio del nivel solo acompaña al numero si dice algo mas que el
+	# numero. Hoy los niveles se llaman "Nivel-1" y repetirlo no aporta nada.
+	var subtitle := level_name.to_upper() if _has_own_name(level_name) else ""
+	level_intro = LevelIntro.create(title, subtitle)
+	add_child(level_intro)
+
+
+## Un nombre es propio cuando dice algo mas que "nivel" y un numero. Se compara
+## contra la palabra en los tres idiomas y no contra el titulo ya traducido: el
+## nombre sale del JSON del nivel, que esta escrito en un idioma solo.
+func _has_own_name(level_name: String) -> bool:
+	var rest := level_name.to_upper()
+	for word in ["NIVEL", "NÍVEL", "LEVEL"]:
+		rest = rest.replace(word, "")
+	for character in rest:
+		if not GENERIC_NAME_FILLER.contains(character):
+			return true
+	return false
 
 
 ## El cronometro arranca en cuanto hay algo que cronometrar: al dejar la primera
@@ -170,7 +214,7 @@ func _on_last_room_entered(body: Node3D) -> void:
 	if _round_completed or body != player:
 		return
 	if _exit_encounter != null and not _exit_encounter.cleared:
-		round_controller.add_log("FINAL ROOM // CLEAR IT TO FINISH", "system")
+		round_controller.add_log(tr("LOG_FINAL_ROOM"), "system")
 		return
 	_complete_round()
 
@@ -185,7 +229,7 @@ func _complete_round() -> void:
 ## Cerrar el nivel ya no arrastra al siguiente: el puntaje se resuelve, se
 ## muestra el resultado y el jugador decide si reintenta, avanza o se va.
 func _on_level_scored(summary: Dictionary) -> void:
-	round_controller.add_log("RESULTS IN %.0fS" % results_delay, "system")
+	round_controller.add_log(tr("LOG_RESULTS_IN").format({"seconds": "%.0f" % results_delay}), "system")
 	get_tree().create_timer(results_delay).timeout.connect(_show_results.bind(summary))
 
 
@@ -253,7 +297,7 @@ func _navigate_level(forward: bool) -> void:
 	if changed:
 		sequence.play_current_level()
 		return
-	round_controller.add_log("NO %s LEVEL" % ("NEXT" if forward else "PREVIOUS"), "info")
+	round_controller.add_log(tr("LOG_NO_NEXT_LEVEL" if forward else "LOG_NO_PREVIOUS_LEVEL"), "info")
 
 
 ## Contenedor unico de la geometria solida. La colision sale del resultado ya
@@ -421,7 +465,7 @@ func _on_encounter_started(encounter: ConfiguredRoomEncounter3D) -> void:
 		return
 	for door in doors:
 		door.request_close(player)
-	round_controller.add_log("%s SEALED" % encounter.room_label.to_upper(), "danger")
+	round_controller.add_log(tr("LOG_ROOM_SEALED").format({"room": encounter.room_label.to_upper()}), "danger")
 
 
 func _on_encounter_cleared(encounter: ConfiguredRoomEncounter3D) -> void:
@@ -431,7 +475,7 @@ func _on_encounter_cleared(encounter: ConfiguredRoomEncounter3D) -> void:
 		was_sealed = was_sealed or door.is_closed
 		door.open()
 	if was_sealed:
-		round_controller.add_log("%s CLEAR // DOORS OPEN" % encounter.room_label.to_upper(), "system")
+		round_controller.add_log(tr("LOG_ROOM_CLEAR").format({"room": encounter.room_label.to_upper()}), "system")
 	_spawn_ammo_reward(encounter.room_id)
 	# El puntaje de la sala ya se cobro arriba, asi que cerrar aca deja el
 	# resumen del nivel con la ultima sala ya contada.
@@ -454,7 +498,10 @@ func _spawn_ammo_reward(room_id: String) -> void:
 	pickup.weapon.current_ammo = mini(int(reward.amount), magazine)
 	pickup.weapon.reserve_ammo = maxi(int(reward.amount) - magazine, 0)
 	add_child(pickup)
-	round_controller.add_log("%s // +%d ROUNDS" % [str(room.name).to_upper(), int(reward.amount)], "system")
+	round_controller.add_log(tr("LOG_AMMO_REWARD").format({
+		"room": str(room.name).to_upper(),
+		"amount": int(reward.amount),
+	}), "system")
 
 
 func _room_by_id(room_id: String) -> Dictionary:

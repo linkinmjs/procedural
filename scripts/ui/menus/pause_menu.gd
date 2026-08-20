@@ -22,14 +22,23 @@ static func create(level_title: String, position_text: String, score: int) -> Pa
 
 
 func _ready() -> void:
-	build_window("Pausa")
+	build_window(tr("MENU_PAUSE_TITLE"))
 	add_line(_level_title.to_upper())
-	add_line("NIVEL %s     PUNTAJE %s" % [_position_text, ScoreBreakdown.thousands(_score)], true)
+	add_line(tr("MENU_PAUSE_STATUS").format({
+		"position": _position_text,
+		"score": ScoreBreakdown.thousands(_score),
+	}), true)
 	add_separator()
-	add_button("REANUDAR", close)
-	add_button("REINTENTAR", retry)
-	add_button("OPCIONES", Callable(), false)
-	add_button("ABANDONAR NIVEL", _ask_to_abandon)
+	add_button("MENU_RESUME", close)
+	add_button("MENU_RETRY", retry)
+	add_button("MENU_OPTIONS", _open_options)
+	add_button("MENU_ABANDON", _ask_to_abandon)
+
+
+## Las opciones se apilan sobre la pausa en vez de reemplazarla: al cerrarlas
+## el jugador vuelve donde estaba, con el nivel todavia detenido debajo.
+func _open_options() -> void:
+	menus().open(OptionsMenu.create(MenuSkin.GAME))
 
 
 func retry() -> void:
@@ -39,9 +48,9 @@ func retry() -> void:
 
 func _ask_to_abandon() -> void:
 	menus().open(ConfirmMenu.create(
-		"Abandonar nivel",
-		"Se pierde el intento en curso.",
-		"ABANDONAR",
+		tr("MENU_ABANDON_TITLE"),
+		"MENU_ABANDON_BODY",
+		"MENU_ABANDON_CONFIRM",
 		_abandon,
 	))
 

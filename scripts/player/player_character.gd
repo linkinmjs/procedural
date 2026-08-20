@@ -11,7 +11,10 @@ extends CharacterBody3D
 @export var animation_tree: AnimationTree
 
 var camera_rotation: Vector2 = Vector2(0.0,0.0)
-var mouse_sensitivity = 0.001
+## La fija el jugador desde el menu de opciones. Se lee al nacer y se
+## actualiza si la cambian con la partida en curso, que es lo que pasa al
+## abrir opciones desde la pausa.
+var mouse_sensitivity: float = 0.001
 var crouched: bool = false
 var crouch_blocked: bool = false
 
@@ -92,6 +95,17 @@ func _ready() -> void:
 	update_camera_rotation()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	calculate_movement_parameters()
+	_bind_settings()
+
+
+## La sensibilidad la manda el autoload de ajustes, no este script: cambiarla
+## desde la pausa tiene que verse sin salir del nivel.
+func _bind_settings() -> void:
+	var settings := get_node_or_null("/root/Settings")
+	if settings == null:
+		return
+	mouse_sensitivity = settings.get_sensitivity()
+	settings.sensitivity_changed.connect(func(value: float) -> void: mouse_sensitivity = value)
 
 ## Deja camera_rotation en linea con la pose actual. Tiene que ser la inversa
 ## exacta de apply_view_rotation(), que aplica los dos angulos negados: copiarlos

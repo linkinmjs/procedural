@@ -1,8 +1,9 @@
 extends Node
 
 ## Revisa como se ven los menus sin abrir el editor: el escritorio del menu
-## principal, la pausa sobre el nivel y la pantalla de resultados con un
-## desglose de ejemplo. Guarda tres PNG en .godot/.
+## principal, el aviso pendiente en la barra de tareas, el menu de inicio, la
+## pausa sobre el nivel y la pantalla de resultados con un desglose de ejemplo.
+## Guarda cinco PNG en .godot/.
 
 const MAIN_MENU_SCENE := preload("res://scenes/ui/menus/main_menu.tscn")
 
@@ -17,6 +18,32 @@ func _ready() -> void:
 		_fail("The main menu window should sit inside the reference viewport.")
 		return
 	if not _save("res://.godot/menu-main.png"):
+		return
+
+	# Escritorio con un aviso pendiente: la ventana esta cerrada y su boton de la
+	# barra queda encendido, que es como los iconos sin destino senalan de vuelta
+	# al juego.
+	main_menu.close()
+	main_menu.nudge_to_window()
+	await _drawn()
+	if not main_menu.taskbar.is_asking_attention(main_menu.task_button):
+		_fail("The taskbar button should hold the pending notice.")
+		return
+	if not _save("res://.godot/menu-notify.png"):
+		return
+	main_menu.open_window()
+
+	# El menu de inicio cuelga sobre la barra y es la otra puerta de entrada a
+	# las mismas acciones que ofrece la ventana.
+	main_menu.taskbar.start_button.button_pressed = true
+	await _drawn()
+	if not main_menu.start_menu.visible:
+		_fail("The start button should open the start menu.")
+		return
+	if not _inside_viewport(main_menu.start_menu):
+		_fail("The start menu should sit inside the reference viewport.")
+		return
+	if not _save("res://.godot/menu-start.png"):
 		return
 	main_menu.queue_free()
 
@@ -53,10 +80,12 @@ func _fake_summary() -> Dictionary:
 		"ceiling": 22400,
 		"ratio": 0.798,
 		"rank": {"letter": "A", "label": "ADMIN", "index": 1},
+		# Los rotulos salen del mismo lugar que en la partida, asi que la vista
+		# muestra el desglose en el idioma en que se juega y no uno fijo.
 		"bonuses": [
-			{"label": "AMMO LEFT 34", "points": 170},
-			{"label": "TIME LEFT 22s", "points": 220},
-			{"label": "NO DAMAGE", "points": 2000},
+			{"label": tr("BONUS_AMMO_LEFT").format({"amount": 34}), "points": 170},
+			{"label": tr("BONUS_TIME_LEFT").format({"seconds": 22}), "points": 220},
+			{"label": tr("BONUS_NO_DAMAGE"), "points": 2000},
 		],
 		"best_multiplier": 6.0,
 		"best_chain": 18,

@@ -318,12 +318,21 @@ Fases pensadas para que cada una deje el juego jugable.
 | --- | --- |
 | Pila de menús, pausa y mouse | [`scripts/autoloads/menu_stack.gd`](../scripts/autoloads/menu_stack.gd) |
 | Base de menú: velo, ventana centrada, foco | [`scripts/ui/menus/menu_screen.gd`](../scripts/ui/menus/menu_screen.gd) |
-| Ventana de escritorio reutilizable | [`scripts/ui/menus/desktop_window.gd`](../scripts/ui/menus/desktop_window.gd) |
-| Menú principal | [`scripts/ui/menus/main_menu.gd`](../scripts/ui/menus/main_menu.gd) |
+| Ventana de escritorio reutilizable (piel Windows) | [`scripts/ui/menus/desktop_window.gd`](../scripts/ui/menus/desktop_window.gd) |
+| Panel de menú del juego (piel cyber) | [`scripts/ui/menus/game_panel.gd`](../scripts/ui/menus/game_panel.gd) |
+| Theme del juego | [`resources/themes/game_theme.tres`](../resources/themes/game_theme.tres) |
+| Menú principal / escritorio | [`scripts/ui/menus/main_menu.gd`](../scripts/ui/menus/main_menu.gd) |
+| Icono de escritorio | [`scripts/ui/menus/desktop_icon.gd`](../scripts/ui/menus/desktop_icon.gd) |
+| Barra de tareas | [`scripts/ui/menus/taskbar.gd`](../scripts/ui/menus/taskbar.gd) |
+| Menú de inicio | [`scripts/ui/menus/start_menu_panel.gd`](../scripts/ui/menus/start_menu_panel.gd) |
 | Pausa | [`scripts/ui/menus/pause_menu.gd`](../scripts/ui/menus/pause_menu.gd) |
 | Confirmación | [`scripts/ui/menus/confirm_menu.gd`](../scripts/ui/menus/confirm_menu.gd) |
 | Resultados de nivel | [`scripts/ui/menus/level_results.gd`](../scripts/ui/menus/level_results.gd) |
 | Desglose compartido con el HUD | [`scripts/ui/score_breakdown.gd`](../scripts/ui/score_breakdown.gd) |
+| Presentación del nivel | [`scripts/ui/level_intro.gd`](../scripts/ui/level_intro.gd) |
+| Opciones | [`scripts/ui/menus/options_menu.gd`](../scripts/ui/menus/options_menu.gd) |
+| Ajustes guardados y aplicados | [`scripts/autoloads/settings.gd`](../scripts/autoloads/settings.gd) |
+| Textos en los tres idiomas | [`resources/i18n/strings.csv`](../resources/i18n/strings.csv) |
 | Navegación entre escenas | `LevelSequence.play_current_level()` y compañía |
 
 Decisiones que se tomaron mientras se armaba:
@@ -338,9 +347,74 @@ Decisiones que se tomaron mientras se armaba:
 - **Abandonar el nivel pide confirmación; reanudar y reintentar no.**
 - **El desglose del puntaje sale de un solo lugar.** El panel chico del HUD y la
   pantalla de resultados usan las mismas filas.
+- **El escritorio es de verdad un escritorio.** Fondo, iconos con selección y
+  doble clic, barra de tareas con botón de inicio, botón de ventana y reloj. La
+  ventana del menú se puede cerrar: queda el escritorio, y la vuelven a abrir
+  tanto su botón de la barra como el doble clic en `procedural.exe`.
+- **Abrir el ejecutable abre la ventana, no la partida.** Dentro de la ficción,
+  el doble clic lanza el programa y el programa pregunta qué hacer. Jugar es una
+  decisión que se toma dentro de la ventana o desde el menú de inicio.
+- **El juego se llama `procedural`.** Es el título de la ventana, el nombre del
+  ejecutable en el escritorio, el del botón de la barra y el de la cabecera del
+  menú de inicio. También es `application/config/name`, así que la carpeta root,
+  el título de la ventana del sistema y la carpeta `user://` dicen lo mismo. Los
+  récords que estaban en `user://` de `procedural-map` se copiaron a la carpeta
+  nueva al hacer el cambio.
+- **Los assets salen de los packs, no se dibujan.** Barra, botón de inicio,
+  iconos y fondo se recortaron de `assets/_raw/WinXp.zip` a
+  `assets/textures/ui/xp/`, igual que se hace con los packs de texturas.
+- **La selección del escritorio es de a uno.** El icono no sabe quién más hay en
+  el escritorio: avisa que lo seleccionaron y el escritorio suelta los demás. Un
+  escritorio con cinco iconos encendidos a la vez no es un escritorio.
+- **Los iconos sin destino redirigen, no rebotan.** Abrir `niveles`, `opciones`,
+  `mi pc` o `papelera` hace parpadear el botón de la ventana en la barra, como
+  una ventana que pide atención. Explorar el escritorio está permitido y siempre
+  termina señalando de vuelta al juego, que es la única puerta que hoy lleva a
+  algún lado. Es más honesto que un icono muerto y más amable que sacarlos.
+- **El aviso dura lo que dura el motivo.** Si la ventana está cerrada, el botón
+  queda encendido hasta que la abran: hay algo pendiente. Si ya está a la vista,
+  alcanza con el parpadeo, porque no hay nada que abrir.
+- **Windows es el menú principal; el juego es todo lo demás.** La pausa, la
+  confirmación y los resultados dejaron el theme de Windows y usan el del HUD.
+  Las ventanas de Windows son objetivos a los que se les dispara: un menú que se
+  viera igual haría dudar al jugador entre leerlo y apuntarle. Cada estética dice
+  dónde está parado, y la que aparece durante la partida es la del juego.
+- **El nivel se presenta antes de dejarse ver.** Un velo con el número del nivel
+  que entra, se sostiene y se va, en poco más de dos segundos. Empezar un nivel
+  tiene que sentirse como empezar algo.
+- **La presentación no le hace perder tiempo a nadie.** Cualquier tecla la
+  saltea, y reintentar no la muestra: quien vuelve a empezar ya sabe en qué nivel
+  está, y ese camino tiene que costar nada.
+- **El juego habla el idioma del jugador, y uno solo.** Español, portugués e
+  inglés, desde un único CSV. Antes los menús estaban en español y el HUD en
+  inglés, que no era una decisión sino dos momentos distintos del proyecto.
+- **Los rangos no se traducen.** `GUEST`, `ADMIN`, `ROOT` y `KERNEL` son los
+  niveles de usuario del sistema operativo que el juego imita. Traducirlos
+  rompería el chiste, que es lo único que los hace valer más que una letra.
+- **El nivel se cierra una sola vez.** El HUD tenía un panel de resultados que
+  aparecía en seco al terminar, y tres segundos después la pantalla completa
+  mostraba el mismo desglose animándose. Era el mismo `ScoreBreakdown` contado
+  dos veces, y la primera vez le quitaba la sorpresa a la segunda. Sobrevive la
+  pantalla, que es la única que además deja elegir qué hacer con el intento.
+- **Las opciones no tienen botón de aceptar.** Cada cambio se aplica y se guarda
+  al hacerlo. El jugador escucha el volumen mientras lo mueve y ve el idioma
+  cambiar mientras elige: pedirle que confirme algo que ya vio pasar es trabajo
+  de más para él y una pantalla más para mantener.
+- **Las opciones se visten según de dónde se abren.** Desde el escritorio son
+  una ventana de Windows; desde la pausa, un panel del juego. Es el mismo menú
+  con la piel que le pasan, así que no hay dos pantallas de opciones.
+- **Las listas se eligen con flechas, no con desplegables.** Un desplegable
+  arrastra un `PopupMenu` que habría que vestir en las dos pieles; con botones el
+  foco viaja con el teclado sin que haya que hacer nada, que es la misma razón
+  por la que los menús ya cuidan el foco.
+- **El silencio silencia.** Volumen cero apaga el bus en vez de bajarlo a algo
+  casi inaudible, que es lo que pasaría dejándolo en decibeles muy negativos.
+- **La espera antes de los resultados no se llena con nada.** Durante esos
+  segundos el HUD deja a la vista el cobro de la última cadena, que era el
+  motivo por el que la espera existía.
 
-Lo que todavía no existe: selección de nivel, opciones, récords, créditos y
-pantalla de carga. Los botones que ya están en pantalla pero no hacen nada
+Lo que todavía no existe: selección de nivel, récords, créditos y pantalla de
+carga. Los botones que ya están en pantalla pero no hacen nada
 quedan deshabilitados a propósito, para que se vea a dónde va el menú.
 
 ---
@@ -351,10 +425,13 @@ quedan deshabilitados a propósito, para que se vea a dónde va el menú.
   selección de nivel?
 - ¿Retroceso es la tecla correcta para reintentar, o conviene una más cómoda?
 - ¿Abandonar un nivel a la mitad guarda el intento en los récords o lo descarta?
-- ¿El panel de resultados del HUD sigue teniendo sentido ahora que existe la
-  pantalla completa, o queda como eco redundante?
 - ¿La ventana de menú necesita crecer en pantallas grandes o el tamaño fijo de
   una ventana de sistema es parte de la gracia?
+- ¿El fondo se queda en Bliss o el escritorio del juego pide uno propio? El pack
+  trae veinte, y el eje 4 los quiere como desbloqueables.
+- Los iconos decorativos ya no son mudos: avisan desde la barra. ¿Alcanza con
+  eso o cada uno merece su propia ventana de sistema (una papelera vacía, un
+  `mi pc` con las estadísticas de la campaña)?
 - ¿La pausa congela el reloj del nivel? Debería, pero conviene decirlo.
 - ¿La pantalla de resultados aparece al terminar cada nivel o sólo al cerrar la
   campaña?

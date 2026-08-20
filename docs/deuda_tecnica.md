@@ -75,6 +75,19 @@ Al corregir algo, borrar su entrada de este archivo.
   estan probados, pero el cambio de arma, el drop y el pickup no. Es justo el
   codigo con mas bugs latentes.
 
+## Pantallas que faltan
+
+- [ ] **Selector de niveles.** El boton `SELECCIONAR NIVEL` del menu principal y
+  la entrada `Seleccionar nivel` del menu de inicio estan deshabilitados a
+  proposito, y el icono `niveles` del escritorio solo hace parpadear la ventana.
+  Los datos ya existen: `LevelSequence` da el catalogo y `ScoreRecords` el
+  puntaje, el rango y los intentos de cada nivel.
+  **Fix:** un `MenuScreen` mas, con la piel que le pasen como hace
+  `OptionsMenu`, listando los niveles con su record. Al elegir uno,
+  `LevelSequence` tiene que poder saltar a un indice: hoy solo sabe avanzar,
+  retroceder y volver al primero.
+  El diseno esta en `docs/gdd_atractivo_y_progresion_ANEXO_menus.md`, §3.
+
 ## Limpieza pendiente
 
 - [ ] El arsenal quedo reducido a la Glock, pero siguen versionados los blasters:
@@ -87,9 +100,9 @@ Al corregir algo, borrar su entrada de este archivo.
 
 ## Pruebas en rojo
 
-Ambas se pusieron en rojo el 2026-08-19 al pasar la campania al `nivel-1` nuevo,
-que tiene la sala de inicio con recompensa de municion y sin bloques. Ninguna
-senala un error del editor ni del formato.
+Las dos primeras se pusieron en rojo el 2026-08-19 al pasar la campania al
+`nivel-1` nuevo, que tiene la sala de inicio con recompensa de municion y sin
+bloques. Ninguna senala un error del editor ni del formato.
 
 - [ ] `tests/playable_level_smoke_test.gd:53` — `_check_starting_ammo()` compara
   la municion cargada contra la que declara el JSON, pero una sala sin bloques se
@@ -104,3 +117,15 @@ senala un error del editor ni del formato.
   el test sin encontrarlas.
   **Fix:** derivarlas del recorrido, como hace `playable_level_smoke_test.gd`:
   la sala de inicio y la siguiente segun las conexiones.
+- [ ] `tests/texture_catalog_smoke_test.gd:62` — carga
+  `level_designs/levels/nivel-texturas.json`, que dejo de existir cuando el
+  catalogo se rehizo con tres niveles puntuados.
+  **Fix:** armar el nivel comparador dentro de la prueba, en vez de depender de
+  un JSON que el catalogo puede volver a mover.
+- [ ] `tests/level_editor_smoke_test.mjs:28` — espera el control `#room-inspector`
+  del editor web, que se reemplazo por dialogos.
+  **Fix:** apuntar la prueba a los dialogos que existen hoy.
+- [ ] `tests/window_level_visual_smoke_test.gd:8` — recorre el catalogo buscando
+  el nivel `nivel-ventanas`, que se fue en la misma limpieza que `nivel-texturas`.
+  **Fix:** el mismo que ese: armar el nivel de prueba dentro del test en vez de
+  depender de una entrada del catalogo.

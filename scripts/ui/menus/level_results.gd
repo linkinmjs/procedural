@@ -10,9 +10,12 @@ extends MenuScreen
 
 ## Segundos entre linea y linea del desglose.
 const ROW_INTERVAL := 0.12
+## El dorado del total y el verde del record son los mismos que usa el HUD del
+## nivel: la pantalla de resultados es la ultima pagina de la partida, no una
+## ventana del sistema.
 const VALUE_COLORS := {
-	ScoreBreakdown.Kind.TOTAL: Color(0.55, 0.36, 0.02),
-	ScoreBreakdown.Kind.RECORD: Color(0.05, 0.45, 0.16),
+	ScoreBreakdown.Kind.TOTAL: Color(1, 0.82, 0.28),
+	ScoreBreakdown.Kind.RECORD: Color(0.46, 1, 0.56),
 }
 
 var _summary: Dictionary = {}
@@ -43,7 +46,7 @@ func _ready() -> void:
 	_rows_box = VBoxContainer.new()
 	_rows_box.add_theme_constant_override("separation", 2)
 	_rows_box.custom_minimum_size = Vector2(360.0, 0.0)
-	window.content.add_child(_rows_box)
+	content.add_child(_rows_box)
 	_rank_label = add_line(ScoreBreakdown.rank_text(_summary))
 	_rank_label.add_theme_font_size_override("font_size", 15)
 	_rank_label.visible = false
@@ -97,11 +100,11 @@ func to_main_menu() -> void:
 func _build_actions() -> void:
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
-	window.content.add_child(actions)
-	_add_action(actions, "REINTENTAR", retry)
+	content.add_child(actions)
+	_add_action(actions, "MENU_RETRY", retry)
 	if _has_next and bool(_summary.get("completed", false)):
-		_add_action(actions, "SIGUIENTE NIVEL", advance)
-	_add_action(actions, "MENU PRINCIPAL", to_main_menu)
+		_add_action(actions, "MENU_NEXT_LEVEL", advance)
+	_add_action(actions, "MENU_MAIN_MENU", to_main_menu)
 
 
 func _add_action(row: HBoxContainer, text: String, on_pressed: Callable) -> void:
@@ -130,7 +133,7 @@ func _reveal_next() -> void:
 ## Etiqueta que empuja a la izquierda y valor pegado a la derecha, igual que el
 ## panel del HUD.
 func _build_row(row: Dictionary) -> HBoxContainer:
-	var color: Color = VALUE_COLORS.get(int(row.kind), TEXT_COLOR)
+	var color: Color = VALUE_COLORS.get(int(row.kind), text_color())
 	var line := HBoxContainer.new()
 	var label := Label.new()
 	label.text = str(row.label)

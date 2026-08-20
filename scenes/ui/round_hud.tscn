@@ -1,8 +1,11 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/round_controller.gd" id="1_round"]
 [ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="2_hud"]
 [ext_resource type="Script" path="res://scripts/ui/cyber_panel.gd" id="3_panel"]
+[ext_resource type="Script" path="res://scripts/gameplay/score_controller.gd" id="4_score"]
+[ext_resource type="Resource" path="res://resources/gameplay/score_settings.tres" id="5_score_settings"]
+[ext_resource type="PackedScene" path="res://scenes/ui/score_hud.tscn" id="6_score_hud"]
 
 [sub_resource type="StyleBoxFlat" id="PanelDark"]
 bg_color = Color(0.015, 0.025, 0.045, 0.93)
@@ -41,6 +44,13 @@ font_color = Color(0.86, 0.96, 1, 1)
 unique_name_in_owner = true
 script = ExtResource("1_round")
 auto_start = false
+
+[node name="ScoreController" type="Node" parent="." groups=["score_controller"]]
+unique_name_in_owner = true
+script = ExtResource("4_score")
+settings = ExtResource("5_score_settings")
+
+[node name="ScoreHUD" parent="." instance=ExtResource("6_score_hud")]
 
 [node name="GameHUD" type="CanvasLayer" parent="."]
 layer = 20

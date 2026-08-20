@@ -28,6 +28,7 @@ const LINTEL_HEIGHT := 0.6
 @onready var connection_geometry: Node3D = %ConnectionGeometry
 @onready var encounters: Node3D = %Encounters
 @onready var round_controller: RoundController = $RoundHUD/RoundController
+@onready var score_controller: ScoreController = $RoundHUD/ScoreController
 @onready var level_name_label: Label = %LevelNameLabel
 @onready var status_label: Label = %StatusLabel
 
@@ -41,6 +42,9 @@ var room_doors: Dictionary = {}
 var room_order: Array[String] = []
 var _round_started := false
 var _round_completed := false
+## Encuentro de la ultima sala. Si tiene objetivos, la ronda cierra cuando cae el
+## ultimo y no al pisar la sala.
+var _exit_encounter: ConfiguredRoomEncounter3D
 var _floor_material: StandardMaterial3D
 var _wall_material: StandardMaterial3D
 var _corridor_material: StandardMaterial3D
@@ -101,14 +105,19 @@ func load_and_build_level() -> void:
 	_spawn_player()
 	round_controller.round_duration = float(level_data.timeLimitSeconds)
 	round_controller.register_player(player)
+	# El techo de puntaje y el par salen del contenido del nivel, asi que el
+	# puntaje necesita su definicion antes de que arranque la ronda.
+	score_controller.prepare_level(str(level_data.get("id", "")), level_data)
 	round_controller.arm_round()
 	_wire_round_triggers()
 	status_label.text = "%d ROOMS // %d CONNECTIONS // F7 NEXT // F8 PREVIOUS" % [level_data.rooms.size(), level_data.connections.size()]
 
 
-## El cronometro arranca cuando el jugador deja la primera habitacion y se
-## detiene cuando pisa la ultima. Si el nivel tiene una sola sala no hay tramo
-## que cronometrar, asi que la ronda arranca de entrada.
+## El cronometro arranca en cuanto hay algo que cronometrar: al dejar la primera
+## habitacion, o antes si esa primera habitacion trae bloques y el jugador ya
+## esta peleando. Se detiene al resolver la ultima: al pisarla si esta vacia, o
+## al limpiarla si tiene objetivos. Si el nivel tiene una sola sala no hay tramo
+## que recorrer, asi que la ronda arranca de entrada.
 func _wire_round_triggers() -> void:
 	var first_encounter := _encounter_at(0)
 	var exit_room := LevelDefinitionLoader.get_exit_room(level_data)
@@ -116,8 +125,9 @@ func _wire_round_triggers() -> void:
 	if last_encounter == null:
 		last_encounter = _encounter_at(room_order.size() - 1)
 	if room_order.size() < 2 or first_encounter == null or last_encounter == null or first_encounter == last_encounter:
-		round_controller.start_round()
+		_begin_round()
 		return
+	_exit_encounter = last_encounter
 	first_encounter.body_exited.connect(_on_first_room_exited)
 	last_encounter.body_entered.connect(_on_last_room_entered)
 
@@ -129,14 +139,33 @@ func _encounter_at(index: int) -> ConfiguredRoomEncounter3D:
 
 
 func _on_first_room_exited(body: Node3D) -> void:
-	if _round_started or body != player:
+	if body != player:
+		return
+	_begin_round()
+
+
+func _begin_round() -> void:
+	if _round_started:
 		return
 	_round_started = true
 	round_controller.start_round()
 
 
+## El encuentro de la sala ya corrio su propio body_entered antes que esto, asi
+## que una sala sin objetivos llega marcada como limpia y cierra la ronda al
+## instante. Una con objetivos todavia no, y la ronda sigue corriendo hasta que
+## caiga el ultimo.
 func _on_last_room_entered(body: Node3D) -> void:
 	if _round_completed or body != player:
+		return
+	if _exit_encounter != null and not _exit_encounter.cleared:
+		round_controller.add_log("FINAL ROOM // CLEAR IT TO FINISH", "system")
+		return
+	_complete_round()
+
+
+func _complete_round() -> void:
+	if _round_completed:
 		return
 	_round_completed = true
 	round_controller.complete_round()
@@ -353,6 +382,13 @@ func _add_room_door(parent: Node3D, wall: String, is_horizontal: bool, local_pos
 ## Entrar a una sala con bloques la sella: sus puertas se cierran detras del
 ## jugador y no vuelven a abrirse hasta que caiga el ultimo bloque.
 func _on_encounter_started(encounter: ConfiguredRoomEncounter3D) -> void:
+	# Si el jugador ya esta peleando, la ronda tiene que estar corriendo. Una sala
+	# de inicio con bloques se jugaba entera en STANDBY: sus disparos, sus fallos
+	# y su daño no contaban, asi que puntuaba con otras reglas que el resto del
+	# nivel. La espera en la entrada solo tiene sentido si no hay nada que hacer.
+	_begin_round()
+	# Una sala con objetivos abre una cadena de puntaje y la cierra al limpiarse.
+	round_controller.report_room_entered(encounter.room_id, encounter.room_label)
 	var doors := _doors_for(encounter.room_id)
 	if doors.is_empty():
 		return
@@ -362,6 +398,7 @@ func _on_encounter_started(encounter: ConfiguredRoomEncounter3D) -> void:
 
 
 func _on_encounter_cleared(encounter: ConfiguredRoomEncounter3D) -> void:
+	round_controller.report_room_cleared(encounter.room_id, encounter.room_label)
 	var was_sealed := false
 	for door in _doors_for(encounter.room_id):
 		was_sealed = was_sealed or door.is_closed
@@ -369,6 +406,10 @@ func _on_encounter_cleared(encounter: ConfiguredRoomEncounter3D) -> void:
 	if was_sealed:
 		round_controller.add_log("%s CLEAR // DOORS OPEN" % encounter.room_label.to_upper(), "system")
 	_spawn_ammo_reward(encounter.room_id)
+	# El puntaje de la sala ya se cobro arriba, asi que cerrar aca deja el
+	# resumen del nivel con la ultima sala ya contada.
+	if encounter == _exit_encounter and encounter.activated:
+		_complete_round()
 
 
 ## Limpiar una sala configurada como recompensa deja un cargador en su centro.

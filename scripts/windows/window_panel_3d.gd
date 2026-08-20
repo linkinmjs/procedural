@@ -148,7 +148,7 @@ func _on_zone_hit(body: WindowHitBody3D) -> void:
 		return
 	var controller := _get_round_controller()
 	if controller != null:
-		controller.report_target_hit("%s // %s" % [window_label, body.zone_id])
+		controller.report_zone_hit(window_label, body.zone_id, body.closes_window)
 	zone_hit.emit(body.zone_id, self)
 	if body.closes_window:
 		close()

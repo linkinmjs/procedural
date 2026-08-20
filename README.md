@@ -35,7 +35,8 @@ campania.
 - `scenes/sandbox/weapon_test.tscn`: poligono con cajas de municion y blancos reutilizables.
 - `scenes/sandbox/block_lab.tscn`: laboratorio configurable de habitaciones y bloques de objetivos.
 - `scenes/targets/target_spawn_volume_3d.tscn`: volumen configurable que distribuye pelotas estaticas y muestra sus limites de debug.
-- `scenes/ui/round_hud.tscn`: HUD reutilizable de vida, tiempo, precision y eventos de ronda.
+- `scenes/ui/round_hud.tscn`: HUD reutilizable de vida, tiempo, precision y eventos de ronda. Incluye el controlador de puntaje y su HUD.
+- `scenes/ui/score_hud.tscn`: contador de combo, marcador y resumen de nivel.
 
 ## Controles
 
@@ -51,7 +52,7 @@ Salida) nunca se sellan. La barrera cierra recien cuando el jugador se alejo del
 vano y esta del lado de adentro, asi que ni lo atrapa dentro de la geometria ni
 lo deja encerrado afuera si retrocede al pasillo.
 
-El cronometro no corre mientras el jugador sigue en la habitacion de entrada: la ronda queda en `STANDBY` y arranca recien cuando la deja. Se detiene al pisar la ultima habitacion, la que cierra la cadena de conexiones (`Entrada -> ... -> Salida`), y la ronda termina con motivo `exit_reached`.
+El cronometro arranca en cuanto hay algo que cronometrar: si la habitacion de entrada tiene bloques, al activarse su encuentro; si esta vacia, la ronda queda en `STANDBY` y arranca recien cuando el jugador la deja. Una sala en la que se pelea siempre corre con la ronda activa, porque en `STANDBY` los disparos, los fallos y el daño no se contabilizan. Se detiene al resolver la ultima habitacion, la que cierra la cadena de conexiones (`Entrada -> ... -> Salida`): al pisarla si no tiene objetivos, o al destruir el ultimo si los tiene. La ronda termina con motivo `exit_reached`.
 
 Los bloques JSON admiten color, velocidad individual y múltiples oleadas. Al destruir el último objetivo de una oleada aparece la siguiente; el bloque se cierra al completar todas. Los bloques spawnean ventanas estilo Windows, que se rompen disparando a la X, a un boton o a un cartel.
 
@@ -87,6 +88,38 @@ Presiona F4 desde el dungeon o el poligono de armas. El menu inicial ofrece nive
 - Atravesar un bloque resta 15 HP por cruce.
 - TAB abre o cierra la configuracion y pausa la prueba.
 
+## Puntuacion
+
+El puntaje no se cobra al impactar: cada objetivo resuelto suma a un **pozo**
+pendiente que se multiplica entero cuando la cadena se cierra. Una cadena empieza
+al entrar a una sala con objetivos y se cierra al limpiarla, asi que el techo de
+cada sala se calcula desde su JSON y el rango es el porcentaje de ese techo que
+se alcanzo.
+
+- Acertar suma al pozo y sube la cadena; la cadena da el multiplicador por escalones (x1 a x8).
+- Fallar hunde el multiplicador 2 escalones, 3 y 4 si se encadenan fallos, pero nunca toca el pozo.
+- Recibir daño o acertar una zona trampa cierra la cadena y la cobra a x1.
+- Limpiar la sala la cobra al multiplicador vigente y paga los bonos de sala.
+- Terminar el nivel paga municion sobrante, tiempo restante y las corridas limpias, y entrega rango.
+
+`RoundController` sigue siendo el unico punto al que reportan ventanas, pelotas y
+bloques. `ScoreController` solo lo escucha: la ronda administra vida y tiempo, el
+puntaje es otra responsabilidad. Todos los pesos viven en
+[`resources/gameplay/score_settings.tres`](resources/gameplay/score_settings.tres).
+
+El diseño completo esta en
+[`docs/gdd_atractivo_y_progresion_ANEXO_puntuación.md`](docs/gdd_atractivo_y_progresion_ANEXO_puntuación.md).
+
+Pruebas del sistema de puntuacion:
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/score_system_smoke_test.gd`
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/score_level_smoke_test.gd`
+
+Vista del HUD de puntaje, en `.godot/score-hud-chain.png` y `.godot/score-hud-results.png`:
+
+`Godot_v4.7-stable_win64_console.exe --path . res://tests/score_hud_visual_smoke_test.tscn`
+
 ## Ventanas disparables
 
 Las ventanas estilo Windows son los objetivos con personalidad que reemplazaran a las esferas dentro de un bloque. Cada una se dibuja como UI dentro de un `SubViewport`, se proyecta sobre un quad en 3D y se destruye disparando a la X, a un boton o a un cartel.
@@ -105,6 +138,7 @@ Prueba del sistema de ventanas:
 - [`docs/integration_notes.md`](docs/integration_notes.md): estado tecnico de la integracion y proximos pasos.
 - [`docs/niveles_json.md`](docs/niveles_json.md): puente entre el editor web, los JSON versionados y la escena jugable de Godot.
 - [`docs/ventanas.md`](docs/ventanas.md): como armar ventanas disparables desde los templates, marcar zonas y probarlas.
+- [`docs/gdd_atractivo_y_progresion_ANEXO_puntuación.md`](docs/gdd_atractivo_y_progresion_ANEXO_puntuación.md): pozo, cadena, bonos, techo y rangos del sistema de puntuacion.
 - [`docs/arma.md`](docs/arma.md): la Glock, su cargador, el retroceso y la imprecision dinamica.
 - [`docs/movilidad.md`](docs/movilidad.md): velocidades, friccion, salto, airstrafe y bunny hop.
 - [`docs/deuda_tecnica.md`](docs/deuda_tecnica.md): hallazgos de la revision de codigo pendientes de corregir.

@@ -121,11 +121,32 @@
           "waves": []
         },
         "front": {
-          "enabled": false,
+          "enabled": true,
           "movement": "static",
           "movementSpeed": 0.65,
           "color": "#2ed5c5",
-          "waves": []
+          "waves": [
+            {
+              "windows": {
+                "normal": 10
+              }
+            },
+            {
+              "windows": {
+                "normal": 5
+              }
+            },
+            {
+              "windows": {
+                "normal": 1
+              }
+            },
+            {
+              "windows": {
+                "normal": 10
+              }
+            }
+          ]
         },
         "right": {
           "enabled": false,

@@ -66,14 +66,29 @@ func _run() -> void:
 	if _sequence.get_position_text() != "2 / %d" % _sequence.get_level_count():
 		_fail("The level sequence position should follow the automatic advance.")
 		return
-	if next_level.round_controller.is_running:
-		_fail("The new level should arm its round on standby, not start it.")
+	if not _check_round_start_state(next_level):
 		return
 	if not _check_spawn(next_level):
 		return
 	_sequence.select_first_level()
 	print("Level transition smoke test passed.")
 	quit()
+
+
+## La ronda del nivel nuevo queda en STANDBY solo si su sala de inicio no tiene
+## nada que hacer. Si trae bloques, el jugador ya esta peleando y el cronometro
+## tiene que correr: en STANDBY sus disparos y su daño no se contarian.
+func _check_round_start_state(level: PlayableLevel) -> bool:
+	var start_room := LevelDefinitionLoader.get_start_room(level.level_data)
+	var plan := level.score_controller.plan
+	var targets := plan.room_targets(str(start_room.get("id", ""))) if plan != null else 0
+	if targets > 0 and not level.round_controller.is_running:
+		_fail("A start room with targets should start the round instead of holding it on standby.")
+		return false
+	if targets <= 0 and level.round_controller.is_running:
+		_fail("An empty start room should arm the round on standby, not start it.")
+		return false
+	return true
 
 
 ## El jugador reaparece en la sala de inicio del nivel nuevo.

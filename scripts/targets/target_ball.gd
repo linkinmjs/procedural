@@ -26,7 +26,7 @@ func Hit_Successful(_damage: float, _direction := Vector3.ZERO, _hit_position :=
 	_resolved = true
 	var round_controller := _get_round_controller()
 	if round_controller != null:
-		round_controller.report_target_hit(target_label)
+		round_controller.report_ball_destroyed(target_label)
 	destroyed.emit(self)
 	queue_free()
 

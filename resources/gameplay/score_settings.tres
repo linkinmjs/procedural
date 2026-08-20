@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="ScoreSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/score_settings.gd" id="1_score_settings"]
+
+[resource]
+script = ExtResource("1_score_settings")
+zone_values = {
+"accept": 60,
+"cancel": 60,
+"close": 100,
+"finish": 60,
+"next": 10,
+"sign": 40,
+"trap": -150
+}
+default_zone_value = 60
+ball_value = 50
+chain_multipliers = PackedFloat32Array(1, 1.5, 2, 3, 4, 6, 8)
+chain_thresholds = PackedInt32Array(3, 6, 10, 14, 19, 25)
+grace_seconds = 3.0
+miss_step_drops = PackedInt32Array(2, 3, 4)
+timeout_step_drop = 1
+room_clean_bonus = 500
+room_single_chain_bonus = 800
+room_intact_chain_bonus = 300
+room_accuracy_thresholds = PackedFloat32Array(0.6, 0.8, 1)
+room_accuracy_bonuses = PackedInt32Array(100, 300, 600)
+par_seconds_per_target = 1.8
+par_transit_seconds = 2.5
+par_second_bonus = 10
+ammo_bonus_per_round = 5
+time_bonus_per_second = 10
+level_no_damage_bonus = 2000
+level_all_rooms_clean_bonus = 1000
+level_perfect_bonus = 2500
+rank_thresholds = PackedFloat32Array(0.35, 0.55, 0.75, 0.9, 1)
+rank_letters = PackedStringArray("D", "C", "B", "A", "S", "S+")
+rank_labels = PackedStringArray("GUEST", "USER", "POWER USER", "ADMIN", "ROOT", "KERNEL")
+formula_version = 1

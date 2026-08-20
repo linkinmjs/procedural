@@ -1,0 +1,178 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/score_hud.gd" id="1_score_hud"]
+[ext_resource type="Script" path="res://scripts/ui/cyber_panel.gd" id="2_panel"]
+
+[sub_resource type="StyleBoxFlat" id="PanelDark"]
+bg_color = Color(0.015, 0.025, 0.045, 0.93)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.08, 0.46, 0.58, 0.85)
+
+[sub_resource type="StyleBoxFlat" id="TimerBackground"]
+bg_color = Color(0.03, 0.06, 0.1, 0.85)
+
+[sub_resource type="StyleBoxFlat" id="TimerFill"]
+bg_color = Color(0.36, 0.92, 1, 1)
+
+[sub_resource type="LabelSettings" id="HitsSettings"]
+font_size = 44
+font_color = Color(0.42, 0.9, 1, 1)
+outline_size = 6
+outline_color = Color(0, 0, 0, 0.75)
+
+[sub_resource type="LabelSettings" id="MultiplierSettings"]
+font_size = 30
+font_color = Color(0.42, 0.9, 1, 1)
+outline_size = 5
+outline_color = Color(0, 0, 0, 0.75)
+
+[sub_resource type="LabelSettings" id="ScoreSettings"]
+font_size = 26
+font_color = Color(0.96, 0.98, 1, 1)
+
+[node name="ScoreHUD" type="CanvasLayer"]
+layer = 21
+script = ExtResource("1_score_hud")
+
+[node name="ComboBox" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -170.0
+offset_top = 24.0
+offset_right = 170.0
+offset_bottom = 150.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="HitsValue" type="Label" parent="ComboBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0 HITS"
+label_settings = SubResource("HitsSettings")
+horizontal_alignment = 1
+
+[node name="MultiplierValue" type="Label" parent="ComboBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "x1.0"
+label_settings = SubResource("MultiplierSettings")
+horizontal_alignment = 1
+
+[node name="TimerRow" type="CenterContainer" parent="ComboBox"]
+layout_mode = 2
+
+[node name="ChainTimer" type="ProgressBar" parent="ComboBox/TimerRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(190, 6)
+layout_mode = 2
+max_value = 3.0
+value = 3.0
+show_percentage = false
+theme_override_styles/background = SubResource("TimerBackground")
+theme_override_styles/fill = SubResource("TimerFill")
+
+[node name="PendingValue" type="Label" parent="ComboBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0 x 1.0 = 0"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.78, 0.88, 0.96, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+
+[node name="ScorePanel" type="PanelContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -230.0
+offset_top = 18.0
+offset_right = -22.0
+offset_bottom = 84.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("2_panel")
+accent_color = Color(1, 0.82, 0.28, 1)
+theme_override_styles/panel = SubResource("PanelDark")
+
+[node name="Margin" type="MarginContainer" parent="ScorePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="ScorePanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Header" type="Label" parent="ScorePanel/Margin/VBox"]
+layout_mode = 2
+text = "// SCORE"
+theme_override_colors/font_color = Color(1, 0.82, 0.28, 1)
+theme_override_font_sizes/font_size = 11
+
+[node name="ScoreValue" type="Label" parent="ScorePanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0"
+label_settings = SubResource("ScoreSettings")
+horizontal_alignment = 2
+
+[node name="ResultsPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_right = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_panel")
+accent_color = Color(1, 0.82, 0.28, 1)
+theme_override_styles/panel = SubResource("PanelDark")
+
+[node name="Margin" type="MarginContainer" parent="ResultsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="ResultsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ResultsTitle" type="Label" parent="ResultsPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "LEVEL COMPLETE"
+theme_override_colors/font_color = Color(0.42, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+
+[node name="Divider" type="HSeparator" parent="ResultsPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="ResultsRows" type="VBoxContainer" parent="ResultsPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ResultsRank" type="Label" parent="ResultsPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "RANK D - GUEST"
+theme_override_colors/font_color = Color(1, 0.82, 0.28, 1)
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1

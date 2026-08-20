@@ -7,6 +7,7 @@ const LOG_COLORS := {
 	"hit": Color(0.45, 1.0, 0.45),
 	"miss": Color(1.0, 0.68, 0.2),
 	"danger": Color(1.0, 0.22, 0.3),
+	"score": Color(1.0, 0.82, 0.28),
 	"info": Color(0.72, 0.82, 0.9),
 }
 

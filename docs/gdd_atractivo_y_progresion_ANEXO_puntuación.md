@@ -350,6 +350,18 @@ sala y avisar cuando una sala **no tiene objetivos suficientes para alcanzar un
 escalón alto**. Una sala de 6 ventanas topea en ×2.0, y eso es un dato de diseño
 que hoy no se ve en ninguna parte.
 
+Los dos bonos de nivel que dependen del jugador —munición sobrante y tiempo
+restante— entran al techo como los rendiría una corrida perfecta jugada **justo
+al par**: una bala por objetivo y el nivel resuelto en el par de tiempo. El bono
+por bajar del par de cada sala queda fuera, porque al par vale cero. Es lo que
+hace que jugar más rápido que el par empuje el resultado por encima del 100 %.
+
+Una advertencia práctica: el techo se calcula sobre los objetivos que **declara**
+el JSON. Si una sala declara más ventanas de las que entran en su bloque, el
+techo queda fuera de alcance y el rango baja para siempre sin que se vea el
+motivo. El sistema avisa cuando eso pasa, pero la solución es del nivel: agrandar
+la pared, bajar la cantidad o reducir la separación entre objetivos.
+
 ### 7.2 Tabla de rangos
 
 Con un techo real, el rango es directamente el porcentaje alcanzado.

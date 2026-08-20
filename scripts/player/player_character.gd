@@ -103,13 +103,10 @@ func update_camera_rotation() -> void:
 	camera_rotation.y = -camera.rotation.x
 
 
+## El estado del mouse no se decide aca: lo decide MenuStack segun que menu
+## este abierto. Alternarlo desde el jugador producia menus con el mouse
+## capturado y partidas con el mouse suelto.
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		else:
-			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-
 	if event is InputEventMouseMotion:
 		var MouseEvent = event.relative * mouse_sensitivity
 		camera_look(MouseEvent)

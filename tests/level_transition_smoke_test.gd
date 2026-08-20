@@ -1,10 +1,11 @@
 extends SceneTree
 
-## Al pisar la sala marcada como salida el nivel se cierra. Si la campania tiene
-## otro nivel por delante, tras la pausa configurada arranca el siguiente con el
-## jugador en su sala de inicio; si era el ultimo, la escena se queda donde esta.
+## Al pisar la sala marcada como salida el nivel se cierra y, tras la pausa
+## configurada, aparece la pantalla de resultados. Desde ahi avanzar carga el
+## nivel siguiente con el jugador en su sala de inicio; si era el ultimo de la
+## campania, los resultados no ofrecen a donde avanzar.
 
-const TRANSITION_DELAY := 0.25
+const RESULTS_DELAY := 0.25
 
 var _sequence: Node
 
@@ -23,9 +24,9 @@ func _run() -> void:
 	if level == null or level.level_data.is_empty():
 		_fail("The transition test should start on the first level of the sequence.")
 		return
-	level.level_transition_delay = TRANSITION_DELAY
+	level.results_delay = RESULTS_DELAY
 	# La escena anterior se libera al avanzar, asi que su identidad se guarda
-	# antes de disparar la transicion.
+	# antes de mostrar los resultados.
 	var previous_id := str(level.level_data.id)
 
 	# Salir de la sala de inicio arranca la ronda; pisar la salida la cierra.
@@ -42,20 +43,40 @@ func _run() -> void:
 		_fail("Reaching the exit room should close the round.")
 		return
 	if current_scene != level:
-		_fail("The level should not change before the transition delay elapses.")
+		_fail("The level should not change on its own when the round closes.")
 		return
 
+	var menus := root.get_node("MenuStack")
 	var expects_next: bool = _sequence.has_next_level()
-	await create_timer(TRANSITION_DELAY + 0.2).timeout
+	await create_timer(RESULTS_DELAY + 0.2).timeout
 	await _wait_frames(8)
+	var results := menus.top() as LevelResults
+	if results == null:
+		_fail("Closing the level should show its results.")
+		return
+	if current_scene != level:
+		_fail("The results should open over the level instead of replacing it.")
+		return
+	results.reveal_all()
 	if not expects_next:
-		if not is_instance_valid(level) or current_scene != level:
-			_fail("The last level of the campaign should not advance anywhere.")
-			return
+		menus.close_all()
 		print("Level transition smoke test passed.")
 		quit()
 		return
 
+	# Avanzar es una decision del jugador: el nivel siguiente carga recien
+	# cuando la pantalla de resultados lo pide.
+	results.advance()
+	await _wait_frames(8)
+	if menus.is_open() or paused:
+		_fail("Advancing should close the results and let the next level run.")
+		return
+	# El cambio de escena se difiere y el nivel nuevo se construye entero al
+	# entrar al arbol, asi que puede tardar mas de un puñado de cuadros.
+	for _attempt in 10:
+		if current_scene != level:
+			break
+		await _wait_frames(4)
 	var next_level := current_scene as PlayableLevel
 	if next_level == null or not is_instance_valid(next_level):
 		_fail("The transition should have loaded the next level scene.")

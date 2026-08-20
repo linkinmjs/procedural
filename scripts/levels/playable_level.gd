@@ -18,9 +18,9 @@ const LINTEL_HEIGHT := 0.6
 @export_file("*.json") var level_definition_path := "res://level_designs/levels/nivel-1.json"
 @export_range(0.05, 5.0, 0.05) var moving_block_speed := 0.65
 @export_range(0.0, 100.0, 1.0) var block_crossing_damage := 15.0
-## Segundos que el jugador pasa en la ultima habitacion antes de arrancar el
-## siguiente nivel de la secuencia.
-@export_range(0.0, 30.0, 0.1) var level_transition_delay := 3.0
+## Segundos entre el cierre del nivel y la pantalla de resultados. El cobro de
+## la ultima cadena sigue a la vista durante ese rato.
+@export_range(0.0, 30.0, 0.1) var results_delay := 3.0
 
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 @onready var sun: DirectionalLight3D = $DirectionalLight3D
@@ -69,6 +69,16 @@ func _ready() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event.pressed or event.echo:
 		return
+	if event.is_action_pressed("pause"):
+		get_viewport().set_input_as_handled()
+		_open_pause_menu()
+		return
+	# Reintentar no pregunta nada ni pasa por ningun menu: en un modo de puntaje
+	# volver a empezar tiene que costar menos de un segundo.
+	if event.is_action_pressed("restart_level"):
+		get_viewport().set_input_as_handled()
+		_level_sequence().restart_current_level()
+		return
 	match event.keycode:
 		KEY_F1:
 			get_tree().change_scene_to_file("res://scenes/sandbox/dungeon_test.tscn")
@@ -108,6 +118,7 @@ func load_and_build_level() -> void:
 	# El techo de puntaje y el par salen del contenido del nivel, asi que el
 	# puntaje necesita su definicion antes de que arranque la ronda.
 	score_controller.prepare_level(str(level_data.get("id", "")), level_data)
+	score_controller.level_scored.connect(_on_level_scored)
 	round_controller.arm_round()
 	_wire_round_triggers()
 	status_label.text = "%d ROOMS // %d CONNECTIONS // F7 NEXT // F8 PREVIOUS" % [level_data.rooms.size(), level_data.connections.size()]
@@ -169,17 +180,33 @@ func _complete_round() -> void:
 		return
 	_round_completed = true
 	round_controller.complete_round()
-	_start_level_transition()
 
 
-## Llegar a la ultima habitacion cierra el nivel: tras una pausa arranca el
-## siguiente de la secuencia, con el jugador en su habitacion de entrada.
-func _start_level_transition() -> void:
-	if not _level_sequence().has_next_level():
-		round_controller.add_log("CAMPAIGN COMPLETE // NO NEXT LEVEL", "system")
+## Cerrar el nivel ya no arrastra al siguiente: el puntaje se resuelve, se
+## muestra el resultado y el jugador decide si reintenta, avanza o se va.
+func _on_level_scored(summary: Dictionary) -> void:
+	round_controller.add_log("RESULTS IN %.0fS" % results_delay, "system")
+	get_tree().create_timer(results_delay).timeout.connect(_show_results.bind(summary))
+
+
+func _show_results(summary: Dictionary) -> void:
+	var menus := _menus()
+	if menus.is_open():
 		return
-	round_controller.add_log("EXIT REACHED // NEXT LEVEL IN %.0fS" % level_transition_delay, "system")
-	get_tree().create_timer(level_transition_delay).timeout.connect(_navigate_level.bind(true))
+	var level_title := str(level_data.get("name", "Nivel"))
+	menus.open(LevelResults.create(summary, level_title, _level_sequence().has_next_level()))
+
+
+func _open_pause_menu() -> void:
+	var menus := _menus()
+	if menus.is_open():
+		return
+	var level_title := str(level_data.get("name", "Nivel"))
+	menus.open(PauseMenu.create(level_title, _level_sequence().get_position_text(), score_controller.total_score))
+
+
+func _menus() -> Node:
+	return get_node("/root/MenuStack")
 
 
 func _level_sequence() -> Node:
@@ -224,7 +251,7 @@ func _navigate_level(forward: bool) -> void:
 	var sequence := _level_sequence()
 	var changed: bool = sequence.select_next_level() if forward else sequence.select_previous_level()
 	if changed:
-		get_tree().reload_current_scene()
+		sequence.play_current_level()
 		return
 	round_controller.add_log("NO %s LEVEL" % ("NEXT" if forward else "PREVIOUS"), "info")
 

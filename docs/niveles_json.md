@@ -51,7 +51,7 @@ El trazado está implementado dos veces, y a propósito: `corridorPlan` en `tool
 
 ## Recorrido de la ronda
 
-El cronómetro no corre mientras el jugador sigue en la sala `start`: arranca al salir de ella y se detiene al pisar la sala `exit`. Alcanzar la salida cierra el nivel y, tras `level_transition_delay`, arranca el siguiente de la secuencia. Si era el último, se registra `CAMPAIGN COMPLETE` y la escena se queda donde está.
+El cronómetro no corre mientras el jugador sigue en la sala `start`: arranca al salir de ella y se detiene al pisar la sala `exit`. Alcanzar la salida cierra el nivel y, tras `results_delay`, aparece la pantalla de resultados. Desde ahí el jugador reintenta, avanza al siguiente de la secuencia o vuelve al menú principal; si era el último, no se ofrece avanzar.
 
 ## Responsabilidades
 

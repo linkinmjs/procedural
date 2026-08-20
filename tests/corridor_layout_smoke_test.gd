@@ -34,7 +34,7 @@ func _run() -> void:
 		if _level == null or _level.level_data.is_empty():
 			_fail("Catalog entry %d did not load." % index)
 			return
-		_level.level_transition_delay = 60.0
+		_level.results_delay = 60.0
 		if not _check_corridors():
 			return
 		if index + 1 < _catalog.size():

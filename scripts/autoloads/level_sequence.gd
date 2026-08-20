@@ -3,6 +3,8 @@ extends Node
 signal level_changed(index: int, level_path: String)
 
 const CATALOG_PATH := "res://level_designs/level-sequence.json"
+const LEVEL_SCENE := "res://scenes/levels/playable_level.tscn"
+const MAIN_MENU_SCENE := "res://scenes/ui/menus/main_menu.tscn"
 
 var _levels: Array[Dictionary] = []
 var _current_index := 0
@@ -71,6 +73,37 @@ func select_first_level() -> bool:
 	_current_index = 0
 	level_changed.emit(_current_index, get_current_level_path())
 	return true
+
+
+## Carga el nivel actual de la campaña. Todas las transiciones pasan por aca
+## para que el reintento y el avance no queden escritos en cada menu.
+func play_current_level() -> void:
+	_change_scene(LEVEL_SCENE)
+
+
+## Reintentar es recargar el nivel actual. No pide confirmacion ni pasa por
+## ninguna otra pantalla: en un modo de puntaje tiene que costar nada.
+func restart_current_level() -> void:
+	_change_scene(LEVEL_SCENE)
+
+
+func play_next_level() -> bool:
+	if not select_next_level():
+		return false
+	_change_scene(LEVEL_SCENE)
+	return true
+
+
+func return_to_main_menu() -> void:
+	_change_scene(MAIN_MENU_SCENE)
+
+
+## El cambio se difiere porque puede salir desde el boton de un menu, que sigue
+## dentro del arbol que se esta por reemplazar. Y despausa antes, o la escena
+## nueva nace congelada.
+func _change_scene(path: String) -> void:
+	get_tree().paused = false
+	get_tree().call_deferred("change_scene_to_file", path)
 
 
 func _ensure_catalog_loaded() -> void:

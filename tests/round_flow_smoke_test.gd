@@ -31,9 +31,9 @@ func _run() -> void:
 		_fail("The chain should begin at the start room, not at %s." % _room_by_id(level, level.room_order[0]).get("name", "?"))
 		return
 
-	# El salto automatico al siguiente nivel tiene su propio test: aca se aleja
-	# para que no recargue la escena en medio de las comprobaciones.
-	level.level_transition_delay = 30.0
+	# La pantalla de resultados tiene su propio test: aca se aleja para que no
+	# se abra en medio de las comprobaciones.
+	level.results_delay = 30.0
 	level.round_controller.round_ended.connect(func(reason: String) -> void: _ended_reason = reason)
 
 	if level.round_controller.is_running:

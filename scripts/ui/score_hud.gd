@@ -86,7 +86,7 @@ func _bind_available_controller() -> void:
 
 
 func _on_score_changed(total: int) -> void:
-	score_value.text = _thousands(total)
+	score_value.text = ScoreBreakdown.thousands(total)
 
 
 func _on_chain_changed(hits: int, multiplier: float, pot: int) -> void:
@@ -101,7 +101,7 @@ func _on_chain_changed(hits: int, multiplier: float, pot: int) -> void:
 		return
 	hits_value.text = "%d HITS" % hits
 	multiplier_value.text = "x%.1f" % multiplier
-	pending_value.text = "%s x %.1f = %s" % [_thousands(pot), multiplier, _thousands(roundi(pot * multiplier))]
+	pending_value.text = "%s x %.1f = %s" % [ScoreBreakdown.thousands(pot), multiplier, ScoreBreakdown.thousands(roundi(pot * multiplier))]
 	_paint_counter(_color_for_step(hits))
 
 
@@ -121,7 +121,7 @@ func _on_chain_banked(hits: int, pot: int, multiplier: float, awarded: int, _rea
 	combo_box.visible = true
 	hits_value.text = "%d HITS" % hits
 	multiplier_value.text = "x%.1f" % multiplier
-	pending_value.text = "%s x %.1f = %s" % [_thousands(pot), multiplier, _thousands(awarded)]
+	pending_value.text = "%s x %.1f = %s" % [ScoreBreakdown.thousands(pot), multiplier, ScoreBreakdown.thousands(awarded)]
 	_paint_counter(BANK_COLOR)
 	chain_timer.value = 0.0
 	_bank_hold_remaining = BANK_HOLD_SECONDS
@@ -133,10 +133,9 @@ func _on_level_scored(summary: Dictionary) -> void:
 	if _bank_hold_remaining <= 0.0:
 		combo_box.visible = false
 	results_panel.visible = true
-	results_title.text = "LEVEL COMPLETE" if bool(summary.completed) else "RUN FAILED // %s" % str(summary.reason).to_upper()
+	results_title.text = ScoreBreakdown.title_for(summary)
 	_build_results(summary)
-	var rank: Dictionary = summary.rank
-	results_rank.text = "RANK %s - %s" % [str(rank.letter), str(rank.label)]
+	results_rank.text = ScoreBreakdown.rank_text(summary)
 	results_rank.visible = bool(summary.completed)
 
 
@@ -146,22 +145,21 @@ func _build_results(summary: Dictionary) -> void:
 	for child in results_rows.get_children():
 		results_rows.remove_child(child)
 		child.queue_free()
-	for entry_variant in summary.bonuses:
-		var entry := entry_variant as Dictionary
-		_add_row(str(entry.label), "+%s" % _thousands(int(entry.points)))
-	results_rows.add_child(HSeparator.new())
-	_add_row("TOTAL", _thousands(int(summary.total)), TOTAL_COLOR)
-	var ceiling := int(summary.ceiling)
-	if ceiling > 0:
-		_add_row("LEVEL CEILING", "%s   %d%%" % [_thousands(ceiling), roundi(float(summary.ratio) * 100.0)])
-	_add_row("BEST CHAIN", "%d HITS   x%.1f" % [int(summary.best_chain), float(summary.best_multiplier)])
-	_add_row("BIGGEST BANK", _thousands(int(summary.best_bank)))
-	var record: Dictionary = summary.record
-	if bool(record.had_previous):
-		var delta := int(record.delta)
-		_add_row("PREVIOUS BEST", "%s   %s%s" % [_thousands(int(record.previous)), "+" if delta >= 0 else "", _thousands(delta)])
-	if bool(record.is_new):
-		_add_row("NEW PERSONAL BEST", "", RECORD_COLOR)
+	for row in ScoreBreakdown.rows_for(summary):
+		if int(row.kind) == ScoreBreakdown.Kind.SEPARATOR:
+			results_rows.add_child(HSeparator.new())
+			continue
+		_add_row(str(row.label), str(row.value), _color_for_kind(int(row.kind)))
+
+
+static func _color_for_kind(kind: int) -> Color:
+	match kind:
+		ScoreBreakdown.Kind.TOTAL:
+			return TOTAL_COLOR
+		ScoreBreakdown.Kind.RECORD:
+			return RECORD_COLOR
+		_:
+			return ROW_COLOR
 
 
 func _add_row(label: String, value: String, color := ROW_COLOR) -> void:
@@ -191,14 +189,3 @@ func _color_for_step(hits: int) -> Color:
 	var step := _controller.settings.step_for_hits(hits)
 	return STEP_COLORS[clampi(step, 0, STEP_COLORS.size() - 1)]
 
-
-static func _thousands(value: int) -> String:
-	var digits := str(absi(value))
-	var grouped := ""
-	var count := 0
-	for index in range(digits.length() - 1, -1, -1):
-		grouped = digits[index] + grouped
-		count += 1
-		if count % 3 == 0 and index > 0:
-			grouped = " " + grouped
-	return ("-" if value < 0 else "") + grouped

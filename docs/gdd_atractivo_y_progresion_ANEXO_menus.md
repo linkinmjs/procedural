@@ -5,9 +5,9 @@ Toca sobre todo el eje 4 (lobby con escritorio), pero también el eje 1: la
 pantalla de resultados y el reintento son parte del sistema de puntuación.
 
 > **Este documento NO es la versión final.** Es un mapa de posibilidades para
-> decidir sobre la marcha. Las opciones están puestas para compararlas, no
-> porque ya estén elegidas. Lo que aparece como recomendación es una propuesta
-> de arranque, y se espera que cambie al probarla en el juego.
+> decidir sobre la marcha. Las opciones están puestas para compararlas, y las
+> que ya se eligieron se eligieron para probarlas: son direcciones de arranque,
+> no compromisos. Se espera que cambien al jugarlas.
 
 **Estado:** En definición.
 
@@ -28,7 +28,8 @@ entrar, para no rehacer la navegación cuando llegue.
 
 ## 2. De dónde partimos
 
-Lo que hay hoy en el proyecto, para no diseñar en el aire:
+Estado del proyecto **antes** de las fases 0 a 3, que es el problema que este
+anexo vino a resolver. Lo que quedó armado está en la §9.
 
 | Pieza | Estado actual |
 | --- | --- |
@@ -149,12 +150,11 @@ ventana**; el fondo es un escritorio.
 | Trabajo que sobrevive al eje 4 | Poco | Todo | Casi todo |
 | Mando y teclado | Directo | A resolver | A cuidar |
 
-**Recomendación de arranque:** opción **C**. Da identidad sin comprometerse con
-el lobby, y el día que el lobby exista la pantalla gigante puede mostrar
-literalmente este mismo escritorio. La opción B queda como destino, no como
-punto de partida.
+**Elegida: opción C.** Da identidad sin comprometerse con el lobby, y el día que
+el lobby exista la pantalla gigante puede mostrar literalmente este mismo
+escritorio. La opción B queda como destino, no como punto de partida.
 
-**Estado:** Propuesto — a decidir antes de escribir código.
+**Estado:** Para prototipar — armada y en uso. Se revisa al probarla.
 
 ---
 
@@ -191,12 +191,12 @@ devolver el control al cerrarse.
   costumbre de abrir `playable_level.tscn` directo desde el editor, que hoy es
   la forma normal de trabajar.
 
-**Recomendación de arranque:** opción **2**, con un matiz: el menú principal y
-la selección de nivel pueden ser escenas propias (opción 1), mientras que pausa,
-resultados y confirmaciones viven en la pila del autoload. Es la combinación más
-barata que no rompe el flujo de trabajo actual.
+**Elegida: opción 2**, con el matiz previsto: el menú principal es una escena
+propia (opción 1) y pausa, confirmaciones y resultados viven en la pila del
+autoload. Es la combinación más barata que no rompe el flujo de trabajo actual:
+`playable_level.tscn` se sigue abriendo directo desde el editor.
 
-**Estado:** Propuesto.
+**Estado:** Para prototipar — armada y en uso.
 
 ### Deudas que hay que pagar sí o sí
 
@@ -299,27 +299,62 @@ una pregunta abierta del documento madre.
 
 Fases pensadas para que cada una deje el juego jugable.
 
-| Fase | Entrega | Depende de |
+| Fase | Entrega | Estado |
 | --- | --- | --- |
-| **0** | Centralizar mouse y pausa; sacar `Esc` del jugador | — |
-| **1** | Menú de pausa con reanudar, reintentar y salir | Fase 0 |
-| **2** | Menú principal y `main_scene` nueva; `Jugar` arranca la secuencia | Fase 1 |
-| **3** | Pantalla de resultados; reemplaza la transición automática | Fase 2 |
-| **4** | Selección de nivel con récords | Fase 3 |
-| **5** | Opciones persistentes en `user://settings.cfg` | Fase 2 |
-| **6** | Theme de menú propio y pulido visual del escritorio | Fase 4 |
-| **7** | Migración al lobby diegético | Eje 4 definido |
+| **0** | Centralizar mouse y pausa; sacar `Esc` del jugador | Hecha |
+| **1** | Menú de pausa con reanudar, reintentar y salir | Hecha |
+| **2** | Menú principal y `main_scene` nueva; `Jugar` arranca la secuencia | Hecha |
+| **3** | Pantalla de resultados; reemplaza la transición automática | Hecha |
+| **4** | Selección de nivel con récords | Pendiente |
+| **5** | Opciones persistentes en `user://settings.cfg` | Pendiente |
+| **6** | Theme de menú propio y pulido visual del escritorio | Pendiente |
+| **7** | Migración al lobby diegético | Eje 4 sin definir |
 
 ---
 
-## 9. Preguntas abiertas
+## 9. Lo que quedó armado (fases 0 a 3)
 
-- ¿Arrancamos con escritorio plano (opción C) o con menú clásico (opción A) para
-  no invertir en estética antes de tiempo?
+| Pieza | Archivo |
+| --- | --- |
+| Pila de menús, pausa y mouse | [`scripts/autoloads/menu_stack.gd`](../scripts/autoloads/menu_stack.gd) |
+| Base de menú: velo, ventana centrada, foco | [`scripts/ui/menus/menu_screen.gd`](../scripts/ui/menus/menu_screen.gd) |
+| Ventana de escritorio reutilizable | [`scripts/ui/menus/desktop_window.gd`](../scripts/ui/menus/desktop_window.gd) |
+| Menú principal | [`scripts/ui/menus/main_menu.gd`](../scripts/ui/menus/main_menu.gd) |
+| Pausa | [`scripts/ui/menus/pause_menu.gd`](../scripts/ui/menus/pause_menu.gd) |
+| Confirmación | [`scripts/ui/menus/confirm_menu.gd`](../scripts/ui/menus/confirm_menu.gd) |
+| Resultados de nivel | [`scripts/ui/menus/level_results.gd`](../scripts/ui/menus/level_results.gd) |
+| Desglose compartido con el HUD | [`scripts/ui/score_breakdown.gd`](../scripts/ui/score_breakdown.gd) |
+| Navegación entre escenas | `LevelSequence.play_current_level()` y compañía |
+
+Decisiones que se tomaron mientras se armaba:
+
+- **`Esc` abre la pausa y cierra el menú de arriba.** Ya no alterna la captura
+  del mouse desde el jugador: ese estado lo decide `MenuStack` según la pila.
+- **Retroceso es el reintento inmediato**, durante la partida y sin
+  confirmación. `R` sigue siendo recargar.
+- **El nivel avisa que terminó y no decide a dónde se va.** La transición
+  automática de tres segundos se convirtió en la espera antes de los resultados,
+  configurable con `results_delay`.
+- **Abandonar el nivel pide confirmación; reanudar y reintentar no.**
+- **El desglose del puntaje sale de un solo lugar.** El panel chico del HUD y la
+  pantalla de resultados usan las mismas filas.
+
+Lo que todavía no existe: selección de nivel, opciones, récords, créditos y
+pantalla de carga. Los botones que ya están en pantalla pero no hacen nada
+quedan deshabilitados a propósito, para que se vea a dónde va el menú.
+
+---
+
+## 10. Preguntas abiertas
+
 - ¿El menú principal muestra el nivel actual de la campaña o siempre lleva a la
   selección de nivel?
-- ¿Qué tecla es el reintento inmediato? (`R` está tomada por la recarga.)
+- ¿Retroceso es la tecla correcta para reintentar, o conviene una más cómoda?
 - ¿Abandonar un nivel a la mitad guarda el intento en los récords o lo descarta?
+- ¿El panel de resultados del HUD sigue teniendo sentido ahora que existe la
+  pantalla completa, o queda como eco redundante?
+- ¿La ventana de menú necesita crecer en pantallas grandes o el tamaño fijo de
+  una ventana de sistema es parte de la gracia?
 - ¿La pausa congela el reloj del nivel? Debería, pero conviene decirlo.
 - ¿La pantalla de resultados aparece al terminar cada nivel o sólo al cerrar la
   campaña?

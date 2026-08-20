@@ -30,7 +30,8 @@ campania.
 
 ## Escenas
 
-- `scenes/levels/playable_level.tscn`: nivel inicial jugable construido desde `level_designs/levels/nivel-1.json`.
+- `scenes/ui/menus/main_menu.tscn`: escena inicial del proyecto. Escritorio con la ventana del menu principal.
+- `scenes/levels/playable_level.tscn`: nivel jugable construido desde el JSON del nivel actual de la campania.
 - `scenes/sandbox/dungeon_test.tscn`: genera un dungeon recorrible y coloca al jugador en la sala de entrada.
 - `scenes/sandbox/weapon_test.tscn`: poligono con cajas de municion y blancos reutilizables.
 - `scenes/sandbox/block_lab.tscn`: laboratorio configurable de habitaciones y bloques de objetivos.
@@ -38,13 +39,18 @@ campania.
 - `scenes/ui/round_hud.tscn`: HUD reutilizable de vida, tiempo, precision y eventos de ronda. Incluye el controlador de puntaje y su HUD.
 - `scenes/ui/score_hud.tscn`: contador de combo, marcador y resumen de nivel.
 
+Los menus de pausa, confirmacion y resultados no son escenas: los arma
+`MenuStack` sobre la escena en curso, para que el nivel siga vivo debajo.
+
 ## Controles
 
 - WASD: mover (se corre siempre); Espacio: saltar; Shift: caminar despacio; C: agacharse; Q/E: inclinarse.
 - Mouse izquierdo: disparar; R: recargar; F: melee.
+- Esc: pausa; Retroceso: reintentar el nivel al instante, sin confirmacion.
 - F1: dungeon; F2: armas; F3: reiniciar escena; F4: laboratorio de bloques; F5: regenerar dungeon; F6: nivel JSON actual; F7/F8: nivel siguiente/anterior.
 
-Al iniciar el proyecto se carga el nivel JSON configurado. Sus salas, techos, puertas, pasillos, luces, cielo, texturas, bloques de objetivos, municion y tiempo de ronda se construyen en runtime. Los encuentros aparecen al entrar en cada sala.
+Al iniciar el proyecto se abre el menu principal y jugar carga el nivel JSON del
+punto de la campania donde se quedo. Sus salas, techos, puertas, pasillos, luces, cielo, texturas, bloques de objetivos, municion y tiempo de ronda se construyen en runtime. Los encuentros aparecen al entrar en cada sala.
 
 Al entrar a una sala que tiene bloques, sus vanos se sellan con una barrera roja
 y no se abren hasta que caiga el ultimo bloque. Las salas sin bloques (Entrada,
@@ -56,7 +62,7 @@ El cronometro arranca en cuanto hay algo que cronometrar: si la habitacion de en
 
 Los bloques JSON admiten color, velocidad individual y múltiples oleadas. Al destruir el último objetivo de una oleada aparece la siguiente; el bloque se cierra al completar todas. Los bloques spawnean ventanas estilo Windows, que se rompen disparando a la X, a un boton o a un cartel.
 
-El orden jugable se define en `level_designs/level-sequence.json`. Al pisar la ultima habitacion la ronda se cierra y, tres segundos despues, arranca el siguiente nivel de la secuencia con el jugador en su entrada. La pausa se configura con `level_transition_delay` en la escena del nivel. En el ultimo nivel del catalogo no hay salto: el feed anuncia `CAMPAIGN COMPLETE`. F7 y F8 siguen sirviendo para cambiar de nivel a mano.
+El orden jugable se define en `level_designs/level-sequence.json`. Al pisar la ultima habitacion la ronda se cierra y, tres segundos despues, aparece la pantalla de resultados con el desglose del puntaje: desde ahi se reintenta, se avanza al nivel siguiente o se vuelve al menu principal. La espera se configura con `results_delay` en la escena del nivel. Quedarse sin tiempo tambien abre los resultados, marcados como intento fallido y sin la opcion de avanzar. F7 y F8 siguen sirviendo para cambiar de nivel a mano.
 
 Las pelotas siguen disponibles como objetivo alternativo del bloque. Se destruyen con un impacto, y las variantes azules de penalizacion desaparecen a los 8 segundos y restan 15 HP si no son destruidas. Ni las pelotas ni las ventanas se mueven o reaparecen por su cuenta.
 
@@ -119,6 +125,31 @@ Pruebas del sistema de puntuacion:
 Vista del HUD de puntaje, en `.godot/score-hud-chain.png` y `.godot/score-hud-results.png`:
 
 `Godot_v4.7-stable_win64_console.exe --path . res://tests/score_hud_visual_smoke_test.tscn`
+
+## Menus
+
+El juego arranca en un escritorio y cada menu es una ventana de ese escritorio,
+con el mismo theme que las ventanas disparables. `MenuStack` es un autoload que
+apila los menus sobre la escena en curso y es el unico que decide si el arbol
+esta pausado y como esta el mouse.
+
+- Menu principal: jugar el nivel actual de la campania y salir. Seleccionar nivel y opciones todavia no existen.
+- Pausa: reanudar, reintentar y abandonar el nivel, que pide confirmacion.
+- Resultados: desglose animado del puntaje, rango y record, con reintentar, avanzar y volver al menu.
+
+Reintentar nunca pide confirmacion ni pasa por un menu: tiene la tecla Retroceso
+durante la partida.
+
+El diseño, las alternativas que se descartaron y lo que falta estan en
+[`docs/gdd_atractivo_y_progresion_ANEXO_menus.md`](docs/gdd_atractivo_y_progresion_ANEXO_menus.md).
+
+Prueba del flujo de menus:
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/menu_flow_smoke_test.gd`
+
+Vista de los menus, en `.godot/menu-main.png`, `.godot/menu-pause.png` y `.godot/menu-results.png`:
+
+`Godot_v4.7-stable_win64_console.exe --path . res://tests/menu_visual_smoke_test.tscn`
 
 ## Ventanas disparables
 

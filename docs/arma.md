@@ -1,8 +1,9 @@
 # La Glock
 
 El jugador lleva una sola arma: una Glock semiautomatica con cargador de 10 balas.
-Reemplaza a los blasters del FPS Template original, que quedan en el repositorio
-como material de referencia pero ya no aparecen en ninguna escena jugable.
+Reemplaza a los blasters del FPS Template original, que ya fueron borrados del
+repositorio (queda algo de material embebido en `player_character.tscn`, anotado
+en `docs/deuda_tecnica.md`).
 
 ## Piezas del sistema
 

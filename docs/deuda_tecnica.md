@@ -90,10 +90,10 @@ Al corregir algo, borrar su entrada de este archivo.
 
 ## Limpieza pendiente
 
-- [ ] El arsenal quedo reducido a la Glock, pero siguen versionados los blasters:
-  `resources/weapons/blaster_*.tres`, `scenes/weapons/blaster_*.tscn`,
-  `scenes/weapons/clips/`, `assets/models/weapons/blaster_*.glb`. Decidir si se
-  borran o si se conservan como material de prueba.
+- [ ] `scenes/player/player_character.tscn` conserva material blaster *embebido*
+  (meshes y animaciones como sub_resources, y nodos bajo `Weapons_Models`) que
+  no dependia de los archivos blaster ya borrados. Limpiarlo requiere abrir la
+  escena en el editor; hasta entonces solo abulta el `.tscn`.
 - [ ] Los JSON de nivel siguen con guiones (`nivel-1.json`, `level-sequence.json`)
   porque el nombre de archivo hace de ID de contenido. Renombrarlos a snake_case
   implica tocar los `id` del catalogo.

@@ -1,0 +1,47 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://tests/window_families_visual_smoke_test.gd" id="1_test"]
+[ext_resource type="PackedScene" path="res://scenes/windows/popup_window.tscn" id="2_popup"]
+[ext_resource type="PackedScene" path="res://scenes/windows/firewall_window.tscn" id="3_firewall"]
+[ext_resource type="PackedScene" path="res://scenes/windows/critical_error_window.tscn" id="4_critical"]
+[ext_resource type="PackedScene" path="res://scenes/windows/download_window.tscn" id="5_download"]
+[ext_resource type="PackedScene" path="res://scenes/windows/infected_download_window.tscn" id="6_infected"]
+[ext_resource type="PackedScene" path="res://scenes/windows/popup_slow_window.tscn" id="7_slow"]
+
+[sub_resource type="Environment" id="PreviewEnvironment"]
+background_mode = 1
+background_color = Color(0.09, 0.35, 0.6, 1)
+ambient_light_source = 1
+ambient_light_color = Color(1, 1, 1, 1)
+
+[sub_resource type="CameraAttributesPractical" id="PreviewCamera"]
+
+[node name="WindowFamiliesVisualSmokeTest" type="Node"]
+script = ExtResource("1_test")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("PreviewEnvironment")
+camera_attributes = SubResource("PreviewCamera")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12.5)
+
+[node name="PopupWindow" parent="." instance=ExtResource("2_popup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7, 2.0, 0)
+
+[node name="FirewallHolder" type="Node3D" parent="."]
+
+[node name="FirewallWindow" parent="FirewallHolder" instance=ExtResource("3_firewall")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.1, 2.0, 0)
+
+[node name="CriticalErrorWindow" parent="." instance=ExtResource("4_critical")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7, -2.2, 0)
+
+[node name="DownloadWindow" parent="." instance=ExtResource("5_download")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, -2.2, 0)
+
+[node name="SlowPopupWindow" parent="." instance=ExtResource("7_slow")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 2.0, 0)
+
+[node name="InfectedDownloadWindow" parent="." instance=ExtResource("6_infected")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.1, -2.2, 0)

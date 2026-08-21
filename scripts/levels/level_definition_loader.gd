@@ -1,21 +1,29 @@
 class_name LevelDefinitionLoader
 extends RefCounted
 
-const SUPPORTED_SCHEMA_VERSION := 8
+const SUPPORTED_SCHEMA_VERSION := 9
+## Versiones viejas que se leen igual, migrandolas en memoria al cargar. El
+## archivo en disco no se toca: se actualiza recien cuando alguien lo guarda
+## desde la herramienta.
+const MIGRATABLE_SCHEMA_VERSIONS := [8]
 const VALID_ROOM_TYPES := ["small", "large", "corridor", "custom"]
 const VALID_WALLS := ["north", "east", "south", "west"]
 const VALID_BLOCK_SLOTS := ["left", "front", "right"]
 const VALID_TEXTURE_SLOTS := ["walls", "floor", "ceiling", "door", "block"]
 const VALID_ROLES := ["start", "transition", "exit"]
-## Familias de ventana que puede declarar una oleada. Tienen que coincidir con
+## Familias de ventana que puede declarar una capa. Tienen que coincidir con
 ## WINDOW_TYPES en tools/level-editor/level-format.js, que es lo que escribe los
-## archivos. Solo "normal" tiene comportamiento propio: el resto se spawnea como
-## una ventana normal hasta que exista su escena.
+## archivos. Las que todavia no tienen escena propia se spawnean como una
+## ventana normal; WindowCatalog es el que sabe cual es cual.
 const VALID_WINDOW_TYPES := [
-	"normal", "popup", "download", "firewall", "critical-error", "confirm",
-	"ad", "fake-close", "task-manager", "corrupt-file", "installer",
+	"normal", "popup", "download", "infected-download", "firewall",
+	"critical-error", "confirm", "ad", "fake-close", "task-manager",
+	"corrupt-file", "installer",
 ]
 const MAX_WAVE_TARGETS := 64
+## Cuantas oleadas de sala se aceptan. El limite no es tecnico: una sala con mas
+## de esto deja de ser un encuentro y pasa a ser una prueba de paciencia.
+const MAX_ROOM_WAVES := 8
 const MIN_CORRIDOR_WIDTH := 1.5
 const MAX_CORRIDOR_WIDTH := 12.0
 const DEFAULT_CORRIDOR_WIDTH := 3.5
@@ -42,9 +50,40 @@ static func load_level(path: String) -> Dictionary:
 		push_error("Level definition must contain a JSON object: %s" % path)
 		return {}
 	var level := (parsed as Dictionary).duplicate(true)
+	_migrate(level)
 	if not _validate_level(level, path):
 		return {}
 	return level
+
+
+## Lleva el nivel a la version que el juego entiende. Cada paso es de una version
+## a la siguiente, asi que un archivo viejo pasa por todos los que le faltan.
+static func _migrate(level: Dictionary) -> void:
+	if int(level.get("schemaVersion", 0)) == 8:
+		_migrate_8_to_9(level)
+
+
+## v8 tenia un solo grupo de bloques por sala, y los tres aparecian juntos. En v9
+## la sala declara oleadas y cada una trae su grupo, asi que el grupo unico de v8
+## es exactamente una oleada. Adentro del bloque, lo que se llamaba `waves` pasa a
+## `layers`: eran las capas de ventanas de ese bloque, y dejarles el mismo nombre
+## que a las oleadas de sala volvia el formato imposible de leer.
+static func _migrate_8_to_9(level: Dictionary) -> void:
+	for room_variant in level.get("rooms", []):
+		if not room_variant is Dictionary:
+			continue
+		var room := room_variant as Dictionary
+		var blocks: Variant = room.get("blocks", null)
+		if not blocks is Dictionary:
+			continue
+		for slot_variant in (blocks as Dictionary):
+			var block: Variant = (blocks as Dictionary)[slot_variant]
+			if block is Dictionary and (block as Dictionary).has("waves"):
+				(block as Dictionary)["layers"] = (block as Dictionary)["waves"]
+				(block as Dictionary).erase("waves")
+		room["waves"] = [{"blocks": blocks}]
+		room.erase("blocks")
+	level["schemaVersion"] = 9
 
 
 ## Cielo declarado por el nivel. Si no nombra ninguno, o nombra uno que ya no
@@ -289,42 +328,68 @@ static func _validate_room(room: Dictionary, room_id: String) -> bool:
 		return false
 	if not _validate_textures(room.get("textures", null), "Room %s" % room_id):
 		return false
-	if not room.get("blocks", null) is Dictionary:
-		push_error("Room %s needs block configuration." % room_id)
+	if not room.get("waves", null) is Array:
+		push_error("Room %s needs a waves array." % room_id)
 		return false
-	for slot in VALID_BLOCK_SLOTS:
-		if not room.blocks.get(slot, null) is Dictionary:
-			push_error("Room %s is missing its %s block." % [room_id, slot])
+	if room.waves.size() > MAX_ROOM_WAVES:
+		push_error("Room %s declares more than %d waves." % [room_id, MAX_ROOM_WAVES])
+		return false
+	for wave_variant in room.waves:
+		if not _validate_room_wave(wave_variant, room_id):
 			return false
-		var block := room.blocks[slot] as Dictionary
-		if not ["static", "opposite"].has(str(block.get("movement", ""))):
-			push_error("Room %s has an invalid block movement." % room_id)
-			return false
-		var movement_speed := float(block.get("movementSpeed", 0.0))
-		if movement_speed < 0.05 or movement_speed > 5.0:
-			push_error("Room %s has an invalid block movement speed." % room_id)
-			return false
-		var block_color := str(block.get("color", ""))
-		if block_color.length() != 7 or not block_color.begins_with("#") or not Color.html_is_valid(block_color):
-			push_error("Room %s has an invalid block color." % room_id)
-			return false
-		if not block.get("waves", null) is Array:
-			push_error("Room %s needs a block waves array." % room_id)
-			return false
-		for wave_variant in block.waves:
-			if not _validate_wave(wave_variant, room_id):
-				return false
 	return true
 
 
-## Una oleada declara cuantas ventanas de cada familia aparecen a la vez.
-static func _validate_wave(wave_variant: Variant, room_id: String) -> bool:
+## Una oleada de sala es un grupo de bloques que aparecen juntos. La siguiente
+## no llega hasta que se limpia esta.
+static func _validate_room_wave(wave_variant: Variant, room_id: String) -> bool:
 	if not wave_variant is Dictionary:
 		push_error("Room %s has a wave that is not an object." % room_id)
 		return false
-	var windows_variant: Variant = (wave_variant as Dictionary).get("windows", null)
+	var blocks: Variant = (wave_variant as Dictionary).get("blocks", null)
+	if not blocks is Dictionary:
+		push_error("Room %s has a wave without its blocks object." % room_id)
+		return false
+	for slot in VALID_BLOCK_SLOTS:
+		if not (blocks as Dictionary).get(slot, null) is Dictionary:
+			push_error("Room %s is missing its %s block in a wave." % [room_id, slot])
+			return false
+		if not _validate_block((blocks as Dictionary)[slot], room_id):
+			return false
+	return true
+
+
+static func _validate_block(block_variant: Variant, room_id: String) -> bool:
+	var block := block_variant as Dictionary
+	if not ["static", "opposite"].has(str(block.get("movement", ""))):
+		push_error("Room %s has an invalid block movement." % room_id)
+		return false
+	var movement_speed := float(block.get("movementSpeed", 0.0))
+	if movement_speed < 0.05 or movement_speed > 5.0:
+		push_error("Room %s has an invalid block movement speed." % room_id)
+		return false
+	var block_color := str(block.get("color", ""))
+	if block_color.length() != 7 or not block_color.begins_with("#") or not Color.html_is_valid(block_color):
+		push_error("Room %s has an invalid block color." % room_id)
+		return false
+	if not block.get("layers", null) is Array:
+		push_error("Room %s needs a block layers array." % room_id)
+		return false
+	for layer_variant in block.layers:
+		if not _validate_layer(layer_variant, room_id):
+			return false
+	return true
+
+
+## Una capa declara cuantas ventanas de cada familia aparecen a la vez dentro de
+## un bloque. Limpiarla descubre la siguiente.
+static func _validate_layer(layer_variant: Variant, room_id: String) -> bool:
+	if not layer_variant is Dictionary:
+		push_error("Room %s has a layer that is not an object." % room_id)
+		return false
+	var windows_variant: Variant = (layer_variant as Dictionary).get("windows", null)
 	if not windows_variant is Dictionary:
-		push_error("Room %s has a wave without its windows object." % room_id)
+		push_error("Room %s has a layer without its windows object." % room_id)
 		return false
 	var total := 0
 	for type_variant in (windows_variant as Dictionary):
@@ -338,25 +403,47 @@ static func _validate_wave(wave_variant: Variant, room_id: String) -> bool:
 			return false
 		total += count
 	if total < 1 or total > MAX_WAVE_TARGETS:
-		push_error("Room %s has an invalid wave target count." % room_id)
+		push_error("Room %s has an invalid layer target count." % room_id)
 		return false
 	return true
 
 
-## Cuantos objetivos spawnea cada oleada de un bloque. Mientras las familias de
-## ventana no tengan comportamiento propio, al bloque solo le importa el total.
-static func get_wave_counts(block: Dictionary) -> Array[int]:
-	var counts: Array[int] = []
-	for wave_variant in block.get("waves", []):
-		if not wave_variant is Dictionary:
+## Oleadas de una sala, en orden. Una sala sin oleadas no tiene nada que pelear.
+static func get_room_waves(room: Dictionary) -> Array[Dictionary]:
+	var waves: Array[Dictionary] = []
+	for wave_variant in room.get("waves", []):
+		if wave_variant is Dictionary:
+			waves.append(wave_variant as Dictionary)
+	return waves
+
+
+## Bloques habilitados de una oleada, por slot. Los apagados no llegan a existir.
+static func get_wave_blocks(wave: Dictionary) -> Dictionary:
+	var blocks: Dictionary = {}
+	var declared: Dictionary = wave.get("blocks", {})
+	for slot in VALID_BLOCK_SLOTS:
+		var block_variant: Variant = declared.get(slot, null)
+		if block_variant is Dictionary and bool((block_variant as Dictionary).get("enabled", false)):
+			blocks[slot] = block_variant
+	return blocks
+
+
+## Capas de un bloque, cada una como la lista de familias que le toca spawnear.
+## Se devuelve expandida —una entrada por ventana— porque es lo que el bloque
+## necesita: cuantas y de que tipo, en el orden en que se reparten.
+static func get_block_layers(block: Dictionary) -> Array[PackedStringArray]:
+	var layers: Array[PackedStringArray] = []
+	for layer_variant in block.get("layers", []):
+		if not layer_variant is Dictionary:
 			continue
-		var windows: Dictionary = (wave_variant as Dictionary).get("windows", {})
-		var total := 0
+		var windows: Dictionary = (layer_variant as Dictionary).get("windows", {})
+		var types := PackedStringArray()
 		for type_variant in windows:
-			total += int(windows[type_variant])
-		if total > 0:
-			counts.append(total)
-	return counts
+			for _index in int(windows[type_variant]):
+				types.append(str(type_variant))
+		if not types.is_empty():
+			layers.append(types)
+	return layers
 
 
 static func _validate_ammo_reward(room: Dictionary, room_id: String) -> bool:

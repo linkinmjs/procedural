@@ -5,7 +5,7 @@
     ROOM_PRESETS, ROLE_LABELS, SKY_LABELS, SLOT_LABELS, WINDOW_TYPES, TEXTURE_SLOTS, WALL_LABELS,
     RELATIVE_WALLS, LIMITS, clamp, clampInt, newId, createEmptyLevel, createRoom, createConnection,
     chooseConnectionWalls, degreesToWall, assignRole, normalizeRoles, resolveEntryWalls, normalizeLevel,
-    corridorPlan, corridorOutline, blankWave, waveTotal
+    corridorPlan, corridorOutline, blankLayer, blankRoomWave, layerTotal
   } = window.LevelFormat;
 
   const STORAGE_KEY = "procedural-map.level-workshop.draft.v3";
@@ -18,12 +18,13 @@
   const corridorsLayer = $("#corridors-layer");
   const levelDialog = $("#level-dialog");
   const roomDialog = $("#room-dialog");
-  const blockDialog = $("#block-dialog");
 
   let level = loadDraft() || createEmptyLevel();
   let selectedRoomId = level.rooms[0]?.id || null;
   let dialogRoomId = null;
-  let dialogSlot = null;
+  // Que oleada de la sala se esta editando. Los tres slots del dialogo son los
+  // de esta oleada, no los de la sala entera.
+  let dialogWaveIndex = 0;
   let connectSourceId = null;
   let dragState = null;
   let panState = null;
@@ -40,21 +41,24 @@
     result.name = "Circuito de tres salas";
     result.description = "Ejemplo editable con sala pequeña, sala grande y pasillo.";
     result.startingAmmo = { magazine: 17, reserve: 34 };
-    const configure = (block, waves, movement = "static", color = "#2ed5c5", movementSpeed = 0.65) =>
-      Object.assign(block, { enabled: true, waves, movement, color, movementSpeed });
+    const configure = (block, layers, movement = "static", color = "#2ed5c5", movementSpeed = 0.65) =>
+      Object.assign(block, { enabled: true, layers, movement, color, movementSpeed });
     const a = createRoom("small", 1);
     Object.assign(a, { id: "room-entry", name: "Entrada", role: "start", facing: 90, position: { x: -18, z: 8 } });
-    configure(a.blocks.front, [blankWave(4)]);
+    configure(a.waves[0].blocks.front, [blankLayer(4)]);
     const b = createRoom("large", 2);
     Object.assign(b, { id: "room-arena", name: "Arena", position: { x: 4, z: 5 }, wallHeight: 9, hasCeiling: false });
     b.ammoReward = { enabled: true, amount: 40, color: "#f4bc59" };
-    configure(b.blocks.left, [blankWave(5)], "static", "#35d4c7");
-    configure(b.blocks.front, [blankWave(3), { windows: { normal: 4, firewall: 2 } }], "opposite", "#f4bc59", 0.8);
-    configure(b.blocks.right, [blankWave(5)], "static", "#35d4c7");
+    // La arena se pelea en dos oleadas: primero de frente, despues por los
+    // costados. Es el ejemplo de los dos niveles de agrupacion en un solo lugar.
+    configure(b.waves[0].blocks.front, [blankLayer(3), { windows: { normal: 4, firewall: 2 } }], "opposite", "#f4bc59", 0.8);
+    b.waves.push(blankRoomWave());
+    configure(b.waves[1].blocks.left, [blankLayer(5)], "static", "#35d4c7");
+    configure(b.waves[1].blocks.right, [blankLayer(5)], "static", "#35d4c7");
     const c = createRoom("corridor", 3);
     Object.assign(c, { id: "room-corridor", name: "Pasillo de salida", role: "exit", position: { x: 22, z: -11 }, wallHeight: 4 });
-    configure(c.blocks.left, [blankWave(4)], "opposite");
-    configure(c.blocks.right, [blankWave(4)], "opposite");
+    configure(c.waves[0].blocks.left, [blankLayer(4)], "opposite");
+    configure(c.waves[0].blocks.right, [blankLayer(4)], "opposite");
     result.rooms = [a, b, c];
     result.connections = [createConnection(a, b, 3.5), createConnection(b, c, 2.5)];
     return normalizeLevel(result);
@@ -149,7 +153,14 @@
   const roomById = (id) => level.rooms.find((room) => room.id === id) || null;
   const selectedRoom = () => roomById(selectedRoomId);
   const dialogRoom = () => roomById(dialogRoomId);
-  const dialogBlock = () => dialogRoom()?.blocks[dialogSlot] || null;
+  const dialogWave = () => {
+    const room = dialogRoom();
+    if (!room) return null;
+    dialogWaveIndex = Math.min(dialogWaveIndex, room.waves.length - 1);
+    return room.waves[dialogWaveIndex] || null;
+  };
+  /** Todos los bloques de la sala, de todas sus oleadas. */
+  const roomBlocks = (room) => room.waves.flatMap((wave) => Object.values(wave.blocks));
 
   function roomWallHeight(room) {
     return room.wallHeight === null ? level.defaults.wallHeight : room.wallHeight;
@@ -164,7 +175,7 @@
       connection.fromRoomId === roomId || connection.toRoomId === roomId);
   }
 
-  const blockTotal = (block) => block.waves.reduce((total, wave) => total + waveTotal(wave), 0);
+  const blockTotal = (block) => block.layers.reduce((total, wave) => total + layerTotal(wave), 0);
 
   function svgElement(tag, attributes = {}) {
     const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
@@ -296,7 +307,7 @@
     });
     rect.style.fill = config.color;
     const count = svgElement("text", { x: point.x, y: point.y, class: "block-count" });
-    count.textContent = config.waves.length ? config.waves.map(waveTotal).join("›") : "×";
+    count.textContent = config.layers.length ? config.layers.map(layerTotal).join("›") : "×";
     group.append(rect, count);
   }
 
@@ -338,7 +349,7 @@
       }
       addEntryMark(group, room);
       addFacingArrow(group, room);
-      for (const [slot, config] of Object.entries(room.blocks)) addBlock(group, room, slot, config);
+      for (const [slot, config] of Object.entries(room.waves[0].blocks)) addBlock(group, room, slot, config);
       addAmmoReward(group, room);
       if (room.role !== "transition") {
         const role = svgElement("text", {
@@ -456,6 +467,7 @@
     let movingBlocks = 0;
     let emptyBlocks = 0;
     let waves = 0;
+    let roomWaves = 0;
     let targets = 0;
     let plannedTargets = 0;
     let rewardAmmo = 0;
@@ -470,13 +482,14 @@
         rewardAmmo += room.ammoReward.amount;
         rewardRooms += 1;
       }
-      for (const block of Object.values(room.blocks)) {
+      roomWaves += room.waves.length;
+      for (const block of roomBlocks(room)) {
         if (!block.enabled) continue;
         activeBlocks += 1;
         if (block.movement === "opposite") movingBlocks += 1;
-        if (!block.waves.length) emptyBlocks += 1;
-        waves += block.waves.length;
-        for (const wave of block.waves) {
+        if (!block.layers.length) emptyBlocks += 1;
+        waves += block.layers.length;
+        for (const wave of block.layers) {
           for (const [type, count] of Object.entries(wave.windows)) {
             windows[type] = (windows[type] || 0) + count;
             targets += count;
@@ -510,6 +523,7 @@
       emptyBlocks,
       blockSlots: level.rooms.length * 3,
       waves,
+      roomWaves,
       targets,
       plannedTargets,
       rewardAmmo,
@@ -612,7 +626,8 @@
       ["Pasillos", `${level.connections.length} · ${round1(summary.corridorLength)} m de recorrido`],
       ["Superficie", `${Math.round(summary.floorArea)} m² de piso`],
       ["Bloques", `${summary.activeBlocks} activos de ${summary.blockSlots} · ${summary.movingBlocks} móviles · hasta ${level.defaults.maxBlockHeight} m de alto`],
-      ["Oleadas", `${summary.waves} · ${summary.targets} objetivos`],
+      ["Oleadas de sala", `${summary.roomWaves}`],
+      ["Capas", `${summary.waves} · ${summary.targets} objetivos`],
       ["Munición", `${level.startingAmmo.magazine}+${level.startingAmmo.reserve} iniciales${rewardText} · ${summary.totalAmmo} en total`],
       ["Margen", summary.targets
         ? `${round1(summary.totalAmmo / summary.targets)} balas y ${round1(level.timeLimitSeconds / summary.targets)} s por objetivo`
@@ -682,7 +697,6 @@
     renderConnectionList();
     if (levelDialog.open) renderLevelDialog();
     if (roomDialog.open) renderRoomDialog();
-    if (blockDialog.open) renderBlockDialog();
   }
 
   // ---------------------------------------------------------------- diálogos
@@ -713,6 +727,7 @@
   function openRoomDialog(roomId) {
     if (!roomById(roomId)) return;
     dialogRoomId = roomId;
+    dialogWaveIndex = 0;
     selectedRoomId = roomId;
     renderRooms();
     renderRoomList();
@@ -720,12 +735,301 @@
     openDialog(roomDialog);
   }
 
+  /**
+   * Pestanas de oleada. Una pestana por oleada mas el boton de agregar: llegar a
+   * cualquiera es un clic, sin recorrerlas de a una.
+   */
+  function renderWaveBar(room) {
+    dialogWaveIndex = Math.min(dialogWaveIndex, room.waves.length - 1);
+    const tabs = $("#wave-tabs");
+    tabs.replaceChildren();
+    room.waves.forEach((wave, index) => {
+      const tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "wave-tab";
+      tab.setAttribute("role", "tab");
+      tab.setAttribute("aria-selected", String(index === dialogWaveIndex));
+      const blocks = Object.values(wave.blocks).filter((block) => block.enabled);
+      const windows = blocks.reduce((total, block) => total + blockTotal(block), 0);
+      tab.innerHTML = `<strong>Oleada ${index + 1}</strong><small>${blocks.length ? `${blocks.length}▦ ${windows}▢` : "vacía"}</small>`;
+      tab.title = blocks.length
+        ? `${blocks.length} bloque(s), ${windows} ventana(s)`
+        : "Sin bloques: esta oleada se saltea";
+      tab.addEventListener("click", () => {
+        dialogWaveIndex = index;
+        renderRoomDialog();
+      });
+      tabs.append(tab);
+    });
+
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "wave-tab add";
+    add.textContent = "+";
+    add.title = "Agregar una oleada";
+    add.disabled = room.waves.length >= LIMITS.roomWaves.max;
+    add.addEventListener("click", () => {
+      room.waves.push(blankRoomWave());
+      dialogWaveIndex = room.waves.length - 1;
+      commit("Oleada agregada");
+    });
+    tabs.append(add);
+
+    // Duplicar ahorra rehacer a mano una oleada parecida a la anterior, que es
+    // lo mas comun al escalonar dificultad.
+    const clone = document.createElement("button");
+    clone.type = "button";
+    clone.className = "wave-tab add";
+    clone.textContent = "⧉";
+    clone.title = "Duplicar esta oleada";
+    clone.disabled = room.waves.length >= LIMITS.roomWaves.max;
+    clone.addEventListener("click", () => {
+      room.waves.splice(dialogWaveIndex + 1, 0, structuredClone(room.waves[dialogWaveIndex]));
+      dialogWaveIndex += 1;
+      commit("Oleada duplicada");
+    });
+    tabs.append(clone);
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "wave-tab add danger";
+    remove.textContent = "×";
+    remove.title = "Quitar esta oleada";
+    // Una sala sin oleadas no tendria donde poner bloques: siempre queda una.
+    remove.disabled = room.waves.length <= 1;
+    remove.addEventListener("click", () => {
+      room.waves.splice(dialogWaveIndex, 1);
+      dialogWaveIndex = Math.max(dialogWaveIndex - 1, 0);
+      commit("Oleada eliminada");
+    });
+    tabs.append(remove);
+
+    renderSlotGrid(room);
+  }
+
+
+  /**
+   * Los tres bloques de la oleada, uno al lado del otro. Antes cada uno vivia en
+   * un dialogo aparte: configurar una sala de tres oleadas eran nueve aperturas.
+   */
+  function renderSlotGrid(room) {
+    const wave = room.waves[dialogWaveIndex];
+    const grid = $("#slot-grid");
+    grid.replaceChildren();
+    for (const [slot, label] of Object.entries(SLOT_LABELS)) {
+      grid.append(slotCard(room, wave, slot, label));
+    }
+  }
+
+
+  function slotCard(room, wave, slot, label) {
+    const block = wave.blocks[slot];
+    const card = document.createElement("article");
+    card.className = `slot-card${block.enabled ? " active" : ""}`;
+    card.dataset.slot = slot;
+
+    const header = document.createElement("header");
+    const toggle = document.createElement("label");
+    toggle.className = "switch strong";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = block.enabled;
+    checkbox.addEventListener("change", () => {
+      block.enabled = checkbox.checked;
+      // Un bloque recien encendido sin capas no spawnea nada: se le da la
+      // primera para que arranque mostrando algo editable.
+      if (block.enabled && !block.layers.length) block.layers.push(blankLayer());
+      commit(block.enabled ? `${label} activado` : `${label} apagado`);
+    });
+    toggle.append(checkbox, document.createTextNode(` ${label}`));
+    const wall = document.createElement("span");
+    wall.className = "slot-wall";
+    wall.textContent = WALL_NAMES[RELATIVE_WALLS[room.entry.wall][slot]];
+    header.append(toggle, wall);
+    card.append(header);
+
+    if (!block.enabled) {
+      const empty = document.createElement("p");
+      empty.className = "slot-empty";
+      empty.textContent = "Pared libre";
+      card.append(empty);
+      return card;
+    }
+
+    const props = document.createElement("div");
+    props.className = "slot-props";
+    const movement = document.createElement("select");
+    movement.title = "Movimiento del bloque";
+    for (const [value, text] of [["static", "Estático"], ["opposite", "Avanza"]]) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = text;
+      movement.append(option);
+    }
+    movement.value = block.movement;
+    movement.addEventListener("change", () => {
+      block.movement = movement.value;
+      commit("Movimiento actualizado");
+    });
+    const speed = document.createElement("input");
+    speed.type = "number";
+    speed.min = "0.05";
+    speed.max = "5";
+    speed.step = "0.05";
+    speed.value = String(block.movementSpeed);
+    speed.title = "Velocidad en metros por segundo";
+    speed.disabled = block.movement !== "opposite";
+    speed.addEventListener("change", () => {
+      block.movementSpeed = clamp(speed.value, LIMITS.movementSpeed);
+      commit("Velocidad actualizada");
+    });
+    const color = document.createElement("input");
+    color.type = "color";
+    color.value = block.color;
+    color.title = "Color del panel";
+    color.addEventListener("change", () => {
+      block.color = color.value;
+      commit("Color actualizado");
+    });
+    props.append(movement, speed, color);
+    card.append(props);
+
+    const layers = document.createElement("div");
+    layers.className = "layer-stack";
+    block.layers.forEach((layer, index) => layers.append(layerRow(block, layer, index)));
+    card.append(layers);
+
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "ghost-add wide";
+    add.textContent = "+ Capa";
+    add.addEventListener("click", () => {
+      // La capa nueva copia la anterior: escalonar dificultad suele ser repetir
+      // lo mismo con una vuelta de tuerca, no empezar de cero.
+      const previous = block.layers[block.layers.length - 1];
+      block.layers.push(previous ? structuredClone(previous) : blankLayer());
+      commit("Capa agregada");
+    });
+    card.append(add);
+    return card;
+  }
+
+
+  /**
+   * Una capa en una sola fila: los chips de las familias que trae y la paleta
+   * para sumar otra. Un clic en un chip suma una ventana, clic derecho resta.
+   */
+  function layerRow(block, layer, index) {
+    const row = document.createElement("div");
+    row.className = "layer-row";
+
+    const title = document.createElement("span");
+    title.className = "layer-index";
+    title.textContent = `${index + 1}`;
+    title.title = `Capa ${index + 1}`;
+    row.append(title);
+
+    const chips = document.createElement("div");
+    chips.className = "chip-row";
+    for (const type of Object.keys(layer.windows)) {
+      chips.append(familyChip(type, layer, Object.keys(layer.windows).length === 1));
+    }
+    chips.append(paletteToggle(layer));
+    row.append(chips);
+
+    const total = document.createElement("span");
+    total.className = "layer-total";
+    total.textContent = String(layerTotal(layer));
+    total.title = "Ventanas de la capa";
+    row.append(total);
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "icon-button danger tiny";
+    remove.textContent = "×";
+    remove.title = "Quitar la capa";
+    remove.disabled = block.layers.length <= 1;
+    remove.addEventListener("click", () => {
+      block.layers.splice(index, 1);
+      commit("Capa eliminada");
+    });
+    row.append(remove);
+    return row;
+  }
+
+
+  /** Chip de una familia: glifo, cantidad y los dos clics que la ajustan. */
+  function familyChip(type, layer, onlyOne) {
+    const meta = WINDOW_TYPES[type];
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = `family-chip${meta.status === "planned" ? " planned" : ""}`;
+    chip.style.setProperty("--tone", meta.color);
+    chip.innerHTML = `<b>${meta.glyph}</b>${layer.windows[type]}`;
+    chip.title = `${meta.label}: ${meta.hint}\nClic suma una, clic derecho resta.`;
+    chip.addEventListener("click", () => {
+      if (layerTotal(layer) >= LIMITS.wave.max) return;
+      layer.windows[type] += 1;
+      commit(`${meta.label} +1`);
+    });
+    chip.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      if (layer.windows[type] > 1) {
+        layer.windows[type] -= 1;
+        commit(`${meta.label} −1`);
+        return;
+      }
+      // La ultima ventana de la ultima familia no se saca: una capa vacia no
+      // spawnearia nada y el archivo la descartaria igual.
+      if (onlyOne) return;
+      delete layer.windows[type];
+      commit(`${meta.label} fuera`);
+    });
+    return chip;
+  }
+
+
+  /** Paleta de familias: un clic agrega la que falte, sin menues intermedios. */
+  function paletteToggle(layer) {
+    const wrap = document.createElement("span");
+    wrap.className = "palette";
+    const missing = Object.keys(WINDOW_TYPES).filter((type) => !(type in layer.windows));
+    if (!missing.length || layerTotal(layer) >= LIMITS.wave.max) return wrap;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "family-chip add";
+    button.textContent = "+";
+    button.title = "Agregar otra familia de ventana";
+    const menu = document.createElement("span");
+    menu.className = "palette-menu";
+    for (const type of missing) {
+      const meta = WINDOW_TYPES[type];
+      const option = document.createElement("button");
+      option.type = "button";
+      option.className = `family-chip${meta.status === "planned" ? " planned" : ""}`;
+      option.style.setProperty("--tone", meta.color);
+      option.innerHTML = `<b>${meta.glyph}</b>`;
+      option.title = `${meta.label}: ${meta.hint}`;
+      option.addEventListener("click", () => {
+        layer.windows[type] = 1;
+        commit(`${meta.label} agregada`);
+      });
+      menu.append(option);
+    }
+    button.addEventListener("click", () => wrap.classList.toggle("open"));
+    wrap.append(button, menu);
+    return wrap;
+  }
+
+
   function renderRoomDialog() {
     const room = dialogRoom();
     if (!room) {
       roomDialog.close();
       return;
     }
+    renderWaveBar(room);
     $("#room-name").value = room.name;
     $("#room-type").value = room.type;
     $("#room-width").value = room.size.width;
@@ -786,8 +1090,9 @@
       east: { x: box.x + width - thickness, y: box.y, width: thickness, height: depth }
     };
 
+    const mapWave = room.waves[Math.min(dialogWaveIndex, room.waves.length - 1)];
     for (const [slot, label] of Object.entries(SLOT_LABELS)) {
-      const config = room.blocks[slot];
+      const config = mapWave.blocks[slot];
       const wall = RELATIVE_WALLS[room.entry.wall][slot];
       const rect = wallRect[wall];
       const group = svgElement("g", {
@@ -808,7 +1113,7 @@
         text.setAttribute("transform", `rotate(${wall === "west" ? -90 : 90} ${center.x} ${center.y})`);
       }
       text.textContent = config.enabled
-        ? `${SLOT_SHORT[slot]} · ${config.waves.map(waveTotal).join("›")}`
+        ? `${SLOT_SHORT[slot]} · ${config.layers.map(layerTotal).join("›")}`
         : `${SLOT_SHORT[slot]} +`;
       group.append(text);
       map.append(group);
@@ -837,191 +1142,6 @@
         svgElement("circle", { cx: tip.x, cy: tip.y, r: 2.4, class: "map-facing-head" })
       );
     }
-  }
-
-  function openBlockDialog(slot) {
-    if (!dialogRoom() || !SLOT_LABELS[slot]) return;
-    dialogSlot = slot;
-    renderBlockDialog();
-    openDialog(blockDialog);
-  }
-
-  function renderBlockDialog() {
-    const room = dialogRoom();
-    const block = dialogBlock();
-    if (!room || !block) {
-      blockDialog.close();
-      return;
-    }
-    const wall = RELATIVE_WALLS[room.entry.wall][dialogSlot];
-    $("#block-dialog-eyebrow").textContent = `${room.name.toUpperCase()} · PARED ${WALL_NAMES[wall].toUpperCase()}`;
-    $("#block-dialog-title").textContent = `Bloque ${SLOT_LABELS[dialogSlot].toLowerCase()}`;
-    $("#block-enabled").checked = block.enabled;
-    $("#block-dialog-body").classList.toggle("disabled", !block.enabled);
-    $("#block-movement").value = block.movement;
-    $("#block-speed").value = block.movementSpeed;
-    $("#block-speed-field").hidden = block.movement !== "opposite";
-    $("#block-color").value = block.color;
-    const total = blockTotal(block);
-    $("#wave-summary").textContent = block.waves.length
-      ? `${block.waves.length} ${block.waves.length === 1 ? "oleada" : "oleadas"} · ${total} ${total === 1 ? "ventana" : "ventanas"}`
-      : "";
-    $("#block-dialog-hint").textContent = block.enabled
-      ? "El bloque cubre la pared entera, de piso a techo."
-      : "Bloque apagado: la pared queda libre.";
-    renderWaveList(block);
-  }
-
-  function renderWaveList(block) {
-    const list = $("#wave-list");
-    list.replaceChildren();
-    if (!block.waves.length) {
-      const empty = document.createElement("p");
-      empty.className = "hint";
-      empty.textContent = "Sin oleadas: el bloque se cierra con su propio control.";
-      list.append(empty);
-      return;
-    }
-    block.waves.forEach((wave, index) => list.append(waveCard(wave, index, block)));
-  }
-
-  function waveCard(wave, index, block) {
-    const card = document.createElement("article");
-    card.className = "wave-card";
-
-    const header = document.createElement("header");
-    const title = document.createElement("strong");
-    title.textContent = `Oleada ${index + 1}`;
-    const total = document.createElement("span");
-    total.className = "wave-total";
-    const count = waveTotal(wave);
-    total.textContent = `${count} ${count === 1 ? "ventana" : "ventanas"}`;
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "icon-button danger";
-    remove.textContent = "×";
-    remove.title = "Quitar la oleada";
-    remove.addEventListener("click", () => {
-      block.waves.splice(index, 1);
-      commit("Oleada eliminada");
-    });
-    header.append(title, total, remove);
-    card.append(header);
-
-    const rows = document.createElement("ul");
-    rows.className = "window-rows";
-    const present = Object.keys(wave.windows);
-    for (const type of present) {
-      rows.append(windowRow(type, wave, present.length === 1));
-    }
-    card.append(rows);
-
-    const missing = Object.keys(WINDOW_TYPES).filter((type) => !(type in wave.windows));
-    if (missing.length && count < LIMITS.wave.max) {
-      const select = document.createElement("select");
-      select.className = "add-window";
-      const placeholder = document.createElement("option");
-      placeholder.value = "";
-      placeholder.textContent = "+ Agregar ventana";
-      select.append(placeholder);
-      for (const group of ["ready", "planned"]) {
-        const types = missing.filter((type) => WINDOW_TYPES[type].status === group);
-        if (!types.length) continue;
-        const optgroup = document.createElement("optgroup");
-        optgroup.label = group === "ready" ? "En el juego" : "Todavía sin comportamiento propio";
-        for (const type of types) {
-          const option = document.createElement("option");
-          option.value = type;
-          option.textContent = WINDOW_TYPES[type].label;
-          option.title = WINDOW_TYPES[type].hint;
-          optgroup.append(option);
-        }
-        select.append(optgroup);
-      }
-      select.addEventListener("change", () => {
-        if (!select.value) return;
-        wave.windows[select.value] = 1;
-        commit(`${WINDOW_TYPES[select.value].label} agregada`);
-      });
-      card.append(select);
-    }
-    return card;
-  }
-
-  function windowRow(type, wave, onlyOne) {
-    const meta = WINDOW_TYPES[type];
-    const row = document.createElement("li");
-    row.className = "window-row";
-
-    const glyph = document.createElement("span");
-    glyph.className = "window-glyph";
-    glyph.style.setProperty("--tone", meta.color);
-    glyph.textContent = meta.glyph;
-
-    const name = document.createElement("span");
-    name.className = "window-name";
-    name.textContent = meta.label;
-    name.title = meta.hint;
-    if (meta.status === "planned") {
-      const chip = document.createElement("span");
-      chip.className = "soon-chip";
-      chip.textContent = "pronto";
-      chip.title = "Se guarda en el nivel; el juego todavía la spawnea como ventana normal.";
-      name.append(" ", chip);
-    }
-
-    const stepper = document.createElement("div");
-    stepper.className = "stepper";
-    const less = document.createElement("button");
-    less.type = "button";
-    less.textContent = "−";
-    less.title = "Una menos";
-    const input = document.createElement("input");
-    input.type = "number";
-    input.min = "1";
-    input.max = String(LIMITS.wave.max);
-    input.step = "1";
-    input.value = String(wave.windows[type]);
-    const more = document.createElement("button");
-    more.type = "button";
-    more.textContent = "+";
-    more.title = "Una más";
-    less.addEventListener("click", () => setWindowCount(wave, type, wave.windows[type] - 1, onlyOne));
-    more.addEventListener("click", () => setWindowCount(wave, type, wave.windows[type] + 1, onlyOne));
-    input.addEventListener("change", () => setWindowCount(wave, type, Number(input.value), onlyOne));
-    stepper.append(less, input, more);
-
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "icon-button";
-    remove.textContent = "×";
-    remove.title = onlyOne ? "Una oleada necesita al menos un tipo de ventana" : "Quitar este tipo";
-    remove.disabled = onlyOne;
-    remove.addEventListener("click", () => {
-      delete wave.windows[type];
-      commit("Ventana quitada de la oleada");
-    });
-
-    row.append(glyph, name, stepper, remove);
-    return row;
-  }
-
-  /** Una oleada nunca queda vacía ni pasa del máximo de ventanas simultáneas. */
-  function setWindowCount(wave, type, value, onlyOne) {
-    const others = waveTotal(wave) - wave.windows[type];
-    const room = Math.max(0, LIMITS.wave.max - others);
-    const next = Math.max(onlyOne ? 1 : 0, Math.min(room, Math.round(Number(value) || 0)));
-    if (next === wave.windows[type]) {
-      renderBlockDialog();
-      return;
-    }
-    if (next === 0) {
-      delete wave.windows[type];
-      commit("Ventana quitada de la oleada");
-      return;
-    }
-    wave.windows[type] = next;
-    commit("Oleada actualizada");
   }
 
   // ------------------------------------------------------------- construcción
@@ -1150,7 +1270,6 @@
     dialogRoomId = null;
     connectSourceId = null;
     saveHandle = null;
-    blockDialog.close();
     roomDialog.close();
     fitView();
     commit(message);
@@ -1313,16 +1432,14 @@
     document.querySelectorAll("[data-close-dialog]").forEach((button) =>
       button.addEventListener("click", () => button.closest("dialog").close()));
     // El fondo de un diálogo modal es el propio elemento: un click ahí lo cierra.
-    for (const dialog of [levelDialog, roomDialog, blockDialog]) {
+    for (const dialog of [levelDialog, roomDialog]) {
       dialog.addEventListener("pointerdown", (event) => {
         if (event.target === dialog) dialog.close();
       });
     }
     roomDialog.addEventListener("close", () => {
       dialogRoomId = null;
-      blockDialog.close();
     });
-    blockDialog.addEventListener("close", () => { dialogSlot = null; });
   }
 
   function bindRoomFields() {
@@ -1411,7 +1528,12 @@
 
     const openSlot = (event) => {
       const group = event.target.closest(".map-slot");
-      if (group) openBlockDialog(group.dataset.slot);
+      const wave = dialogWave();
+      if (!group || !wave) return;
+      const block = wave.blocks[group.dataset.slot];
+      block.enabled = !block.enabled;
+      if (block.enabled && !block.layers.length) block.layers.push(blankLayer());
+      commit(block.enabled ? "Bloque activado" : "Bloque apagado");
     };
     $("#room-map").addEventListener("click", openSlot);
     $("#room-map").addEventListener("keydown", (event) => {
@@ -1461,43 +1583,6 @@
   }
 
   function bindBlockFields() {
-    $("#block-enabled").addEventListener("change", (event) => {
-      const block = dialogBlock();
-      if (!block) return;
-      block.enabled = event.target.checked;
-      // Un bloque recién encendido sin oleadas no spawnea nada: le damos la
-      // primera para que el diálogo arranque mostrando algo editable.
-      if (block.enabled && !block.waves.length) block.waves.push(blankWave());
-      commit(block.enabled ? "Bloque activado" : "Bloque apagado");
-    });
-
-    $("#block-movement").addEventListener("change", (event) => {
-      const block = dialogBlock();
-      if (!block) return;
-      block.movement = event.target.value;
-      commit("Movimiento actualizado");
-    });
-
-    $("#block-speed").addEventListener("change", (event) => {
-      const block = dialogBlock();
-      if (!block) return;
-      block.movementSpeed = clamp(event.target.value, LIMITS.movementSpeed);
-      commit("Velocidad actualizada");
-    });
-
-    $("#block-color").addEventListener("change", (event) => {
-      const block = dialogBlock();
-      if (!block) return;
-      block.color = event.target.value;
-      commit("Color actualizado");
-    });
-
-    $("#add-wave").addEventListener("click", () => {
-      const block = dialogBlock();
-      if (!block) return;
-      block.waves.push(blankWave());
-      commit("Oleada agregada");
-    });
   }
 
   function bindShortcuts() {

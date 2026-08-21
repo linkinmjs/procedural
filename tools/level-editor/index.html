@@ -213,6 +213,14 @@
         </fieldset>
       </section>
 
+      <section class="waves-section">
+      <div class="wave-tabs" id="wave-tabs" role="tablist" aria-label="Oleadas de la sala"></div>
+      <p class="hint wave-hint">Los tres bloques son los de la oleada elegida. La siguiente aparece cuando el jugador limpia ésta.</p>
+      <div class="slot-grid" id="slot-grid"></div>
+    </section>
+
+      <details class="room-extras">
+        <summary>Forma, volumen y texturas</summary>
       <section class="room-fields-column">
         <fieldset>
           <legend>Forma</legend>
@@ -275,6 +283,7 @@
           <p id="texture-catalog-status" class="hint"></p>
         </fieldset>
       </section>
+      </details>
     </div>
 
     <footer class="dialog-footer">
@@ -285,42 +294,6 @@
     </footer>
   </dialog>
 
-  <dialog id="block-dialog" class="dialog block-dialog">
-    <header class="dialog-header">
-      <div class="dialog-title-block">
-        <p class="eyebrow" id="block-dialog-eyebrow">BLOQUE</p>
-        <h2 id="block-dialog-title">Bloque</h2>
-      </div>
-      <label class="switch strong"><input id="block-enabled" type="checkbox"> Activo</label>
-      <button class="icon-button" type="button" data-close-dialog aria-label="Cerrar">×</button>
-    </header>
-
-    <div class="dialog-body" id="block-dialog-body">
-      <div class="field-row three">
-        <label>Movimiento
-          <select id="block-movement">
-            <option value="static">Estático</option>
-            <option value="opposite">Hacia el lado contrario</option>
-          </select>
-        </label>
-        <label id="block-speed-field">Velocidad<input id="block-speed" type="number" min="0.05" max="5" step="0.05"></label>
-        <label>Color<input id="block-color" type="color"></label>
-      </div>
-
-      <div class="waves-heading">
-        <strong>Oleadas</strong>
-        <span id="wave-summary" class="hint"></span>
-      </div>
-      <div id="wave-list" class="wave-list"></div>
-      <button id="add-wave" class="ghost-add" type="button">+ Agregar oleada</button>
-    </div>
-
-    <footer class="dialog-footer">
-      <span id="block-dialog-hint" class="hint"></span>
-      <span class="spacer"></span>
-      <button class="primary" type="button" data-close-dialog>Listo</button>
-    </footer>
-  </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="level-format.js"></script>

@@ -38,6 +38,18 @@ texture_margin_top = 6.0
 texture_margin_right = 6.0
 texture_margin_bottom = 6.0
 
+[sub_resource type="StyleBoxEmpty" id="SliderFocus"]
+
+[sub_resource type="StyleBoxFlat" id="SliderFill"]
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.2, 0.4, 0.78, 1)
+
+[sub_resource type="StyleBoxFlat" id="SliderFillHighlight"]
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.3, 0.53, 0.92, 1)
+
 [sub_resource type="StyleBoxFlat" id="SliderTrack"]
 content_margin_top = 4.0
 content_margin_bottom = 4.0
@@ -47,21 +59,6 @@ border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.53, 0.53, 0.51, 1)
-
-[sub_resource type="StyleBoxFlat" id="SliderFill"]
-content_margin_top = 4.0
-content_margin_bottom = 4.0
-bg_color = Color(0.20, 0.40, 0.78, 1)
-
-[sub_resource type="StyleBoxFlat" id="SliderFillHighlight"]
-content_margin_top = 4.0
-content_margin_bottom = 4.0
-bg_color = Color(0.30, 0.53, 0.92, 1)
-
-; El foco del slider no puede pintarse encima de la barra: el estilo que trae
-; Godot por defecto es opaco y tapaba el relleno del que estaba enfocado. El
-; foco se ve en el relleno resaltado, no en un recuadro.
-[sub_resource type="StyleBoxEmpty" id="SliderFocus"]
 
 [resource]
 default_font = ExtResource("1_font")
@@ -76,9 +73,9 @@ Button/styles/focus = SubResource("ButtonDefault")
 Button/styles/hover = SubResource("ButtonNormal")
 Button/styles/normal = SubResource("ButtonNormal")
 Button/styles/pressed = SubResource("ButtonPressed")
+HSlider/styles/focus = SubResource("SliderFocus")
+HSlider/styles/grabber_area = SubResource("SliderFill")
+HSlider/styles/grabber_area_highlight = SubResource("SliderFillHighlight")
+HSlider/styles/slider = SubResource("SliderTrack")
 Label/colors/font_color = Color(0, 0, 0, 1)
 Label/font_sizes/font_size = 11
-HSlider/styles/grabber_area = SubResource("SliderFill")
-HSlider/styles/slider = SubResource("SliderTrack")
-HSlider/styles/focus = SubResource("SliderFocus")
-HSlider/styles/grabber_area_highlight = SubResource("SliderFillHighlight")

@@ -1,6 +1,6 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene format=3 uid="uid://c5hyej8kggg4w"]
 
-[ext_resource type="Script" path="res://scripts/levels/playable_level.gd" id="1_level"]
+[ext_resource type="Script" uid="uid://d0jhqxnwibyw6" path="res://scripts/levels/playable_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://scenes/ui/round_hud.tscn" id="2_hud"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
@@ -36,57 +36,57 @@ corner_radius_bottom_left = 4
 font_size = 20
 font_color = Color(0.12, 0.9, 1, 1)
 
-[node name="PlayableLevel" type="Node3D" groups=["World"]]
+[node name="PlayableLevel" type="Node3D" unique_id=1746679366 groups=["World"]]
 script = ExtResource("1_level")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=952900086]
 environment = SubResource("Environment")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-58, -28, 0)
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1348407005]
+transform = Transform3D(0.88294756, 0.39813447, -0.24878204, 0, 0.52991927, 0.8480481, 0.46947157, -0.748782, 0.46789092, 0, 0, 0)
 light_energy = 0.9
 shadow_enabled = true
 
-[node name="ConnectionGeometry" type="Node3D" parent="."]
+[node name="ConnectionGeometry" type="Node3D" parent="." unique_id=752795900]
 unique_name_in_owner = true
 
-[node name="RoomGeometry" type="Node3D" parent="."]
+[node name="RoomGeometry" type="Node3D" parent="." unique_id=910987182]
 unique_name_in_owner = true
 
-[node name="Encounters" type="Node3D" parent="."]
+[node name="Encounters" type="Node3D" parent="." unique_id=1948139453]
 unique_name_in_owner = true
 
-[node name="RoundHUD" parent="." instance=ExtResource("2_hud")]
+[node name="RoundHUD" parent="." unique_id=1741633471 instance=ExtResource("2_hud")]
 
-[node name="LevelInterface" type="CanvasLayer" parent="."]
+[node name="LevelInterface" type="CanvasLayer" parent="." unique_id=2000195708]
 layer = 10
 
-[node name="Panel" type="PanelContainer" parent="LevelInterface"]
+[node name="Panel" type="PanelContainer" parent="LevelInterface" unique_id=1704019753]
 offset_left = 18.0
 offset_top = 18.0
 offset_right = 455.0
 offset_bottom = 94.0
 theme_override_styles/panel = SubResource("InfoPanelStyle")
 
-[node name="Margin" type="MarginContainer" parent="LevelInterface/Panel"]
+[node name="Margin" type="MarginContainer" parent="LevelInterface/Panel" unique_id=798263445]
 layout_mode = 2
 theme_override_constants/margin_left = 14
 theme_override_constants/margin_top = 9
 theme_override_constants/margin_right = 14
 theme_override_constants/margin_bottom = 9
 
-[node name="VBox" type="VBoxContainer" parent="LevelInterface/Panel/Margin"]
+[node name="VBox" type="VBoxContainer" parent="LevelInterface/Panel/Margin" unique_id=574967680]
 layout_mode = 2
 
-[node name="LevelNameLabel" type="Label" parent="LevelInterface/Panel/Margin/VBox"]
+[node name="LevelNameLabel" type="Label" parent="LevelInterface/Panel/Margin/VBox" unique_id=2008276500]
 unique_name_in_owner = true
 layout_mode = 2
 text = "LOADING LEVEL"
 label_settings = SubResource("TitleSettings")
 
-[node name="StatusLabel" type="Label" parent="LevelInterface/Panel/Margin/VBox"]
+[node name="StatusLabel" type="Label" parent="LevelInterface/Panel/Margin/VBox" unique_id=1511874363]
 unique_name_in_owner = true
 layout_mode = 2
-text = "READING JSON DEFINITION..."
 theme_override_colors/font_color = Color(0.62, 0.76, 0.84, 1)
 theme_override_font_sizes/font_size = 11
+text = "READING JSON DEFINITION..."

@@ -18,7 +18,8 @@ const levelPaths = [
 // --- Controles del documento -------------------------------------------------
 
 for (const id of [
-  "level-canvas", "rooms-layer", "corridors-layer", "room-inspector", "block-editors",
+  "level-canvas", "rooms-layer", "corridors-layer", "room-dialog", "room-map",
+  "wave-tabs", "slot-grid",
   "texture-fields", "room-list", "connection-list", "level-time-minutes", "level-time-seconds",
   "level-ammo-magazine", "level-ammo-reserve", "level-wall-height", "level-corridor-width",
   "level-has-ceiling", "room-wall-height", "room-wall-height-mode", "room-ceiling",
@@ -26,9 +27,6 @@ for (const id of [
   "duplicate-room", "zoom-fit", "import-file", "download-file"
 ]) {
   assert.match(html, new RegExp(`id=["']${id}["']`), `Falta el control #${id}`);
-}
-for (const tab of ["general", "blocks", "textures"]) {
-  assert.match(html, new RegExp(`data-tab=["']${tab}["']`), `Falta la pestaña ${tab}`);
 }
 for (const role of ["start", "transition", "exit"]) {
   assert.match(html, new RegExp(`data-role=["']${role}["']`), `Falta el rol ${role}`);
@@ -42,7 +40,6 @@ assert.doesNotMatch(html, /id=["']entry-wall["']/, "La pared de entrada ya no se
 const referencedIds = new Set([...script.matchAll(/\$\("#([a-z0-9-]+)"\)/g)].map((match) => match[1]));
 const missingIds = [...referencedIds].filter((id) => !html.includes(`id="${id}"`));
 assert.deepEqual(missingIds, [], `El editor referencia controles inexistentes: ${missingIds.join(", ")}`);
-assert.match(styles, /\.tab\[aria-selected="true"\]/, "Las pestañas del inspector necesitan estado visual");
 assert.match(styles, /\.segment\[aria-checked="true"\]/, "El selector de rol necesita estado visual");
 assert.match(script, /window\.LevelFormat/, "El editor debe usar el modelo compartido");
 assert.match(script, /localStorage\.setItem/, "El editor debe guardar el borrador automáticamente");
@@ -91,6 +88,71 @@ const runtimeDefault = skyCatalogSource.match(/const DEFAULT_ID := "([a-z-]+)"/)
 assert.equal(LevelFormat.DEFAULT_SKY, runtimeDefault, "El cielo por defecto debe coincidir con el del juego");
 assert.match(html, /id=["']level-sky["']/, "Falta el selector de cielo");
 assert.match(script, /SKY_LABELS/, "El editor debe poblar el selector de cielo");
+
+// --- Oleadas de sala y capas de bloque ---------------------------------------
+
+// El formato tiene dos niveles de agrupacion y no pueden llamarse igual: la
+// sala declara oleadas, y cada bloque de una oleada declara sus capas.
+assert.ok(schema.$defs.room.required.includes("waves"), "La sala debe declarar sus oleadas");
+assert.ok(!("blocks" in schema.$defs.room.properties), "Los bloques ya no cuelgan de la sala");
+assert.ok(schema.$defs.roomWave.properties.blocks, "Una oleada de sala agrupa bloques");
+assert.ok(schema.$defs.block.required.includes("layers"), "El bloque debe declarar sus capas");
+assert.ok(!("waves" in schema.$defs.block.properties), "El bloque ya no llama oleadas a sus capas");
+assert.equal(
+  schema.$defs.room.properties.waves.maxItems,
+  LevelFormat.LIMITS.roomWaves.max,
+  "El schema y la herramienta deben topear las oleadas en el mismo numero"
+);
+
+// El limite de oleadas tambien lo conoce el juego.
+const loaderSource = fs.readFileSync("scripts/levels/level_definition_loader.gd", "utf8");
+assert.equal(
+  Number(loaderSource.match(/const MAX_ROOM_WAVES := (\d+)/)[1]),
+  LevelFormat.LIMITS.roomWaves.max,
+  "MAX_ROOM_WAVES y LIMITS.roomWaves deben coincidir"
+);
+
+// Un archivo v8 se abre sin perder nada: su grupo unico de bloques es la
+// primera oleada, y lo que ahi se llamaba `waves` son las capas.
+const legacyLevel = LevelFormat.normalizeLevel({
+  schemaVersion: 8,
+  rooms: [{
+    id: "legacy", name: "Vieja", role: "start", position: { x: 0, z: 0 },
+    size: { width: 14, depth: 14 }, entry: { wall: "south", offset: 0 }, facing: 0,
+    blocks: {
+      left: { enabled: false, waves: [] },
+      front: { enabled: true, movement: "static", movementSpeed: 0.65, color: "#2ed5c5", waves: [{ windows: { normal: 4 } }] },
+      right: { enabled: false, waves: [] }
+    }
+  }],
+  connections: []
+});
+assert.equal(legacyLevel.schemaVersion, LevelFormat.SCHEMA_VERSION, "Importar migra a la version actual");
+const legacyRoom = legacyLevel.rooms[0];
+assert.equal(legacyRoom.blocks, undefined, "La sala migrada no conserva el grupo viejo");
+assert.equal(legacyRoom.waves.length, 1, "El grupo unico de v8 es una sola oleada");
+assert.deepEqual(
+  legacyRoom.waves[0].blocks.front.layers,
+  [{ windows: { normal: 4 } }],
+  "Las oleadas del bloque pasan a ser sus capas"
+);
+assert.equal(legacyRoom.waves[0].blocks.front.waves, undefined, "El bloque migrado no conserva el nombre viejo");
+
+// Una sala nueva arranca con una oleada, y la herramienta no deja quedarse sin
+// ninguna: sin oleada no hay donde poner bloques.
+const freshRoom = LevelFormat.createRoom("small", 1);
+assert.equal(freshRoom.waves.length, 1, "Una sala nueva arranca con una oleada");
+assert.deepEqual(Object.keys(freshRoom.waves[0].blocks).sort(), ["front", "left", "right"]);
+assert.match(script, /room\.waves\.length <= 1/, "La ultima oleada de una sala no se puede borrar");
+
+// Los tres bloques de una oleada se editan a la vez: antes cada uno abria su
+// propio dialogo y armar una sala eran nueve aperturas.
+assert.doesNotMatch(html, /id=["']block-dialog["']/, "Los bloques ya no viven en un dialogo aparte");
+assert.match(script, /function renderSlotGrid/, "El editor debe dibujar los tres bloques juntos");
+assert.match(script, /function familyChip/, "Las familias se ajustan con chips, sin menues");
+assert.match(script, /structuredClone/, "Duplicar oleada y capa evita rehacerlas a mano");
+assert.match(styles, /\.slot-grid/, "La grilla de bloques necesita estilos");
+assert.match(styles, /\.family-chip/, "Los chips de familia necesitan estilos");
 
 // --- Inferencia de la entrada ------------------------------------------------
 
@@ -223,8 +285,9 @@ const legacy = LevelFormat.normalizeLevel({
   connections: [{ id: "c1", fromRoomId: "one", toRoomId: "two", fromWall: "east", toWall: "west" }]
 });
 assert.equal(legacy.schemaVersion, LevelFormat.SCHEMA_VERSION);
-assert.deepEqual(legacy.rooms[0].blocks.front.waves, [6], "targetCount se migra a la primera oleada");
-assert.equal("targetCount" in legacy.rooms[0].blocks.front, false);
+const legacyFront = legacy.rooms[0].waves[0].blocks.front;
+assert.deepEqual(legacyFront.layers, [{ windows: { normal: 6 } }], "targetCount se migra a la primera capa");
+assert.equal("targetCount" in legacyFront, false);
 assert.equal(legacy.rooms[0].role, "start");
 assert.equal(legacy.rooms[1].role, "exit");
 assert.equal(legacy.rooms[0].facing, 90, "Sin orientación declarada, la sala de inicio mira hacia su pasillo");
@@ -248,7 +311,14 @@ for (const path of levelPaths) {
     assert.ok(room.wallHeight === null || (room.wallHeight >= 2 && room.wallHeight <= 20));
     assert.ok(room.hasCeiling === null || typeof room.hasCeiling === "boolean");
     assert.deepEqual(Object.keys(room.textures).sort(), [...TEXTURE_SLOTS].sort());
-    assert.deepEqual(Object.keys(room.blocks).sort(), ["front", "left", "right"]);
+    assert.ok(room.waves.length >= 1, `${path}: cada sala declara al menos una oleada`);
+    assert.ok(room.waves.length <= LevelFormat.LIMITS.roomWaves.max, `${path}: demasiadas oleadas`);
+    for (const wave of room.waves) {
+      assert.deepEqual(Object.keys(wave.blocks).sort(), ["front", "left", "right"]);
+      for (const block of Object.values(wave.blocks)) {
+        assert.ok(Array.isArray(block.layers), `${path}: cada bloque declara sus capas`);
+      }
+    }
   }
   for (const connection of level.connections) {
     assert.ok(roomIds.has(connection.fromRoomId) && roomIds.has(connection.toRoomId), `${path}: pasillo huérfano`);

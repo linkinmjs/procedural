@@ -60,7 +60,9 @@ lo deja encerrado afuera si retrocede al pasillo.
 
 El cronometro arranca en cuanto hay algo que cronometrar: si la habitacion de entrada tiene bloques, al activarse su encuentro; si esta vacia, la ronda queda en `STANDBY` y arranca recien cuando el jugador la deja. Una sala en la que se pelea siempre corre con la ronda activa, porque en `STANDBY` los disparos, los fallos y el daño no se contabilizan. Se detiene al resolver la ultima habitacion, la que cierra la cadena de conexiones (`Entrada -> ... -> Salida`): al pisarla si no tiene objetivos, o al destruir el ultimo si los tiene. La ronda termina con motivo `exit_reached`.
 
-Los bloques JSON admiten color, velocidad individual y múltiples oleadas. Al destruir el último objetivo de una oleada aparece la siguiente; el bloque se cierra al completar todas. Los bloques spawnean ventanas estilo Windows, que se rompen disparando a la X, a un boton o a un cartel.
+El contenido de una sala se agrupa en dos niveles. Las **oleadas de sala** son grupos de bloques que aparecen juntos: la siguiente no llega hasta que se limpia la anterior, asi que una sala puede atacar de frente y despues por los costados. Las **capas** son tandas de ventanas dentro de un bloque: al romper la ultima aparece la siguiente y el bloque se cierra al terminarlas todas.
+
+Cada capa declara que familia de ventana trae, y cada familia cobra algo distinto: la publicidad se llama a si misma mientras el contador de SKIP no deja cerrarla, el firewall protege a las demas hasta desactivarlo, el error critico baraja sus botones cada vez que se falla, la descarga paga mas si se la cancela rapido que si se la deja terminar, y la descarga infectada cuelga el bloque entero si llega al final. Disparar a la barra de titulo de cualquier ventana la trae al frente. El detalle esta en [`docs/ventanas.md`](docs/ventanas.md).
 
 El orden jugable se define en `level_designs/level-sequence.json`. Al pisar la ultima habitacion la ronda se cierra y, tres segundos despues, aparece la pantalla de resultados con el desglose del puntaje: desde ahi se reintenta, se avanza al nivel siguiente o se vuelve al menu principal. La espera se configura con `results_delay` en la escena del nivel. Quedarse sin tiempo tambien abre los resultados, marcados como intento fallido y sin la opcion de avanzar. F7 y F8 siguen sirviendo para cambiar de nivel a mano.
 
@@ -93,6 +95,10 @@ Presiona F4 desde el dungeon o el poligono de armas. El menu inicial ofrece nive
 - Con 0 pelotitas aparece un control rojo arriba a la derecha que permite cerrarlo de un disparo.
 - Atravesar un bloque resta 15 HP por cruce.
 - TAB abre o cierra la configuracion y pausa la prueba.
+
+Cada bloque declara ademas cuantas capas tiene, que familia de ventana reparte y en que oleada aparece. Con eso el laboratorio prueba lo mismo que permite el formato de nivel: poner el bloque frontal en la oleada 1 y los laterales en la 2 y la 3 reproduce el ataque escalonado sin escribir un JSON.
+
+Los presets cubren una mecanica cada uno: tres oleadas, capas que se pelan de a poco, publicidad que se llama sola, descarga rapida contra lenta, descarga infectada en un bloque movil, firewall y una pared de ventanas apiladas para probar el traer al frente. `Mezcla` reparte una familia de cada una en la misma capa, salvo la infectada, que colgaria el bloque antes de que se vea el resto.
 
 ## Puntuacion
 
@@ -159,6 +165,16 @@ durante la partida.
 
 El diseño, las alternativas que se descartaron y lo que falta estan en
 [`docs/gdd_atractivo_y_progresion_ANEXO_menus.md`](docs/gdd_atractivo_y_progresion_ANEXO_menus.md).
+
+Pruebas de las oleadas de sala y de las familias de ventana:
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/room_waves_smoke_test.gd`
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/window_families_smoke_test.gd`
+
+Vista de las familias, en `.godot/window-families.png` y `.godot/window-download-confirm.png`:
+
+`Godot_v4.7-stable_win64_console.exe --path . res://tests/window_families_visual_smoke_test.tscn`
 
 Prueba del flujo de menus:
 

@@ -4,7 +4,7 @@
 (() => {
   "use strict";
 
-  const SCHEMA_VERSION = 8;
+  const SCHEMA_VERSION = 9;
 
   const ROOM_PRESETS = {
     small: { label: "Habitación pequeña", width: 14, depth: 14 },
@@ -30,10 +30,11 @@
   // que coincidir con WINDOW_TYPES en scripts/levels/level_definition_loader.gd.
   const WINDOW_TYPES = {
     normal: { label: "Ventana normal", glyph: "N", color: "#2ed5c5", status: "ready", hint: "Se cierra al acertarle a su control." },
-    popup: { label: "Popup", glyph: "P", color: "#8ab4ff", status: "planned", hint: "Se multiplica si queda abierta demasiado tiempo." },
-    download: { label: "Descarga", glyph: "D", color: "#6ee7a8", status: "planned", hint: "Penaliza cuando su barra llega al final." },
-    firewall: { label: "Firewall", glyph: "F", color: "#f4bc59", status: "planned", hint: "Protege a las demas hasta que se lo desactiva." },
-    "critical-error": { label: "Error critico", glyph: "!", color: "#ff6577", status: "planned", hint: "Castiga los disparos en la zona equivocada." },
+    popup: { label: "Popup", glyph: "P", color: "#8ab4ff", status: "ready", hint: "Se multiplica si queda abierta demasiado tiempo." },
+    download: { label: "Descarga", glyph: "D", color: "#6ee7a8", status: "ready", hint: "Penaliza cuando su barra llega al final." },
+    "infected-download": { label: "Descarga infectada", glyph: "D!", color: "#ff6577", status: "ready", hint: "Si termina, cuelga el bloque entero en pantalla azul." },
+    firewall: { label: "Firewall", glyph: "F", color: "#f4bc59", status: "ready", hint: "Protege a las demas hasta que se lo desactiva." },
+    "critical-error": { label: "Error critico", glyph: "!", color: "#ff6577", status: "ready", hint: "Castiga los disparos en la zona equivocada." },
     confirm: { label: "Confirmacion", glyph: "OK", color: "#c9a6ff", status: "planned", hint: "Pide acertar sus controles en orden." },
     ad: { label: "Publicidad", glyph: "AD", color: "#f08bd0", status: "planned", hint: "Tapa parcialmente a otros objetivos." },
     "fake-close": { label: "Falsa X", glyph: "X?", color: "#ff9f6b", status: "planned", hint: "Esconde su control real entre senuelos." },
@@ -71,6 +72,10 @@
     ammoReward: { min: 1, max: 999, fallback: 30 },
     movementSpeed: { min: 0.05, max: 5, fallback: 0.65 },
     wave: { min: 1, max: 64, fallback: 5 },
+    // Oleadas por sala. El tope no es tecnico: una sala con mas de esto deja de
+    // ser un encuentro y pasa a ser una prueba de paciencia. Tiene que coincidir
+    // con MAX_ROOM_WAVES en scripts/levels/level_definition_loader.gd.
+    roomWaves: { min: 1, max: 8, fallback: 1 },
     windowCount: { min: 0, max: 64, fallback: 1 },
     facing: { min: 0, max: 359, fallback: 0 }
   };
@@ -94,14 +99,26 @@
   const blankTextures = (source = {}) => Object.fromEntries(Object.keys(TEXTURE_SLOTS)
     .map((slot) => [slot, typeof source[slot] === "string" ? source[slot] : ""]));
 
-  const blankBlock = () => ({ enabled: false, movement: "static", movementSpeed: 0.65, color: "#2ed5c5", waves: [] });
+  const blankBlock = () => ({ enabled: false, movement: "static", movementSpeed: 0.65, color: "#2ed5c5", layers: [] });
 
-  /** Una oleada declara cuantas ventanas de cada tipo aparecen a la vez. */
-  const blankWave = (count = LIMITS.wave.fallback) => ({
+  /**
+   * Una capa declara cuantas ventanas de cada tipo aparecen a la vez dentro de
+   * un bloque. Limpiarla descubre la siguiente.
+   */
+  const blankLayer = (count = LIMITS.wave.fallback) => ({
     windows: { [DEFAULT_WINDOW_TYPE]: clampInt(count, LIMITS.wave) }
   });
 
-  const waveTotal = (wave) => Object.values(wave?.windows || {})
+  /**
+   * Una oleada de sala es un grupo de bloques que aparecen juntos. La siguiente
+   * no llega hasta que el jugador limpia esta. Es el nivel de afuera; las capas
+   * son el de adentro.
+   */
+  const blankRoomWave = () => ({
+    blocks: { left: blankBlock(), front: blankBlock(), right: blankBlock() }
+  });
+
+  const layerTotal = (layer) => Object.values(layer?.windows || {})
     .reduce((total, count) => total + (Number(count) || 0), 0);
 
   /**
@@ -111,7 +128,7 @@
    * que la oleada realmente spawnea. El total se recorta al maximo por oleada
    * recortando los tipos desde el final.
    */
-  function normalizeWave(source) {
+  function normalizeLayer(source) {
     const counts = (typeof source === "number" || typeof source === "string")
       ? { [DEFAULT_WINDOW_TYPE]: source }
       : (source?.windows || {});
@@ -166,7 +183,7 @@
       hasCeiling: null,
       ammoReward: blankAmmoReward(),
       textures: blankTextures(),
-      blocks: { left: blankBlock(), front: blankBlock(), right: blankBlock() }
+      waves: [blankRoomWave()]
     };
   }
 
@@ -424,21 +441,37 @@
         color: isHexColor(room.ammoReward?.color) ? room.ammoReward.color : "#f4bc59"
       };
       room.textures = blankTextures(room.textures);
-      room.blocks ||= {};
-      for (const slot of Object.keys(SLOT_LABELS)) {
-        const source = room.blocks[slot] || {};
-        const legacyTargetCount = Math.max(0, Math.round(Number(source.targetCount) || 0));
-        const rawWaves = Array.isArray(source.waves)
-          ? source.waves
-          : (legacyTargetCount > 0 ? [legacyTargetCount] : []);
-        const waves = rawWaves.map(normalizeWave).filter((wave) => waveTotal(wave) > 0);
-        const block = { ...blankBlock(), ...source, waves };
-        block.movementSpeed = clamp(block.movementSpeed, LIMITS.movementSpeed);
-        block.color = isHexColor(block.color) ? block.color : "#2ed5c5";
-        block.movement = block.movement === "opposite" ? "opposite" : "static";
-        delete block.targetCount;
-        room.blocks[slot] = block;
+      // Hasta v8 la sala tenia un solo grupo de bloques y los tres aparecian
+      // juntos: ese grupo es exactamente su primera y unica oleada.
+      if (!Array.isArray(room.waves)) {
+        room.waves = [{ blocks: room.blocks || {} }];
       }
+      delete room.blocks;
+      if (!room.waves.length) room.waves = [blankRoomWave()];
+      room.waves = room.waves.slice(0, LIMITS.roomWaves.max);
+      room.waves = room.waves.map((wave) => {
+        const blocks = wave?.blocks || {};
+        const normalized = {};
+        for (const slot of Object.keys(SLOT_LABELS)) {
+          const source = blocks[slot] || {};
+          const legacyTargetCount = Math.max(0, Math.round(Number(source.targetCount) || 0));
+          // `waves` dentro del bloque era el nombre viejo de las capas.
+          const rawLayers = Array.isArray(source.layers)
+            ? source.layers
+            : (Array.isArray(source.waves)
+              ? source.waves
+              : (legacyTargetCount > 0 ? [legacyTargetCount] : []));
+          const layers = rawLayers.map(normalizeLayer).filter((layer) => layerTotal(layer) > 0);
+          const block = { ...blankBlock(), ...source, layers };
+          block.movementSpeed = clamp(block.movementSpeed, LIMITS.movementSpeed);
+          block.color = isHexColor(block.color) ? block.color : "#2ed5c5";
+          block.movement = block.movement === "opposite" ? "opposite" : "static";
+          delete block.targetCount;
+          delete block.waves;
+          normalized[slot] = block;
+        }
+        return { blocks: normalized };
+      });
     });
     const roomIds = new Set(level.rooms.map((room) => room.id));
     level.connections = level.connections
@@ -484,9 +517,10 @@
     ordered,
     blankTextures,
     blankBlock,
-    blankWave,
-    waveTotal,
-    normalizeWave,
+    blankLayer,
+    blankRoomWave,
+    layerTotal,
+    normalizeLayer,
     blankAmmoReward,
     createEmptyLevel,
     createRoom,

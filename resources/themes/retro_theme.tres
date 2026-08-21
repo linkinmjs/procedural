@@ -1,10 +1,10 @@
-[gd_resource type="Theme" load_steps=7 format=3]
+[gd_resource type="Theme" format=3 uid="uid://bgw5r46xkxqdk"]
 
-[ext_resource type="FontFile" path="res://assets/fonts/tahoma.ttf" id="1_font"]
-[ext_resource type="Texture2D" path="res://assets/textures/ui/retro/button_normal.png" id="2_button"]
-[ext_resource type="Texture2D" path="res://assets/textures/ui/retro/button_pressed.png" id="3_pressed"]
-[ext_resource type="Texture2D" path="res://assets/textures/ui/retro/progress_bg.png" id="4_progress_bg"]
-[ext_resource type="Texture2D" path="res://assets/textures/ui/retro/progress_fill.png" id="5_progress_fill"]
+[ext_resource type="FontFile" uid="uid://ct67kiw41ucgd" path="res://assets/fonts/tahoma.ttf" id="1_font"]
+[ext_resource type="Texture2D" uid="uid://b2xhwrmijoq3v" path="res://assets/textures/ui/retro/button_normal.png" id="2_button"]
+[ext_resource type="Texture2D" uid="uid://coapnj8nahv17" path="res://assets/textures/ui/retro/button_pressed.png" id="3_pressed"]
+[ext_resource type="Texture2D" uid="uid://8ji4aflebsca" path="res://assets/textures/ui/retro/progress_bg.png" id="4_progress_bg"]
+[ext_resource type="Texture2D" uid="uid://jsvcrjusl0f" path="res://assets/textures/ui/retro/progress_fill.png" id="5_progress_fill"]
 
 [sub_resource type="StyleBoxTexture" id="ButtonNormal"]
 content_margin_left = 4.0

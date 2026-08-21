@@ -65,13 +65,27 @@ A la derecha:
 
 La **entrada** es un dato calculado, no un campo. Se entra a cada sala por la pared que la une con la anterior, siguiendo el camino desde el inicio; en la sala de inicio, por la pared que le queda a la espalda del jugador. Cambiar el recorrido reorienta los bloques solo, porque los lados izquierdo, frontal y derecho son relativos a la entrada.
 
-## Ventana del bloque
+## Oleadas, bloques y capas
 
-- **Activo**: apagado, la pared queda libre. Al encenderlo por primera vez arranca con una oleada.
-- **Movimiento** estático o hacia el lado contrario, con su velocidad, y **color**.
-- **Oleadas**: una lista ordenada. Cada oleada declara cuántas ventanas de cada familia aparecen a la vez, con `+` y `−` por familia y un desplegable para sumar otra. Una oleada no puede quedar vacía ni pasar de 64 ventanas.
+Todo esto se edita en la ventana de la sala, sin abrir nada más. Los tres bloques de la oleada elegida se ven al mismo tiempo, así que armar una sala de tres oleadas es elegir pestaña y tocar; antes cada bloque abría su propio diálogo.
 
-Las familias salen de los comportamientos que enumera `docs/gdd_atractivo_y_progresion.md`. Sólo *Ventana normal* está construida; el resto aparece con la etiqueta *pronto*: se guarda en el archivo y el juego la spawnea como ventana normal hasta que exista su comportamiento. Cada bloque cubre su pared completa, de piso a techo, para que no se lo pueda esquivar mientras avanza. Sin ninguna oleada, el bloque se cierra con su propio control.
+**Pestañas de oleada.** Una por oleada, con lo que trae cada una (`2▦ 10▢` son dos bloques y diez ventanas). Al lado, tres botones: `+` agrega una vacía, `⧉` duplica la abierta y `×` la quita. Duplicar es lo que más ahorra: escalonar dificultad suele ser repetir la oleada anterior con una vuelta de tuerca.
+
+Una oleada es un grupo de bloques que aparecen juntos; la siguiente no llega hasta que el jugador limpia la anterior. Una sala siempre tiene al menos una y admite hasta ocho. Las que quedan sin bloques se saltean.
+
+**Los tres bloques.** Cada columna es una pared. El interruptor la enciende, y con ella aparecen movimiento, velocidad y color en una sola fila. **También se enciende y apaga haciendo clic en la pared del plano**, que es lo más rápido cuando ya sabés dónde la querés.
+
+**Capas.** Cada fila es una capa: su número, los chips de las familias que trae, el total y la `×` para quitarla. Al romper la última ventana de una capa aparece la siguiente; el bloque se cierra al terminarlas todas.
+
+- **Clic en un chip** suma una ventana de esa familia. **Clic derecho** resta, y saca la familia cuando llega a cero.
+- **`+`** abre la paleta con las familias que faltan: un clic y entra.
+- **`+ Capa`** agrega una capa copiando la anterior, que casi siempre es lo que se quiere.
+
+Una capa no puede quedar vacía ni pasar de 64 ventanas.
+
+Las familias salen de los comportamientos que enumera `docs/gdd_atractivo_y_progresion.md`. Ya están construidas *Ventana normal*, *Publicidad*, *Firewall*, *Error crítico*, *Descarga* y *Descarga infectada*; el resto aparece con el borde punteado: se guarda en el archivo y el juego la spawnea como ventana normal hasta que exista su comportamiento. Cada bloque cubre su pared completa, de piso a techo, para que no se lo pueda esquivar mientras avanza. Sin ninguna capa, el bloque se cierra con su propio control.
+
+**Forma, volumen y texturas** viven plegados al pie de la ventana: se abren cuando hacen falta y no empujan las oleadas fuera de la pantalla.
 
 ## Plano
 

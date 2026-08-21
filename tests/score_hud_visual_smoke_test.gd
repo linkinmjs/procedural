@@ -74,7 +74,7 @@ func _fake_level(targets: int) -> Dictionary:
 		"startingAmmo": {"magazine": 17, "reserve": 51},
 		"rooms": [{
 			"id": "room-a",
-			"blocks": {"front": {"enabled": true, "waves": [{"windows": {"normal": targets}}]}},
+			"waves": [{"blocks": {"front": {"enabled": true, "layers": [{"windows": {"normal": targets}}]}}}],
 		}],
 	}
 

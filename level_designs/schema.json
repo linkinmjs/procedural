@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://procedural.local/schemas/level-design-v8.json",
+  "$id": "https://procedural.local/schemas/level-design-v9.json",
   "title": "Procedural level design",
   "type": "object",
   "required": [
@@ -17,7 +17,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 8
+      "const": 9
     },
     "id": {
       "type": "string",
@@ -200,7 +200,7 @@
         "movement",
         "movementSpeed",
         "color",
-        "waves"
+        "layers"
       ],
       "properties": {
         "enabled": {
@@ -221,43 +221,11 @@
           "type": "string",
           "pattern": "^#[0-9a-fA-F]{6}$"
         },
-        "waves": {
+        "layers": {
           "type": "array",
+          "description": "Capas de ventanas del bloque. Limpiar una descubre la siguiente; al terminar la ultima el bloque se cierra.",
           "items": {
-            "$ref": "#/$defs/wave"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "wave": {
-      "type": "object",
-      "required": [
-        "windows"
-      ],
-      "properties": {
-        "windows": {
-          "type": "object",
-          "minProperties": 1,
-          "propertyNames": {
-            "enum": [
-              "normal",
-              "popup",
-              "download",
-              "firewall",
-              "critical-error",
-              "confirm",
-              "ad",
-              "fake-close",
-              "task-manager",
-              "corrupt-file",
-              "installer"
-            ]
-          },
-          "additionalProperties": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 64
+            "$ref": "#/$defs/layer"
           }
         }
       },
@@ -278,7 +246,7 @@
         "hasCeiling",
         "ammoReward",
         "textures",
-        "blocks"
+        "waves"
       ],
       "properties": {
         "id": {
@@ -380,25 +348,14 @@
         "textures": {
           "$ref": "#/$defs/textures"
         },
-        "blocks": {
-          "type": "object",
-          "required": [
-            "left",
-            "front",
-            "right"
-          ],
-          "properties": {
-            "left": {
-              "$ref": "#/$defs/block"
-            },
-            "front": {
-              "$ref": "#/$defs/block"
-            },
-            "right": {
-              "$ref": "#/$defs/block"
-            }
-          },
-          "additionalProperties": false
+        "waves": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "description": "Oleadas de la sala, en orden. Una sala sin enemigos declara una sola oleada con los tres bloques apagados.",
+          "items": {
+            "$ref": "#/$defs/roomWave"
+          }
         }
       },
       "additionalProperties": false
@@ -464,6 +421,71 @@
       ],
       "default": "clear-day",
       "description": "Cielo del nivel. Coloca tambien la luz direccional para que la iluminacion acompanie."
+    },
+    "layer": {
+      "type": "object",
+      "required": [
+        "windows"
+      ],
+      "properties": {
+        "windows": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "enum": [
+              "normal",
+              "popup",
+              "download",
+              "infected-download",
+              "firewall",
+              "critical-error",
+              "confirm",
+              "ad",
+              "fake-close",
+              "task-manager",
+              "corrupt-file",
+              "installer"
+            ]
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Un grupo de ventanas que aparece a la vez dentro de un bloque."
+    },
+    "roomWave": {
+      "type": "object",
+      "required": [
+        "blocks"
+      ],
+      "description": "Grupo de bloques que aparecen juntos. La siguiente oleada no llega hasta que se limpia esta.",
+      "properties": {
+        "blocks": {
+          "type": "object",
+          "required": [
+            "left",
+            "front",
+            "right"
+          ],
+          "properties": {
+            "left": {
+              "$ref": "#/$defs/block"
+            },
+            "front": {
+              "$ref": "#/$defs/block"
+            },
+            "right": {
+              "$ref": "#/$defs/block"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

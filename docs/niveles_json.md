@@ -57,7 +57,8 @@ El cronómetro no corre mientras el jugador sigue en la sala `start`: arranca al
 
 - `LevelDefinitionLoader` valida la versión, las referencias y los valores del JSON, y resuelve los valores heredados (altura, techo, texturas, ancho de pasillo).
 - `PlayableLevel` construye geometría, pasillos, iluminación, jugador y ronda.
-- `ConfiguredRoomEncounter3D` interpreta los bloques de cada sala y los activa una sola vez.
+- `ConfiguredRoomEncounter3D` interpreta las oleadas de cada sala y las despliega en orden: una empieza cuando se limpia la anterior.
+- `WindowCatalog` traduce la familia declarada en cada capa a la escena que se instancia.
 
 ## La entrada es un valor derivado
 
@@ -65,16 +66,42 @@ El cronómetro no corre mientras el jugador sigue en la sala `start`: arranca al
 
 Cambiar el recorrido del nivel reorienta los bloques `left`, `front` y `right` en consecuencia, sin tocar su configuración.
 
-## Configuración de bloques
+## Oleadas, bloques y capas
+
+El contenido de una sala se agrupa en dos niveles, y no se llaman igual a propósito:
+
+```
+sala
+└── waves[]            oleadas: grupos de bloques que aparecen juntos
+    └── blocks{}         left / front / right
+        └── layers[]       capas: tandas de ventanas dentro del bloque
+            └── windows{}    familia: cantidad
+```
+
+- Una **oleada de sala** aparece entera. La siguiente no llega hasta que se cierran todos sus bloques. Las puertas se sellan una sola vez, al entrar, y se abren al terminar la última oleada.
+- Una **capa** es una tanda de ventanas dentro de un bloque. Al romper la última aparece la siguiente; al terminar la última capa el bloque se cierra.
+
+Así se declara el ejemplo de una sala que ataca de frente y después por los costados: la primera oleada trae el bloque frontal con dos capas de cinco, la segunda un lateral con dos capas de cinco, y la tercera el otro lateral con una capa de diez.
+
+Una oleada sin bloques habilitados se saltea, en vez de dejar la sala esperando un cierre que no va a llegar. Lo mismo pasa cuando una descarga infectada cuelga un bloque: esa pared queda ocupada por la pantalla de error, así que lo que las oleadas siguientes ponían ahí no aparece, y si una oleada se queda sin nada por eso, se saltea también. Una sala tolera hasta `MAX_ROOM_WAVES` (8) oleadas.
 
 Cada bloque usa el siguiente contrato:
 
+- `enabled`: si el bloque existe en esa oleada.
 - `movement`: `static` u `opposite`.
 - `movementSpeed`: velocidad en metros por segundo, entre 0.05 y 5.
 - `color`: color hexadecimal aplicado al panel y a sus esferas normales.
-- `waves`: lista ordenada de cantidades. Por ejemplo, `[5, 10]` genera cinco objetivos y, al destruir el último, genera diez más.
+- `layers`: lista ordenada de capas. Cada una declara `windows`, un mapa de familia a cantidad: `{"normal": 4, "firewall": 1}` son cinco ventanas, una de ellas firewall.
 
-El bloque se elimina solamente al completar su última oleada. Una lista vacía conserva el comportamiento de bloque sin objetivos, con el control rojo de cierre.
+Una lista de capas vacía conserva el comportamiento de bloque sin objetivos, con el control rojo de cierre.
+
+### Familias de ventana
+
+Las familias y su comportamiento están en [`ventanas.md`](ventanas.md). En la herramienta se editan con chips: un clic suma una ventana de esa familia, clic derecho resta. Las que todavía no tienen escena propia se juegan como `normal`: el nivel las declara igual y empiezan a portarse distinto el día que su escena exista, sin tocar el archivo.
+
+### Migración desde v8
+
+Hasta v8 la sala tenía un único grupo de bloques y los tres aparecían juntos; dentro del bloque, lo que hoy son `layers` se llamaba `waves`. `LevelDefinitionLoader` migra ese formato al cargar: el grupo único pasa a ser la primera y única oleada. La migración es en memoria, así que un archivo viejo se juega sin convertirlo, y la herramienta lo guarda ya en v9 la primera vez que se lo edita.
 
 El panel cubre su pared entera menos `WALL_MARGIN` (0,4 m) a lo ancho y a lo alto, de modo que no queda hueco por el que colarse mientras avanza hacia el lado contrario.
 

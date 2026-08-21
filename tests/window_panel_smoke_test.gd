@@ -20,7 +20,9 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	var bodies := window.get_hit_bodies()
-	if bodies.size() != 2:
+	# Dos controles mas la barra de titulo, que desde ahora tambien es zona: sirve
+	# para traer la ventana al frente.
+	if bodies.size() != 3:
 		_fail("The shutdown window should build one hit body per zone, got %d." % bodies.size())
 		return
 	var zone_ids: Array[String] = []
@@ -30,7 +32,7 @@ func _run() -> void:
 			return
 		zone_ids.append(hit_body.zone_id)
 	zone_ids.sort()
-	var expected_ids: Array[String] = ["close", "finish"]
+	var expected_ids: Array[String] = ["close", "finish", "raise"]
 	if zone_ids != expected_ids:
 		_fail("Unexpected zone ids: %s" % str(zone_ids))
 		return
@@ -73,8 +75,10 @@ func _run() -> void:
 	if close_zones.is_empty():
 		_fail("The close window should expose at least one zone.")
 		return
+	# Todo control de esta ventana cierra; la barra de titulo no es un control,
+	# es la que la trae al frente.
 	for zone in close_zones:
-		if zone.zone_id != "close":
+		if zone.zone_id != "close" and zone.zone_id != WindowPanel3D.RAISE_ZONE:
 			_fail("Every close window zone should use the close id, got %s." % zone.zone_id)
 			return
 	close_zones.back().Hit_Successful(1.0)
@@ -82,17 +86,32 @@ func _run() -> void:
 	if is_instance_valid(close_window):
 		_fail("Shooting the Cerrar button should close the window.")
 		return
-	var download_window := DOWNLOAD_WINDOW_SCENE.instantiate() as WindowPanel3D
+	# La descarga no se cancela de un tiro: el primero abre la confirmacion y
+	# recien el segundo la cierra. Ni la X ni el boton se saltean ese paso.
+	var download_window := DOWNLOAD_WINDOW_SCENE.instantiate() as DownloadWindow
 	root.add_child(download_window)
 	await process_frame
 	await process_frame
-	if download_window.find_hit_body("close") == null or download_window.find_hit_body("cancel") == null:
-		_fail("The download window should expose a close and a cancel zone.")
+	if download_window.find_hit_body("cancel") == null:
+		_fail("The download window should expose its cancel zones.")
+		return
+	if download_window.find_hit_body(DownloadWindow.CONFIRM_ZONE) != null:
+		_fail("The confirmation should not be shootable before it is asked for.")
 		return
 	download_window.find_hit_body("cancel").Hit_Successful(1.0)
 	await process_frame
+	await process_frame
+	if not is_instance_valid(download_window):
+		_fail("Cancelling should ask for confirmation instead of closing the window.")
+		return
+	var confirm_body := download_window.find_hit_body(DownloadWindow.CONFIRM_ZONE)
+	if confirm_body == null:
+		_fail("Cancelling should open a confirmation the player can shoot.")
+		return
+	confirm_body.Hit_Successful(1.0)
+	await process_frame
 	if is_instance_valid(download_window):
-		_fail("Shooting the Cancelar button should close the download window.")
+		_fail("Confirming the cancellation should close the download window.")
 		return
 	for template_path in TEMPLATE_SCENES:
 		var template := (load(template_path) as PackedScene).instantiate() as WindowPanel3D

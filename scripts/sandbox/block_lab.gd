@@ -9,6 +9,25 @@ enum RoomShape {
 	CORRIDOR,
 }
 
+## Familias que se pueden probar, en el orden del desplegable. "mezcla" reparte
+## una de cada una para ver como conviven en la misma capa.
+const FAMILY_CHOICES := [
+	{"id": "normal", "label": "Normal"},
+	{"id": "popup", "label": "Publicidad"},
+	{"id": "firewall", "label": "Firewall"},
+	{"id": "critical-error", "label": "Error critico"},
+	{"id": "download", "label": "Descarga"},
+	{"id": "infected-download", "label": "Descarga infectada"},
+	{"id": "mixed", "label": "Mezcla"},
+]
+## La mezcla deja afuera la descarga infectada a proposito: cuelga el bloque
+## entero, asi que repartida al azar arruinaria cualquier otra prueba antes de
+## que se llegue a ver.
+const MIXED_FAMILIES := ["normal", "popup", "firewall", "critical-error", "download"]
+## Oleadas que ofrece el laboratorio. Coincide con el tope del control de la
+## configuracion; para probar mas hace falta un nivel de verdad.
+const MAX_LAB_WAVES := 3
+
 const ROOM_DIMENSIONS := {
 	RoomShape.SMALL: Vector2(14.0, 14.0),
 	RoomShape.LARGE: Vector2(24.0, 18.0),
@@ -18,32 +37,74 @@ const ROOM_DIMENSIONS := {
 const LEVEL_PRESETS := [
 	{"name": "Personalizado"},
 	{
-		"name": "Pequena // tres bloques",
+		"name": "Tres oleadas // frontal, lateral y lateral",
 		"shape": RoomShape.SMALL,
-		"left": {"enabled": true, "targets": 4, "moves": false},
-		"front": {"enabled": true, "targets": 0, "moves": true},
-		"right": {"enabled": true, "targets": 3, "moves": false},
+		"front": {"enabled": true, "targets": 5, "layers": 2, "family": "normal", "wave": 1, "moves": false},
+		"left": {"enabled": true, "targets": 5, "layers": 2, "family": "normal", "wave": 2, "moves": false},
+		"right": {"enabled": true, "targets": 10, "layers": 1, "family": "normal", "wave": 3, "moves": false},
 	},
 	{
-		"name": "Grande // laterales estaticos",
+		"name": "Familias // una de cada una",
 		"shape": RoomShape.LARGE,
-		"left": {"enabled": true, "targets": 6, "moves": false},
-		"front": {"enabled": false, "targets": 0, "moves": false},
-		"right": {"enabled": true, "targets": 6, "moves": false},
+		"left": {"enabled": true, "targets": 4, "layers": 1, "family": "popup", "wave": 1, "moves": false},
+		"front": {"enabled": true, "targets": 5, "layers": 1, "family": "mixed", "wave": 1, "moves": false},
+		"right": {"enabled": true, "targets": 4, "layers": 1, "family": "download", "wave": 1, "moves": false},
 	},
 	{
-		"name": "Pasillo // laterales moviles",
+		"name": "Publicidad // se llama sola",
+		"shape": RoomShape.SMALL,
+		"left": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+		"front": {"enabled": true, "targets": 2, "layers": 1, "family": "popup", "wave": 1, "moves": false},
+		"right": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+	},
+	{
+		"name": "Descarga // rapido paga mas que tarde",
+		"shape": RoomShape.SMALL,
+		"left": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+		"front": {"enabled": true, "targets": 4, "layers": 1, "family": "download", "wave": 1, "moves": false},
+		"right": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+	},
+	{
+		"name": "Descarga infectada // no la dejes terminar",
 		"shape": RoomShape.CORRIDOR,
-		"left": {"enabled": true, "targets": 4, "moves": true},
-		"front": {"enabled": false, "targets": 0, "moves": false},
-		"right": {"enabled": true, "targets": 4, "moves": true},
+		"left": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+		"front": {"enabled": true, "targets": 3, "layers": 3, "family": "infected-download", "wave": 1, "moves": true},
+		"right": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+	},
+	{
+		"name": "Apiladas // la barra las trae al frente",
+		"shape": RoomShape.SMALL,
+		"left": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+		"front": {"enabled": true, "targets": 10, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+		"right": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+	},
+	{
+		"name": "Firewall // hay que desactivarlo primero",
+		"shape": RoomShape.SMALL,
+		"left": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+		"front": {"enabled": true, "targets": 6, "layers": 1, "family": "firewall", "wave": 1, "moves": false},
+		"right": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+	},
+	{
+		"name": "Capas // el bloque se pela de a poco",
+		"shape": RoomShape.SMALL,
+		"left": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+		"front": {"enabled": true, "targets": 4, "layers": 4, "family": "normal", "wave": 1, "moves": false},
+		"right": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+	},
+	{
+		"name": "Pasillo // laterales moviles en dos oleadas",
+		"shape": RoomShape.CORRIDOR,
+		"left": {"enabled": true, "targets": 4, "layers": 1, "family": "normal", "wave": 1, "moves": true},
+		"front": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+		"right": {"enabled": true, "targets": 4, "layers": 1, "family": "normal", "wave": 2, "moves": true},
 	},
 	{
 		"name": "Pequena // cierre frontal",
 		"shape": RoomShape.SMALL,
-		"left": {"enabled": false, "targets": 0, "moves": false},
-		"front": {"enabled": true, "targets": 0, "moves": false},
-		"right": {"enabled": false, "targets": 0, "moves": false},
+		"left": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+		"front": {"enabled": true, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
+		"right": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
 	},
 ]
 
@@ -63,10 +124,15 @@ var room_size := ROOM_DIMENSIONS[RoomShape.SMALL] as Vector2
 var _encounter_spawned := false
 var _configured_blocks: Dictionary = {}
 var _applying_preset := false
+## Oleada que se esta peleando, contando desde 1. Las siguientes esperan a que
+## se limpie esta, igual que en una sala de la campania.
+var _current_wave := 0
+var _pending_blocks: Array[TargetBlock3D] = []
 
 
 func _ready() -> void:
 	_setup_room_options()
+	_setup_family_options()
 	_setup_level_presets()
 	_connect_configuration_changes()
 	_build_room(RoomShape.SMALL)
@@ -109,6 +175,14 @@ func _setup_room_options() -> void:
 	room_shape_option.add_item("Pasillo", RoomShape.CORRIDOR)
 
 
+func _setup_family_options() -> void:
+	for option in [%LeftFamily, %FrontFamily, %RightFamily]:
+		option.clear()
+		for index in FAMILY_CHOICES.size():
+			option.add_item(str(FAMILY_CHOICES[index].label), index)
+		option.select(0)
+
+
 func _setup_level_presets() -> void:
 	preset_option.clear()
 	for index in LEVEL_PRESETS.size():
@@ -122,8 +196,12 @@ func _connect_configuration_changes() -> void:
 	room_shape_option.item_selected.connect(func(_index: int) -> void: _mark_configuration_custom())
 	for checkbox in [%LeftEnabled, %LeftMoves, %FrontEnabled, %FrontMoves, %RightEnabled, %RightMoves]:
 		checkbox.toggled.connect(func(_pressed: bool) -> void: _mark_configuration_custom())
-	for spinbox in [%LeftTargets, %FrontTargets, %RightTargets]:
+	for spinbox in [%LeftTargets, %FrontTargets, %RightTargets,
+			%LeftLayers, %FrontLayers, %RightLayers,
+			%LeftWave, %FrontWave, %RightWave]:
 		spinbox.value_changed.connect(func(_value: float) -> void: _mark_configuration_custom())
+	for option in [%LeftFamily, %FrontFamily, %RightFamily]:
+		option.item_selected.connect(func(_index: int) -> void: _mark_configuration_custom())
 
 
 func _on_preset_selected(index: int) -> void:
@@ -132,16 +210,40 @@ func _on_preset_selected(index: int) -> void:
 	_applying_preset = true
 	var preset: Dictionary = LEVEL_PRESETS[index]
 	room_shape_option.select(preset.shape)
-	_apply_block_preset(%LeftEnabled, %LeftTargets, %LeftMoves, preset.left)
-	_apply_block_preset(%FrontEnabled, %FrontTargets, %FrontMoves, preset.front)
-	_apply_block_preset(%RightEnabled, %RightTargets, %RightMoves, preset.right)
+	_apply_block_preset("Left", preset.left)
+	_apply_block_preset("Front", preset.front)
+	_apply_block_preset("Right", preset.right)
 	_applying_preset = false
 
 
-func _apply_block_preset(enabled: CheckBox, targets: SpinBox, moves: CheckBox, config: Dictionary) -> void:
-	enabled.button_pressed = config.enabled
-	targets.value = config.targets
-	moves.button_pressed = config.moves
+func _apply_block_preset(slot: String, config: Dictionary) -> void:
+	_slot_check(slot, "Enabled").button_pressed = config.enabled
+	_slot_spin(slot, "Targets").value = config.targets
+	_slot_spin(slot, "Layers").value = config.get("layers", 1)
+	_slot_spin(slot, "Wave").value = config.get("wave", 1)
+	_slot_check(slot, "Moves").button_pressed = config.moves
+	var family := str(config.get("family", "normal"))
+	var option := _slot_option(slot)
+	option.select(0)
+	for index in FAMILY_CHOICES.size():
+		if str(FAMILY_CHOICES[index].id) == family:
+			option.select(index)
+			return
+
+
+## Los controles de un slot se nombran por convencion: LeftTargets,
+## FrontLayers y asi. Se buscan por nombre para no repetir tres veces la misma
+## linea con el slot cambiado.
+func _slot_check(slot: String, field: String) -> CheckBox:
+	return get_node("%" + slot + field) as CheckBox
+
+
+func _slot_spin(slot: String, field: String) -> SpinBox:
+	return get_node("%" + slot + field) as SpinBox
+
+
+func _slot_option(slot: String) -> OptionButton:
+	return get_node("%" + slot + "Family") as OptionButton
 
 
 func _mark_configuration_custom() -> void:
@@ -152,10 +254,12 @@ func _mark_configuration_custom() -> void:
 func _apply_configuration() -> void:
 	var shape := room_shape_option.get_selected_id() as RoomShape
 	_configured_blocks = {
-		"left": _read_block_config(%LeftEnabled, %LeftTargets, %LeftMoves),
-		"front": _read_block_config(%FrontEnabled, %FrontTargets, %FrontMoves),
-		"right": _read_block_config(%RightEnabled, %RightTargets, %RightMoves),
+		"left": _read_block_config("Left"),
+		"front": _read_block_config("Front"),
+		"right": _read_block_config("Right"),
 	}
+	_current_wave = 0
+	_pending_blocks.clear()
 	_clear_blocks()
 	_build_room(shape)
 	_reset_player_at_entrance()
@@ -165,12 +269,36 @@ func _apply_configuration() -> void:
 	_set_config_visible(false)
 
 
-func _read_block_config(enabled: CheckBox, targets: SpinBox, moves: CheckBox) -> Dictionary:
+func _read_block_config(slot: String) -> Dictionary:
+	var family_index := maxi(_slot_option(slot).selected, 0)
 	return {
-		"enabled": enabled.button_pressed,
-		"target_count": int(targets.value),
-		"moves": moves.button_pressed,
+		"enabled": _slot_check(slot, "Enabled").button_pressed,
+		"target_count": int(_slot_spin(slot, "Targets").value),
+		"layer_count": int(_slot_spin(slot, "Layers").value),
+		"wave": int(_slot_spin(slot, "Wave").value),
+		"family": str(FAMILY_CHOICES[family_index].id),
+		"moves": _slot_check(slot, "Moves").button_pressed,
 	}
+
+
+## Capas del bloque, ya expandidas a la familia que va en cada lugar. Es el
+## mismo formato que arma el cargador desde el JSON, asi que el laboratorio y
+## la campania ejercitan el mismo camino.
+func build_layers(config: Dictionary) -> Array[PackedStringArray]:
+	var layers: Array[PackedStringArray] = []
+	var per_layer := int(config.get("target_count", 0))
+	if per_layer <= 0:
+		return layers
+	var family := str(config.get("family", "normal"))
+	for _layer_index in int(config.get("layer_count", 1)):
+		var types := PackedStringArray()
+		for target_index in per_layer:
+			if family == "mixed":
+				types.append(MIXED_FAMILIES[target_index % MIXED_FAMILIES.size()])
+			else:
+				types.append(family)
+		layers.append(types)
+	return layers
 
 
 func _build_room(shape: RoomShape) -> void:
@@ -251,22 +379,70 @@ func _on_entry_trigger_body_entered(body: Node3D) -> void:
 func _spawn_configured_blocks() -> void:
 	if _configured_blocks.is_empty():
 		return
+	_start_next_wave()
+
+
+## La oleada que sigue con bloques. Las vacias se saltean: si nadie puso nada en
+## la oleada 2, la 3 no tiene por que quedarse esperando.
+func _start_next_wave() -> void:
+	_current_wave += 1
+	while _current_wave <= MAX_LAB_WAVES:
+		if _spawn_wave(_current_wave):
+			return
+		_current_wave += 1
+	round_controller.add_log(tr("LOG_LAB_CLEARED"), "system")
+
+
+## Devuelve si la oleada puso algun bloque en pie.
+func _spawn_wave(wave: int) -> bool:
 	var width := room_size.x
 	var depth := room_size.y
 	var height := 4.0
 	var center_y := 2.4
-	_spawn_block("left", Vector3(-width * 0.5 + 0.65, center_y, 0.0), Vector3(0.0, PI * 0.5, 0.0), Vector3.RIGHT, Vector2(maxf(depth - 3.0, 3.0), height), width - 1.3)
-	_spawn_block("front", Vector3(0.0, center_y, -depth * 0.5 + 0.65), Vector3.ZERO, Vector3.BACK, Vector2(maxf(width - 3.0, 3.0), height), depth - 1.3)
-	_spawn_block("right", Vector3(width * 0.5 - 0.65, center_y, 0.0), Vector3(0.0, -PI * 0.5, 0.0), Vector3.LEFT, Vector2(maxf(depth - 3.0, 3.0), height), width - 1.3)
+	_spawn_block(wave, "left", Vector3(-width * 0.5 + 0.65, center_y, 0.0), Vector3(0.0, PI * 0.5, 0.0), Vector3.RIGHT, Vector2(maxf(depth - 3.0, 3.0), height), width - 1.3)
+	_spawn_block(wave, "front", Vector3(0.0, center_y, -depth * 0.5 + 0.65), Vector3.ZERO, Vector3.BACK, Vector2(maxf(width - 3.0, 3.0), height), depth - 1.3)
+	_spawn_block(wave, "right", Vector3(width * 0.5 - 0.65, center_y, 0.0), Vector3(0.0, -PI * 0.5, 0.0), Vector3.LEFT, Vector2(maxf(depth - 3.0, 3.0), height), width - 1.3)
+	if _pending_blocks.is_empty():
+		return false
+	if _has_later_wave(wave):
+		round_controller.add_log(tr("LOG_ROOM_WAVE").format({
+			"room": tr("LOG_LAB_ROOM"),
+			"wave": wave,
+			"total": _declared_wave_count(),
+		}), "system")
+	return true
 
 
-func _spawn_block(slot: String, block_position: Vector3, block_rotation: Vector3, direction: Vector3, size: Vector2, distance: float) -> void:
+## Cuantas oleadas declaro la configuracion. Es la mayor de las que pidio algun
+## bloque habilitado, no el tope del control.
+func _declared_wave_count() -> int:
+	var highest := 0
+	for slot in _configured_blocks:
+		var config: Dictionary = _configured_blocks[slot]
+		if bool(config.get("enabled", false)) and not build_layers(config).is_empty():
+			highest = maxi(highest, int(config.get("wave", 1)))
+	return maxi(highest, 1)
+
+
+func _has_later_wave(wave: int) -> bool:
+	return _declared_wave_count() > wave
+
+
+func _on_lab_block_closed(block: TargetBlock3D) -> void:
+	_pending_blocks.erase(block)
+	if _pending_blocks.is_empty():
+		call_deferred("_start_next_wave")
+
+
+func _spawn_block(wave: int, slot: String, block_position: Vector3, block_rotation: Vector3, direction: Vector3, size: Vector2, distance: float) -> void:
 	var config: Dictionary = _configured_blocks.get(slot, {})
-	if config.is_empty() or not config.enabled:
+	if config.is_empty() or not config.enabled or int(config.get("wave", 1)) != wave:
 		return
 	var block := TARGET_BLOCK_SCENE.instantiate() as TargetBlock3D
 	block.block_label = "%s block" % slot
-	block.target_count = config.target_count
+	var layers := build_layers(config)
+	block.layers = layers
+	block.target_count = layers[0].size() if not layers.is_empty() else 0
 	block.moves_to_opposite_side = config.moves
 	block.movement_speed = moving_block_speed
 	block.travel_distance = maxf(distance, 0.0)
@@ -275,8 +451,23 @@ func _spawn_block(slot: String, block_position: Vector3, block_rotation: Vector3
 	block.block_size = size
 	block.position = block_position
 	block.rotation = block_rotation
+	block.closed.connect(_on_lab_block_closed)
+	_pending_blocks.append(block)
 	blocks_container.add_child(block)
 	round_controller.add_log(tr("LOG_BLOCK_DEPLOYED").format({"slot": slot.to_upper()}), "info")
+	round_controller.add_log(tr("LOG_LAB_BLOCK_RECIPE").format({
+		"family": _family_label(str(config.get("family", "normal"))).to_upper(),
+		"layers": layers.size(),
+		"targets": layers[0].size() if not layers.is_empty() else 0,
+	}), "info")
+
+
+## Nombre legible de una familia, para el registro.
+func _family_label(family: String) -> String:
+	for choice in FAMILY_CHOICES:
+		if str(choice.id) == family:
+			return str(choice.label)
+	return family
 
 
 func _clear_blocks() -> void:

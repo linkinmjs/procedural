@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 8,
+  "schemaVersion": 9,
   "id": "level-1787164129302",
   "name": "Nivel-1",
   "description": "",
@@ -56,29 +56,33 @@
         "door": "",
         "block": ""
       },
-      "blocks": {
-        "left": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
-        },
-        "front": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
-        },
-        "right": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            }
+          }
         }
-      }
+      ]
     },
     {
       "id": "49a0da1a-0443-4af3-ac43-fd0c100b96a9",
@@ -112,50 +116,71 @@
         "door": "",
         "block": ""
       },
-      "blocks": {
-        "left": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
-        },
-        "front": {
-          "enabled": true,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": [
-            {
-              "windows": {
-                "normal": 10
-              }
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
             },
-            {
-              "windows": {
-                "normal": 5
-              }
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 5,
+                    "infected-download": 1
+                  }
+                }
+              ]
             },
-            {
-              "windows": {
-                "normal": 1
-              }
-            },
-            {
-              "windows": {
-                "normal": 10
-              }
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
             }
-          ]
+          }
         },
-        "right": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 6
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            }
+          }
         }
-      }
+      ]
     },
     {
       "id": "bd70533a-e8c7-4ada-ad2a-bea69f4fdffe",
@@ -189,29 +214,33 @@
         "door": "",
         "block": ""
       },
-      "blocks": {
-        "left": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
-        },
-        "front": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
-        },
-        "right": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            }
+          }
         }
-      }
+      ]
     }
   ],
   "connections": [

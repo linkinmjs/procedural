@@ -87,14 +87,14 @@ func _level_bonus_ceiling(level_data: Dictionary) -> int:
 			+ settings.level_perfect_bonus
 
 
-## Cuantos objetivos spawnea la sala en total, sumando bloques y oleadas.
+## Cuantos objetivos spawnea la sala en total, sumando sus oleadas, los bloques
+## de cada una y las capas de cada bloque. El techo del nivel sale de aca, asi
+## que tiene que contar todo lo que el jugador va a poder romper.
 static func _count_room_targets(room: Dictionary) -> int:
 	var total := 0
-	var blocks: Dictionary = room.get("blocks", {}) as Dictionary
-	for slot in blocks:
-		var block: Dictionary = blocks[slot] as Dictionary
-		if not bool(block.get("enabled", false)):
-			continue
-		for count in LevelDefinitionLoader.get_wave_counts(block):
-			total += count
+	for wave in LevelDefinitionLoader.get_room_waves(room):
+		var blocks := LevelDefinitionLoader.get_wave_blocks(wave)
+		for slot in blocks:
+			for layer in LevelDefinitionLoader.get_block_layers(blocks[slot]):
+				total += layer.size()
 	return total

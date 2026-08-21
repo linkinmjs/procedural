@@ -32,13 +32,20 @@ var wall_height := 6.0
 ## se apunta comodo, asi que el bloque se recorta acá y deja el resto libre.
 var max_block_height := 6.0
 var entry_wall := "south"
-var blocks_config: Dictionary = {}
+## Oleadas declaradas por la sala, en orden. Cada una es un grupo de bloques que
+## aparecen juntos; la siguiente no llega hasta que se limpia la anterior.
+var waves: Array[Dictionary] = []
 var movement_speed := 0.65
 var crossing_damage := 15.0
 var activated := false
 var cleared := false
 
 var _pending_blocks: Array[TargetBlock3D] = []
+var _current_wave_index := -1
+## Paredes con un bloque colgado por una descarga infectada. Esa pared queda
+## ocupada por la pantalla de error, asi que las oleadas siguientes no ponen nada
+## ahi. Las otras paredes siguen su curso: se cayo ese bloque, no la sala.
+var _crashed_slots: Dictionary = {}
 
 
 func configure(room: Dictionary) -> void:
@@ -46,7 +53,7 @@ func configure(room: Dictionary) -> void:
 	room_label = str(room.get("name", room_id))
 	room_size = Vector2(float(room.size.width), float(room.size.depth))
 	entry_wall = str(room.entry.wall)
-	blocks_config = (room.blocks as Dictionary).duplicate(true)
+	waves = LevelDefinitionLoader.get_room_waves(room.duplicate(true))
 
 
 func _ready() -> void:
@@ -75,23 +82,68 @@ func activate() -> void:
 	var controller := _get_round_controller()
 	if controller != null:
 		controller.add_log(tr("LOG_ENTERED").format({"room": room_label.to_upper()}), "system")
-	for slot in ["left", "front", "right"]:
-		var config: Dictionary = blocks_config.get(slot, {})
-		if bool(config.get("enabled", false)):
-			_spawn_block(slot, config)
-	if _pending_blocks.is_empty():
+	# Las puertas se sellan por la sala entera, no por oleada: al jugador se lo
+	# encierra una vez y sale cuando termino con todas.
+	if not _has_any_block():
 		_mark_cleared()
 		return
 	encounter_started.emit(self)
+	_start_next_wave()
+
+
+## Si alguna oleada trae al menos un bloque habilitado. Una sala declarada pero
+## vacia se limpia al entrar, igual que antes.
+func _has_any_block() -> bool:
+	for wave in waves:
+		if not LevelDefinitionLoader.get_wave_blocks(wave).is_empty():
+			return true
+	return false
+
+
+## Arranca la proxima oleada que tenga bloques. Las vacias se saltean en vez de
+## quedarse esperando un cierre que no va a llegar.
+func _start_next_wave() -> void:
+	_current_wave_index += 1
+	while _current_wave_index < waves.size():
+		var blocks := _available_blocks(waves[_current_wave_index])
+		if not blocks.is_empty():
+			_spawn_wave(blocks)
+			return
+		_current_wave_index += 1
+	_mark_cleared()
+
+
+## Los bloques de la oleada que todavia tienen donde aparecer. Una pared colgada
+## esta ocupada por su pantalla de error, asi que lo que la oleada mandaba ahi no
+## llega. Si por eso la oleada queda sin nada, se saltea: sin este filtro la sala
+## esperaba el cierre de bloques que nunca iban a existir y dejaba al jugador
+## encerrado.
+func _available_blocks(wave: Dictionary) -> Dictionary:
+	var blocks := LevelDefinitionLoader.get_wave_blocks(wave)
+	for slot in _crashed_slots:
+		blocks.erase(slot)
+	return blocks
+
+
+func _spawn_wave(blocks: Dictionary) -> void:
+	var controller := _get_round_controller()
+	if controller != null and waves.size() > 1:
+		controller.add_log(tr("LOG_ROOM_WAVE").format({
+			"room": room_label.to_upper(),
+			"wave": _current_wave_index + 1,
+			"total": waves.size(),
+		}), "system")
+	for slot in blocks:
+		_spawn_block(str(slot), blocks[slot])
 
 
 func _spawn_block(slot: String, config: Dictionary) -> void:
 	var absolute_wall: String = RELATIVE_WALLS[entry_wall][slot]
 	var block := TARGET_BLOCK_SCENE.instantiate() as TargetBlock3D
 	block.block_label = "%s // %s" % [room_label, slot]
-	var configured_waves := LevelDefinitionLoader.get_wave_counts(config)
-	block.waves = configured_waves
-	block.target_count = configured_waves[0] if not configured_waves.is_empty() else 0
+	var configured_layers := LevelDefinitionLoader.get_block_layers(config)
+	block.layers = configured_layers
+	block.target_count = configured_layers[0].size() if not configured_layers.is_empty() else 0
 	block.block_color = Color.from_string(str(config.get("color", "#2ed5c5")), Color(0.08, 0.78, 1.0, 1.0))
 	block.moves_to_opposite_side = str(config.get("movement", "static")) == "opposite"
 	block.movement_speed = float(config.get("movementSpeed", movement_speed))
@@ -103,14 +155,43 @@ func _spawn_block(slot: String, config: Dictionary) -> void:
 	block.block_size = wall_setup.size
 	block.travel_distance = wall_setup.distance
 	block.closed.connect(_on_block_closed)
+	block.crashed.connect(_on_block_crashed.bind(slot))
 	_pending_blocks.append(block)
 	add_child(block)
 
 
+## Un bloque colgado deja su pared fuera de juego. Lo que sigue en esa pared no
+## aparece —la pantalla de error se queda ahi—, pero las otras paredes siguen
+## trayendo lo suyo: se cayo un bloque, no la sala.
+func _on_block_crashed(_block: TargetBlock3D, slot: String) -> void:
+	if _crashed_slots.has(slot):
+		return
+	_crashed_slots[slot] = true
+	if not _slot_appears_later(slot):
+		return
+	var controller := _get_round_controller()
+	if controller != null:
+		controller.add_log(tr("LOG_SLOT_DISABLED").format({
+			"room": room_label.to_upper(),
+			"slot": slot.to_upper(),
+		}), "danger")
+
+
+## Si esa pared todavia tenia algo pendiente en alguna oleada por venir. Solo
+## entonces vale avisar que quedo bloqueada.
+func _slot_appears_later(slot: String) -> bool:
+	for index in range(_current_wave_index + 1, waves.size()):
+		if LevelDefinitionLoader.get_wave_blocks(waves[index]).has(slot):
+			return true
+	return false
+
+
+## Cerrar el ultimo bloque de la oleada no limpia la sala: descubre la siguiente.
+## La sala se limpia cuando ya no quedan oleadas.
 func _on_block_closed(block: TargetBlock3D) -> void:
 	_pending_blocks.erase(block)
 	if _pending_blocks.is_empty():
-		_mark_cleared()
+		call_deferred("_start_next_wave")
 
 
 func _mark_cleared() -> void:

@@ -144,6 +144,21 @@ custom_minimum_size = Vector2(145, 0)
 layout_mode = 2
 text = "PELOTITAS"
 
+[node name="Layers" type="Label" parent="ConfigInterface/ConfigPanel/Margin/VBox/Columns"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Capas"
+
+[node name="Family" type="Label" parent="ConfigInterface/ConfigPanel/Margin/VBox/Columns"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Familia"
+
+[node name="Wave" type="Label" parent="ConfigInterface/ConfigPanel/Margin/VBox/Columns"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Oleada"
+
 [node name="Movement" type="Label" parent="ConfigInterface/ConfigPanel/Margin/VBox/Columns"]
 layout_mode = 2
 text = "MOVIMIENTO"
@@ -164,6 +179,29 @@ custom_minimum_size = Vector2(145, 0)
 layout_mode = 2
 max_value = 12.0
 value = 4.0
+allow_greater = false
+
+[node name="LeftLayers" type="SpinBox" parent="ConfigInterface/ConfigPanel/Margin/VBox/LeftRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+min_value = 1.0
+max_value = 4.0
+value = 1.0
+allow_greater = false
+
+[node name="LeftFamily" type="OptionButton" parent="ConfigInterface/ConfigPanel/Margin/VBox/LeftRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+
+[node name="LeftWave" type="SpinBox" parent="ConfigInterface/ConfigPanel/Margin/VBox/LeftRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+min_value = 1.0
+max_value = 3.0
+value = 1.0
 allow_greater = false
 
 [node name="LeftMoves" type="CheckBox" parent="ConfigInterface/ConfigPanel/Margin/VBox/LeftRow"]
@@ -188,6 +226,29 @@ layout_mode = 2
 max_value = 12.0
 allow_greater = false
 
+[node name="FrontLayers" type="SpinBox" parent="ConfigInterface/ConfigPanel/Margin/VBox/FrontRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+min_value = 1.0
+max_value = 4.0
+value = 1.0
+allow_greater = false
+
+[node name="FrontFamily" type="OptionButton" parent="ConfigInterface/ConfigPanel/Margin/VBox/FrontRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+
+[node name="FrontWave" type="SpinBox" parent="ConfigInterface/ConfigPanel/Margin/VBox/FrontRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+min_value = 1.0
+max_value = 3.0
+value = 1.0
+allow_greater = false
+
 [node name="FrontMoves" type="CheckBox" parent="ConfigInterface/ConfigPanel/Margin/VBox/FrontRow"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -210,6 +271,29 @@ custom_minimum_size = Vector2(145, 0)
 layout_mode = 2
 max_value = 12.0
 value = 3.0
+allow_greater = false
+
+[node name="RightLayers" type="SpinBox" parent="ConfigInterface/ConfigPanel/Margin/VBox/RightRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+min_value = 1.0
+max_value = 4.0
+value = 1.0
+allow_greater = false
+
+[node name="RightFamily" type="OptionButton" parent="ConfigInterface/ConfigPanel/Margin/VBox/RightRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+
+[node name="RightWave" type="SpinBox" parent="ConfigInterface/ConfigPanel/Margin/VBox/RightRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+min_value = 1.0
+max_value = 3.0
+value = 1.0
 allow_greater = false
 
 [node name="RightMoves" type="CheckBox" parent="ConfigInterface/ConfigPanel/Margin/VBox/RightRow"]

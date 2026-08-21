@@ -10,7 +10,7 @@ como material de referencia pero ya no aparecen en ninguna escena jugable.
 | --- | --- |
 | [`resources/weapons/glock.tres`](../resources/weapons/glock.tres) | Cargador, reserva, dano, alcance, animaciones y sonido. |
 | [`resources/weapons/glock_recoil.tres`](../resources/weapons/glock_recoil.tres) | Retroceso de camara e imprecision dinamica. |
-| [`scenes/weapons/glock_view_model.tscn`](../scenes/weapons/glock_view_model.tscn) | Modelo en primera persona, con corredera, cargador y fogonazo. |
+| [`scenes/weapons/glock_view_model.tscn`](../scenes/weapons/glock_view_model.tscn) | Modelo en primera persona, con corredera, cargador, gatillo, fogonazo y eyector de casquillos. |
 | [`resources/animations/glock_animation.tres`](../resources/animations/glock_animation.tres) | Animaciones `Active`, `Shoot`, `Reload`, `De-Activate`, `Drop`, `OOA` y `Melee`. |
 | [`scenes/weapons/glock_ammo_pickup.tscn`](../scenes/weapons/glock_ammo_pickup.tscn) | Caja de municion del poligono de armas: suma 10 balas a la reserva. |
 | [`resources/audio/glock_shoot.tres`](../resources/audio/glock_shoot.tres) | Randomizador de los tres samples de disparo. |
@@ -50,6 +50,25 @@ FOV. El comportamiento imita al Counter-Strike 1.6:
 
 Un arma sin `RecoilProfile` dispara como antes: sin patada y con el
 `Spray_Profile` clasico si lo tiene.
+
+## Animaciones del ciclo de fuego
+
+La duracion de `Shoot` (0.14 s) es la cadencia del arma y la de `Reload`
+(1.7 s) el tiempo real de recarga: `calculate_reload()` recien rellena el
+cargador cuando la animacion termina, asi que alargar o acortar estas
+animaciones cambia el gameplay.
+
+- **Shoot**: el gatillo se aprieta, la corredera pega el viaje completo hacia
+  atras en 0.02 s (expone el canon), queda un instante retenida y vuelve sola
+  como resorte. El arma entera patea hacia arriba y atras con un micro-roll y
+  se asienta. Un method track llama a `restart()` del `GPUParticles3D`
+  `CasingEject` del view model, que escupe un casquillo de laton por el puerto
+  de eyeccion (vuelo en espacio mundial, con gravedad y tumbling).
+- **Reload**: el arma se cantea mostrando el brocal, el cargador cae acelerando
+  por gravedad, entra uno nuevo con un golpe de asiento que sacude el arma, la
+  mano de apoyo arrastra la corredera hasta atras (tiron deliberado) y la
+  suelta: vuelve de golpe y el arma recupera la pose.
+- **OOA**: el gatillo se mueve en seco aunque no haya disparo.
 
 ## Pruebas
 

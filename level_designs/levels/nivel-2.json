@@ -328,7 +328,8 @@
       "toRoomId": "8273b11f-8952-472b-9b75-f4fa5de9f073",
       "fromWall": "north",
       "toWall": "south",
-      "width": 3.5
+      "width": 3.5,
+      "waypoints": []
     },
     {
       "id": "46843283-53ee-4520-a21e-f8f119b40aaa",
@@ -336,7 +337,8 @@
       "toRoomId": "390ce68b-efae-4fd3-8c19-ea6f11f60d78",
       "fromWall": "east",
       "toWall": "west",
-      "width": 3.5
+      "width": 3.5,
+      "waypoints": []
     },
     {
       "id": "4ae02a91-c39a-477d-bd5a-1d81845c02c7",
@@ -344,7 +346,8 @@
       "toRoomId": "b37aed15-0a68-4de4-b5de-61151479b93b",
       "fromWall": "south",
       "toWall": "north",
-      "width": 3.5
+      "width": 3.5,
+      "waypoints": []
     }
   ]
 }

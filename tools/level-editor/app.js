@@ -5,10 +5,11 @@
     ROOM_PRESETS, ROLE_LABELS, SKY_LABELS, SLOT_LABELS, WINDOW_TYPES, TEXTURE_SLOTS, WALL_LABELS,
     RELATIVE_WALLS, LIMITS, clamp, clampInt, newId, createEmptyLevel, createRoom, createConnection,
     chooseConnectionWalls, degreesToWall, assignRole, normalizeRoles, resolveEntryWalls, normalizeLevel,
-    corridorPlan, corridorOutline, blankLayer, blankRoomWave, layerTotal
+    corridorPlan, corridorOutline, doorPoint, blankLayer, blankRoomWave, layerTotal
   } = window.LevelFormat;
 
   const STORAGE_KEY = "procedural-map.level-workshop.draft.v3";
+  const FILE_KEY = "procedural-map.level-workshop.file.v1";
   const SLOT_SHORT = { left: "IZQ", front: "FRENTE", right: "DER" };
   const WALL_NAMES = { north: "norte", east: "este", south: "sur", west: "oeste" };
 
@@ -27,6 +28,11 @@
   let dialogWaveIndex = 0;
   let connectSourceId = null;
   let dragState = null;
+  let waypointDrag = null;
+  // Doble click sobre un pasillo, detectado a mano: el primer click arranca el
+  // paneo con setPointerCapture, y con la captura activa el dblclick nativo se
+  // retargetea al svg, ya sin el pasillo como target.
+  let corridorClick = null;
   let panState = null;
   let view = { x: -35, y: -28, width: 70, height: 56 };
   let textureCatalog = [];
@@ -34,6 +40,12 @@
   let saveHandle = null;
   let toastTimer = null;
   let statusTimer = null;
+  // Con el servidor del Workshop (tools/level-editor/serve.js) el editor abre y
+  // guarda directamente en level_designs/levels/ y mantiene la secuencia.
+  // Servido de otra forma, todo eso se esconde y quedan los selectores de antes.
+  let workshopApi = false;
+  let currentFile = localStorage.getItem(FILE_KEY) || "";
+  let dirty = false;
 
   function exampleLevel() {
     const result = createEmptyLevel();
@@ -91,46 +103,127 @@
     texturePacks = packs;
     $("#texture-catalog-status").textContent = textureCatalog.length
       ? ""
-      : "Sin catálogo: serví el repositorio con un servidor local para elegir texturas.";
+      : "Sin catálogo: abrí el editor con workshop.cmd (o un servidor local) para elegir texturas.";
     if (roomDialog.open) renderRoomDialog();
   }
 
-  /** Agrupa las texturas por pack para que el desplegable se lea de un vistazo. */
-  function fillTextureSelect(select, current) {
-    select.replaceChildren();
-    const none = document.createElement("option");
-    none.value = "";
-    none.textContent = "Sin textura";
-    select.append(none);
+  // --- Selector visual de texturas --------------------------------------------
+  // Con 345 texturas un desplegable de nombres no dice nada: cada superficie
+  // muestra su miniatura y abre una grilla con las imágenes reales, que el
+  // servidor sirve desde assets/textures/packs/.
+
+  const textureUrl = (entry) => String(entry?.path ?? "").replace("res://", "/");
+  const textureById = (id) => textureCatalog.find((entry) => String(entry?.id) === id) || null;
+  let pickerSlot = null;
+  // El mismo selector viste una sala o los predeterminados del nivel.
+  let pickerScope = "room";
+  const pickerTextures = () => pickerScope === "level" ? level.defaults.textures : dialogRoom()?.textures;
+
+  /** El botón de una superficie: miniatura y nombre de la textura elegida. */
+  function renderTextureField(button, current) {
+    const entry = textureById(current);
+    const thumb = button.querySelector("img");
+    thumb.hidden = !entry;
+    if (entry) thumb.src = textureUrl(entry);
+    const label = !current ? "Sin textura" : entry ? String(entry.label) : `${current} (fuera del catálogo)`;
+    button.querySelector(".texture-field-name").textContent = label;
+    button.title = `${label} — click para cambiar`;
+  }
+
+  function openTexturePicker(slot, scope = "room") {
+    pickerSlot = slot;
+    pickerScope = scope;
+    $("#texture-dialog-title").textContent = scope === "level"
+      ? `${TEXTURE_SLOTS[slot]} · predeterminada del nivel`
+      : `${TEXTURE_SLOTS[slot]}`;
+    $("#texture-search").value = "";
+    renderTexturePicker();
+    $("#texture-dialog").showModal();
+  }
+
+  function applyTexture(id) {
+    const textures = pickerTextures();
+    if (textures && pickerSlot) {
+      textures[pickerSlot] = id;
+      commit("Textura actualizada");
+    }
+    $("#texture-dialog").close();
+  }
+
+  function textureTile(label, selected, onPick, entry = null) {
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "texture-tile" + (selected ? " selected" : "");
+    if (entry) {
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.alt = "";
+      img.src = textureUrl(entry);
+      tile.append(img);
+    } else {
+      const none = document.createElement("span");
+      none.className = "texture-tile-none";
+      none.textContent = "∅";
+      tile.append(none);
+    }
+    const name = document.createElement("span");
+    name.className = "texture-tile-label";
+    name.textContent = label;
+    tile.title = entry ? String(entry.label) : label;
+    tile.append(name);
+    tile.addEventListener("click", onPick);
+    return tile;
+  }
+
+  function renderTexturePicker() {
+    const grid = $("#texture-picker-grid");
+    grid.replaceChildren();
+    const textures = pickerTextures();
+    const current = textures && pickerSlot ? String(textures[pickerSlot] ?? "") : "";
+    const filter = $("#texture-search").value.trim().toLowerCase();
+
+    // "Sin textura" (el material de color plano) y, si el nivel trae un
+    // identificador que ya no está en el catálogo, su tarjeta para conservarlo.
+    const head = document.createElement("div");
+    head.className = "texture-pack-grid";
+    head.append(textureTile("Sin textura", !current, () => applyTexture("")));
+    if (current && !textureById(current)) {
+      head.append(textureTile(`${current} (fuera del catálogo)`, true, () => applyTexture(current)));
+    }
+    grid.append(head);
+
     const grouped = new Map();
     for (const entry of textureCatalog) {
       const id = String(entry?.id ?? "");
       if (!id) continue;
       const pack = String(entry?.pack ?? "otros");
-      if (!grouped.has(pack)) grouped.set(pack, []);
-      grouped.get(pack).push({ id, label: String(entry?.label ?? id) });
-    }
-    for (const [pack, entries] of grouped) {
-      const group = document.createElement("optgroup");
       const meta = texturePacks.find((item) => item.id === pack);
-      group.label = meta ? String(meta.label) : pack;
+      const packLabel = meta ? String(meta.label) : pack;
+      const label = String(entry?.label ?? id);
+      if (filter && !`${label} ${id} ${packLabel}`.toLowerCase().includes(filter)) continue;
+      if (!grouped.has(packLabel)) grouped.set(packLabel, []);
+      grouped.get(packLabel).push(entry);
+    }
+    let shown = 0;
+    for (const [packLabel, entries] of grouped) {
+      const title = document.createElement("h3");
+      title.className = "texture-pack-title";
+      title.textContent = `${packLabel} · ${entries.length}`;
+      grid.append(title);
+      const packGrid = document.createElement("div");
+      packGrid.className = "texture-pack-grid";
       for (const entry of entries) {
-        const option = document.createElement("option");
-        option.value = entry.id;
-        option.textContent = entry.label;
-        group.append(option);
+        const id = String(entry.id);
+        // Dentro de la sección del pack alcanza con la parte propia del nombre.
+        const short = String(entry.label ?? id).split("·").pop().trim();
+        packGrid.append(textureTile(short, id === current, () => applyTexture(id), entry));
+        shown += 1;
       }
-      select.append(group);
+      grid.append(packGrid);
     }
-    // Un identificador que no está en el catálogo se conserva en vez de
-    // borrarse por elegir de una lista incompleta.
-    if (current && !textureCatalog.some((entry) => String(entry?.id) === current)) {
-      const orphan = document.createElement("option");
-      orphan.value = current;
-      orphan.textContent = `${current} (fuera del catálogo)`;
-      select.append(orphan);
-    }
-    select.value = current;
+    $("#texture-picker-empty").textContent = textureCatalog.length
+      ? (shown ? "" : "Ninguna textura coincide con la búsqueda.")
+      : "Sin catálogo: abrí el editor con workshop.cmd (o un servidor local) para ver las texturas.";
   }
 
   /** Toda mutación pasa por acá: reconcilia los datos derivados y redibuja. */
@@ -138,6 +231,7 @@
     normalizeRoles(level.rooms);
     resolveEntryWalls(level);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(level));
+    dirty = true;
     if (message) setStatus(message);
     render();
   }
@@ -257,15 +351,64 @@
       const plan = corridorPlan(from, to, connection);
       const outline = corridorOutline(plan.points, plan.width);
       const points = outline.map((point) => `${point.x} ${point.y}`).join(" L ");
-      corridorsLayer.append(svgElement("path", { d: `M ${points} Z`, class: "corridor-shape" }));
+      corridorsLayer.append(svgElement("path", { d: `M ${points} Z`, class: "corridor-shape", "data-connection-id": connection.id }));
+      // Los puntos intermedios se arrastran; doble click sobre el pasillo
+      // agrega uno y click derecho sobre el punto lo quita.
+      (connection.waypoints || []).forEach((waypoint, index) => {
+        corridorsLayer.append(svgElement("circle", {
+          cx: waypoint.x,
+          cy: waypoint.z,
+          r: 0.8,
+          class: "corridor-waypoint",
+          "data-connection-id": connection.id,
+          "data-waypoint-index": index
+        }));
+      });
     }
   }
 
+  const snapHalf = (value) => Math.round(value * 2) / 2;
+
+  const distanceToSegment = (point, a, b) => {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lengthSq = dx * dx + dy * dy;
+    const t = lengthSq ? Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / lengthSq)) : 0;
+    return Math.hypot(point.x - (a.x + dx * t), point.y - (a.y + dy * t));
+  };
+
+  /** Suma un punto intermedio en el tramo del recorrido más cercano al click. */
+  function addWaypoint(connectionId, point) {
+    const connection = level.connections.find((item) => item.id === connectionId);
+    const from = roomById(connection?.fromRoomId);
+    const to = roomById(connection?.toRoomId);
+    if (!connection || !from || !to) return;
+    const anchors = [
+      wallPoint(from, connection.fromWall),
+      ...connection.waypoints.map((waypoint) => ({ x: waypoint.x, y: waypoint.z })),
+      wallPoint(to, connection.toWall)
+    ];
+    let best = 0;
+    let bestDistance = Infinity;
+    for (let index = 0; index < anchors.length - 1; index += 1) {
+      const distance = distanceToSegment(point, anchors[index], anchors[index + 1]);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = index;
+      }
+    }
+    connection.waypoints.splice(best, 0, { x: snapHalf(point.x), z: snapHalf(point.y) });
+    commit("Punto agregado al pasillo");
+  }
+
   function addEntryMark(group, room) {
-    const point = wallPoint(room, room.entry.wall);
     const horizontal = room.entry.wall === "north" || room.entry.wall === "south";
     const opening = connectionsFor(room.id).find((connection) =>
       (connection.fromRoomId === room.id ? connection.fromWall : connection.toWall) === room.entry.wall);
+    // Con puntos intermedios la puerta puede estar corrida del centro.
+    const point = opening
+      ? doorPoint(room, room.entry.wall, opening, opening.fromRoomId === room.id)
+      : wallPoint(room, room.entry.wall);
     const half = (opening ? opening.width : level.defaults.corridorWidth) / 2;
     group.append(svgElement("line", {
       x1: point.x - (horizontal ? half : 0),
@@ -422,7 +565,9 @@
       item.className = "connection-item";
       const text = document.createElement("span");
       text.className = "connection-name";
-      text.textContent = `${from.name} → ${to.name}`;
+      const waypointCount = connection.waypoints?.length || 0;
+      text.textContent = `${from.name} → ${to.name}` + (waypointCount ? ` · ${waypointCount} pt${waypointCount > 1 ? "s" : ""}` : "");
+      text.title = "Doble click sobre el pasillo en el plano agrega un punto intermedio; arrastralo para moverlo y click derecho lo quita.";
       const width = document.createElement("input");
       width.type = "number";
       width.min = String(LIMITS.corridorWidth.min);
@@ -722,6 +867,9 @@
     $("#level-corridor-width").value = level.defaults.corridorWidth;
     $("#level-has-ceiling").checked = level.defaults.hasCeiling;
     $("#level-sky").value = level.sky;
+    for (const slot of Object.keys(TEXTURE_SLOTS)) {
+      renderTextureField($(`[data-texture-level="${slot}"]`), level.defaults.textures[slot]);
+    }
   }
 
   function openRoomDialog(roomId) {
@@ -1053,7 +1201,7 @@
     renderEntrySummary(room);
     renderRoomMap(room);
     for (const slot of Object.keys(TEXTURE_SLOTS)) {
-      fillTextureSelect($(`[data-texture="${slot}"]`), room.textures[slot]);
+      renderTextureField($(`[data-texture="${slot}"]`), room.textures[slot]);
     }
   }
 
@@ -1157,11 +1305,17 @@
   }
 
   function makeTextureEditors() {
-    const container = $("#texture-fields");
-    for (const [slot, label] of Object.entries(TEXTURE_SLOTS)) {
-      const field = document.createElement("label");
-      field.innerHTML = `${label}<select data-texture="${slot}"></select>`;
-      container.append(field);
+    // Los mismos cinco campos para la sala y para los predeterminados del
+    // nivel; el atributo distingue a quién le escribe el selector.
+    for (const [containerId, attribute] of [["#texture-fields", "data-texture"], ["#level-texture-fields", "data-texture-level"]]) {
+      const container = $(containerId);
+      for (const [slot, label] of Object.entries(TEXTURE_SLOTS)) {
+        const field = document.createElement("div");
+        field.className = "texture-field";
+        field.innerHTML = `${label}<button type="button" class="texture-field-button" ${attribute}="${slot}">` +
+          `<img class="texture-field-thumb" alt="" hidden><span class="texture-field-name">Sin textura</span></button>`;
+        container.append(field);
+      }
     }
   }
 
@@ -1264,7 +1418,7 @@
     URL.revokeObjectURL(link.href);
   }
 
-  function replaceLevel(next, message) {
+  function replaceLevel(next, message, file = "") {
     level = next;
     selectedRoomId = level.rooms[0]?.id || null;
     dialogRoomId = null;
@@ -1273,6 +1427,231 @@
     roomDialog.close();
     fitView();
     commit(message);
+    setCurrentFile(file);
+    dirty = false;
+  }
+
+  // --- Servidor del Workshop --------------------------------------------------
+
+  const levelResPath = (file) => `res://level_designs/levels/${file}`;
+
+  function setCurrentFile(file) {
+    currentFile = file;
+    localStorage.setItem(FILE_KEY, file);
+    renderCurrentFile();
+  }
+
+  function renderCurrentFile() {
+    $("#current-file").textContent = workshopApi ? currentFile : "";
+  }
+
+  async function detectWorkshopApi() {
+    try {
+      const response = await fetch("/api/levels", { cache: "no-store" });
+      workshopApi = response.ok;
+    } catch (error) {
+      workshopApi = false;
+    }
+    $("#open-file").hidden = !workshopApi;
+    $("#open-sequence").hidden = !workshopApi;
+    renderCurrentFile();
+  }
+
+  async function apiJson(url, options = {}) {
+    const response = await fetch(url, { cache: "no-store", ...options });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || `Error ${response.status}`);
+    return payload;
+  }
+
+  async function fetchSequence() {
+    const payload = await apiJson("/api/sequence");
+    return { schemaVersion: 1, ...payload, levels: Array.isArray(payload.levels) ? payload.levels : [] };
+  }
+
+  async function putSequence(sequence) {
+    await apiJson("/api/sequence", { method: "PUT", body: JSON.stringify(sequence) });
+  }
+
+  function confirmDiscard() {
+    return !dirty || !level.rooms.length ||
+      window.confirm("Hay cambios sin guardar en el nivel actual. ¿Continuar igual?");
+  }
+
+  async function saveLevel() {
+    if (!workshopApi) {
+      saveWithPicker();
+      return;
+    }
+    let file = currentFile;
+    const isNew = !file;
+    if (isNew) {
+      const answer = window.prompt("Guardar en level_designs/levels/ como:", safeFilename());
+      if (answer === null) return;
+      file = answer.trim() || safeFilename();
+      if (!file.toLowerCase().endsWith(".json")) file += ".json";
+    }
+    try {
+      await apiJson(`/api/levels/${encodeURIComponent(file)}`, { method: "PUT", body: jsonText() });
+    } catch (error) {
+      showToast(`No se pudo guardar: ${error.message}`);
+      return;
+    }
+    setCurrentFile(file);
+    dirty = false;
+    showToast(`Guardado: ${file}`);
+    await syncSequence(file, isNew);
+  }
+
+  /** Mantiene level-sequence.json al día: sincroniza el id de un nivel ya
+   * registrado (el juego rechaza ids desparejos) y ofrece sumar los nuevos. */
+  async function syncSequence(file, offerAdd) {
+    try {
+      const sequence = await fetchSequence();
+      const entry = sequence.levels.find((item) => item.path === levelResPath(file));
+      if (entry) {
+        if (entry.id !== level.id) {
+          entry.id = level.id;
+          await putSequence(sequence);
+          showToast("Secuencia sincronizada con el nuevo id");
+        }
+        return;
+      }
+      if (offerAdd && window.confirm(`¿Agregar “${level.name}” al final de la secuencia del juego?`)) {
+        sequence.levels.push({ id: level.id, path: levelResPath(file) });
+        await putSequence(sequence);
+        showToast("Agregado a la secuencia");
+      }
+    } catch (error) {
+      showToast(error.message);
+    }
+  }
+
+  async function openWorkshopDialog() {
+    const dialog = $("#open-dialog");
+    $("#open-list").replaceChildren();
+    $("#open-empty").textContent = "Cargando…";
+    dialog.showModal();
+    let levels = [];
+    let sequence = { levels: [] };
+    try {
+      levels = (await apiJson("/api/levels")).levels || [];
+      sequence = await fetchSequence().catch(() => ({ levels: [] }));
+    } catch (error) {
+      $("#open-empty").textContent = "No se pudo leer level_designs/levels/.";
+      return;
+    }
+    $("#open-empty").textContent = levels.length ? "" : "Todavía no hay niveles guardados.";
+    const order = new Map(sequence.levels.map((entry, index) => [entry.path, index + 1]));
+    for (const item of levels) {
+      const row = document.createElement("li");
+      row.className = "file-row";
+      const main = document.createElement("button");
+      main.type = "button";
+      main.className = "file-row-main";
+      const name = document.createElement("span");
+      name.className = "file-row-name";
+      name.textContent = item.name;
+      main.append(name);
+      const position = order.get(levelResPath(item.file));
+      if (position) {
+        const badge = document.createElement("span");
+        badge.className = "file-row-badge";
+        badge.textContent = `#${position} en secuencia`;
+        main.append(badge);
+      }
+      const meta = document.createElement("span");
+      meta.className = "file-row-meta";
+      meta.textContent = item.error ? `${item.file} · ${item.error}` : `${item.file} · ${item.rooms} salas`;
+      main.append(meta);
+      main.disabled = Boolean(item.error);
+      main.addEventListener("click", () => openWorkshopLevel(item.file, dialog));
+      row.append(main);
+      $("#open-list").append(row);
+    }
+  }
+
+  async function openWorkshopLevel(file, dialog) {
+    if (!confirmDiscard()) return;
+    try {
+      const next = normalizeLevel(await apiJson(`/api/levels/${encodeURIComponent(file)}`));
+      dialog.close();
+      replaceLevel(next, `Abierto: ${file}`, file);
+      showToast(`Abierto: ${file}`);
+    } catch (error) {
+      showToast(`No se pudo abrir: ${error.message}`);
+    }
+  }
+
+  async function openSequenceDialog() {
+    $("#sequence-dialog").showModal();
+    await renderSequenceDialog();
+  }
+
+  async function renderSequenceDialog() {
+    const list = $("#sequence-list");
+    list.replaceChildren();
+    $("#sequence-empty").textContent = "Cargando…";
+    let sequence;
+    let levels = [];
+    try {
+      sequence = await fetchSequence();
+      levels = (await apiJson("/api/levels")).levels || [];
+    } catch (error) {
+      $("#sequence-empty").textContent = `No se pudo leer la secuencia: ${error.message}`;
+      return;
+    }
+    $("#sequence-empty").textContent = sequence.levels.length ? "" : "La secuencia está vacía: el juego no tiene niveles para encadenar.";
+    const byPath = new Map(levels.map((item) => [levelResPath(item.file), item]));
+    const mutate = async (change) => {
+      const next = { ...sequence, levels: [...sequence.levels] };
+      change(next.levels);
+      try {
+        await putSequence(next);
+        setStatus("Secuencia guardada");
+      } catch (error) {
+        showToast(error.message);
+      }
+      await renderSequenceDialog();
+    };
+    sequence.levels.forEach((entry, index) => {
+      const meta = byPath.get(entry.path);
+      const row = document.createElement("li");
+      row.className = "file-row";
+      const main = document.createElement("button");
+      main.type = "button";
+      main.className = "file-row-main";
+      main.disabled = !meta;
+      const name = document.createElement("span");
+      name.className = "file-row-name" + (meta ? "" : " file-row-warning");
+      name.textContent = meta ? `${index + 1}. ${meta.name}` : `${index + 1}. Archivo faltante`;
+      const metaSpan = document.createElement("span");
+      metaSpan.className = "file-row-meta";
+      metaSpan.textContent = entry.path.split("/").pop();
+      main.append(name, metaSpan);
+      if (meta) main.addEventListener("click", () => openWorkshopLevel(meta.file, $("#sequence-dialog")));
+      row.append(main);
+      const makeAction = (label, title, disabled, action) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "icon-button";
+        button.textContent = label;
+        button.title = title;
+        button.disabled = disabled;
+        button.addEventListener("click", action);
+        row.append(button);
+      };
+      makeAction("↑", "Subir", index === 0, () => mutate((items) => items.splice(index - 1, 0, items.splice(index, 1)[0])));
+      makeAction("↓", "Bajar", index === sequence.levels.length - 1, () => mutate((items) => items.splice(index + 1, 0, items.splice(index, 1)[0])));
+      makeAction("×", "Quitar de la secuencia", false, () => mutate((items) => items.splice(index, 1)));
+      list.append(row);
+    });
+    const addButton = $("#sequence-add-current");
+    const alreadyListed = Boolean(currentFile) && sequence.levels.some((entry) => entry.path === levelResPath(currentFile));
+    addButton.disabled = !currentFile || alreadyListed;
+    addButton.title = !currentFile
+      ? "Guardá el nivel primero para poder sumarlo"
+      : alreadyListed ? "El nivel actual ya está en la secuencia" : "";
   }
 
   function bindLevelFields() {
@@ -1334,17 +1713,22 @@
     }));
 
     $("#new-level").addEventListener("click", () => {
-      if (level.rooms.length && !window.confirm("¿Crear un nivel nuevo? El borrador actual seguirá disponible sólo si ya lo descargaste.")) return;
+      if (!confirmDiscard()) return;
       replaceLevel(createEmptyLevel(), "Nivel nuevo");
     });
 
-    $("#load-example").addEventListener("click", () => replaceLevel(exampleLevel(), "Ejemplo cargado"));
+    $("#load-example").addEventListener("click", () => {
+      if (!confirmDiscard()) return;
+      replaceLevel(exampleLevel(), "Ejemplo cargado");
+    });
 
     $("#import-file").addEventListener("change", async (event) => {
       const file = event.target.files[0];
       if (!file) return;
       try {
-        replaceLevel(normalizeLevel(JSON.parse(await file.text())), `Importado: ${file.name}`);
+        const next = normalizeLevel(JSON.parse(await file.text()));
+        if (!confirmDiscard()) return;
+        replaceLevel(next, `Importado: ${file.name}`);
         showToast("Nivel importado");
       } catch (error) {
         showToast(`JSON inválido: ${error.message}`);
@@ -1353,7 +1737,24 @@
       }
     });
 
-    $("#save-file").addEventListener("click", saveWithPicker);
+    $("#open-file").addEventListener("click", openWorkshopDialog);
+    $("#open-sequence").addEventListener("click", openSequenceDialog);
+    $("#sequence-add-current").addEventListener("click", async () => {
+      if (!currentFile) return;
+      try {
+        const sequence = await fetchSequence();
+        if (!sequence.levels.some((entry) => entry.path === levelResPath(currentFile))) {
+          sequence.levels.push({ id: level.id, path: levelResPath(currentFile) });
+          await putSequence(sequence);
+          showToast("Agregado a la secuencia");
+        }
+      } catch (error) {
+        showToast(error.message);
+      }
+      await renderSequenceDialog();
+    });
+    $("#save-file").addEventListener("click", saveLevel);
+    $("#save-as-file").addEventListener("click", () => { saveHandle = null; saveWithPicker(); });
     $("#download-file").addEventListener("click", () => { downloadJson(); showToast("JSON descargado"); });
   }
 
@@ -1369,6 +1770,27 @@
     }, { passive: false });
 
     svg.addEventListener("pointerdown", (event) => {
+      const handle = event.target.closest(".corridor-waypoint");
+      if (handle && event.button === 0) {
+        waypointDrag = { connectionId: handle.dataset.connectionId, index: Number(handle.dataset.waypointIndex) };
+        svg.setPointerCapture(event.pointerId);
+        return;
+      }
+      const shape = event.target.closest(".corridor-shape");
+      if (shape && event.button === 0 && !connectModeActive()) {
+        const isSecondClick = corridorClick && corridorClick.id === shape.dataset.connectionId &&
+          performance.now() - corridorClick.time < 450 &&
+          Math.hypot(event.clientX - corridorClick.clientX, event.clientY - corridorClick.clientY) < 8;
+        if (isSecondClick) {
+          corridorClick = null;
+          addWaypoint(shape.dataset.connectionId, clientToSvg(event));
+          return;
+        }
+        corridorClick = { id: shape.dataset.connectionId, time: performance.now(), clientX: event.clientX, clientY: event.clientY };
+        // El primer click sigue paneando, como cualquier click en el fondo.
+      } else {
+        corridorClick = null;
+      }
       const group = event.target.closest(".room-group");
       if (!group) {
         const point = clientToSvg(event);
@@ -1390,9 +1812,33 @@
     svg.addEventListener("dblclick", (event) => {
       const group = event.target.closest(".room-group");
       if (group && !connectModeActive()) openRoomDialog(group.dataset.roomId);
+      // El doble click sobre un pasillo se detecta en pointerdown: acá el
+      // target ya viene retargeteado por la captura del paneo.
+    });
+
+    // Click derecho sobre un punto intermedio lo quita.
+    svg.addEventListener("contextmenu", (event) => {
+      const handle = event.target.closest(".corridor-waypoint");
+      if (!handle) return;
+      event.preventDefault();
+      const connection = level.connections.find((item) => item.id === handle.dataset.connectionId);
+      if (!connection) return;
+      connection.waypoints.splice(Number(handle.dataset.waypointIndex), 1);
+      commit("Punto del pasillo quitado");
     });
 
     svg.addEventListener("pointermove", (event) => {
+      if (waypointDrag) {
+        const connection = level.connections.find((item) => item.id === waypointDrag.connectionId);
+        const waypoint = connection?.waypoints[waypointDrag.index];
+        if (waypoint) {
+          const point = clientToSvg(event);
+          waypoint.x = snapHalf(point.x);
+          waypoint.z = snapHalf(point.y);
+          renderCorridors();
+        }
+        return;
+      }
       if (panState) {
         const point = clientToSvg(event);
         view.x -= point.x - panState.x;
@@ -1413,6 +1859,11 @@
 
     const endPointer = (event) => {
       if (svg.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
+      if (waypointDrag) {
+        waypointDrag = null;
+        commit("Recorrido del pasillo ajustado");
+        return;
+      }
       if (panState) {
         panState = null;
         svg.classList.remove("panning");
@@ -1432,7 +1883,7 @@
     document.querySelectorAll("[data-close-dialog]").forEach((button) =>
       button.addEventListener("click", () => button.closest("dialog").close()));
     // El fondo de un diálogo modal es el propio elemento: un click ahí lo cierra.
-    for (const dialog of [levelDialog, roomDialog]) {
+    for (const dialog of [levelDialog, roomDialog, $("#open-dialog"), $("#sequence-dialog"), $("#texture-dialog")]) {
       dialog.addEventListener("pointerdown", (event) => {
         if (event.target === dialog) dialog.close();
       });
@@ -1558,13 +2009,10 @@
     });
 
     for (const slot of Object.keys(TEXTURE_SLOTS)) {
-      $(`[data-texture="${slot}"]`).addEventListener("change", (event) => {
-        const room = dialogRoom();
-        if (!room) return;
-        room.textures[slot] = event.target.value;
-        commit("Textura actualizada");
-      });
+      $(`[data-texture="${slot}"]`).addEventListener("click", () => openTexturePicker(slot));
+      $(`[data-texture-level="${slot}"]`).addEventListener("click", () => openTexturePicker(slot, "level"));
     }
+    $("#texture-search").addEventListener("input", renderTexturePicker);
 
     $("#delete-room").addEventListener("click", () => {
       const room = dialogRoom();
@@ -1590,7 +2038,7 @@
       const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
       if (event.ctrlKey && event.key.toLowerCase() === "s") {
         event.preventDefault();
-        saveWithPicker();
+        saveLevel();
         return;
       }
       if (typing || document.querySelector("dialog[open]")) return;
@@ -1621,9 +2069,12 @@
   bindBlockFields();
   bindShortcuts();
   loadTextureCatalog();
+  detectWorkshopApi();
   if (!level.rooms.length) level = exampleLevel();
   selectedRoomId ||= level.rooms[0]?.id || null;
   commit();
+  // El arranque no es una edición: recién ensuciamos cuando el usuario toca algo.
+  dirty = false;
   // El plano ocupa el alto que le deja el flex, asi que el primer encuadre
   // espera a que el observador informe el tamaño real: encuadrar antes deja el
   // nivel recortado.

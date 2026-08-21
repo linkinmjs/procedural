@@ -394,6 +394,19 @@
           "minimum": 1.5,
           "maximum": 12,
           "description": "Ancho del pasillo. Su largo sale de la distancia entre las salas."
+        },
+        "waypoints": {
+          "type": "array",
+          "description": "Puntos intermedios por los que pasa el pasillo, en orden. Vacío, el trazado se resuelve solo entre las dos puertas.",
+          "items": {
+            "type": "object",
+            "required": ["x", "z"],
+            "properties": {
+              "x": { "type": "number" },
+              "z": { "type": "number" }
+            },
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false

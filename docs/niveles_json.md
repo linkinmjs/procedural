@@ -4,10 +4,9 @@ La escena inicial `scenes/levels/playable_level.tscn` construye el nivel activo 
 
 ## Flujo de trabajo
 
-1. Diseñar o importar un nivel en `tools/level-editor/index.html`.
-2. Descargar el JSON dentro de `level_designs/levels/`.
-3. Agregar su ID y ruta a `level_designs/level-sequence.json` en el orden deseado.
-4. Ejecutar el proyecto. No es necesario convertir manualmente el JSON en una escena `.tscn`.
+1. Servir el editor con `node tools/level-editor/serve.js` y abrir `http://localhost:8080/tools/level-editor/`.
+2. Diseñar el nivel (o abrir uno existente con *Abrir…*) y guardarlo con `Ctrl+S`: se escribe directo en `level_designs/levels/` y el editor ofrece sumarlo a la secuencia; el orden se ajusta desde *Secuencia…*.
+3. Ejecutar el proyecto. No es necesario convertir manualmente el JSON en una escena `.tscn`.
 
 `LevelSequence` conserva el índice actual al recargar la escena y permite navegar manualmente con F7 y F8.
 
@@ -45,9 +44,13 @@ Según cuánto estén desalineadas las dos puertas, `_corridor_plan` elige entre
 | Menor o igual al ancho | Un tramo recto **ensanchado** hasta cubrir las dos puertas. No entra un codo: los dos giros se solaparían y se taparían entre sí. |
 | Mayor que el ancho | Un codo de cuatro puntos. |
 
-El pasillo va cerrado, con piso, paredes y techo, a la altura del vano más bajo que une, así que su techo apoya contra el dintel. Cada codo recorta medio ancho los tramos que lo tocan —o sus paredes cruzarían el giro—, aporta el piso y el techo del giro y levanta pared sólo en las dos caras por las que el pasillo no entra ni sale.
+Una conexión también puede declarar `waypoints`, una lista ordenada de puntos `{x, z}` por los que el recorrido tiene que pasar. Con puntos, el trazado automático de la tabla se reemplaza: el pasillo une puerta, puntos y puerta con tramos en ángulo recto, siempre saliendo y llegando perpendicular a las paredes. Un punto alineado con el tramo no agrega codos, y un desvío que vuelve sobre su propia línea se descarta: un pasillo superpuesto consigo mismo no se puede construir sano. En la herramienta se agregan con doble click sobre el pasillo, se arrastran, y se quitan con click derecho.
 
-El trazado está implementado dos veces, y a propósito: `corridorPlan` en `tools/level-editor/level-format.js` para dibujar el plano y `PlayableLevel._corridor_plan` para construir la geometría. `tests/corridor_layout_smoke_test.gd` recorre cada pasillo de la campaña con raycasts a la altura de los ojos —por el eje y pegado a cada lado— y comprueba que haya techo encima, así que una divergencia entre ambas se detecta como un pasillo bloqueado o descubierto.
+El primer punto (o el último, del lado destino) además puede **mover la puerta**: si queda enfrentado a la pared, la puerta se desliza hasta su altura —con tope para no invadir la esquina— y el vano, la barrera que lo sella y el pasillo salen de ese lugar. `doorPoint` en la herramienta y `PlayableLevel._door_point` en el juego comparten ese cálculo, y `_collect_room_openings` propaga el corrimiento al tallado del vano.
+
+El pasillo va cerrado, con piso, paredes y techo, a la altura del vano más bajo que une, así que su techo apoya contra el dintel. Cada codo recorta medio ancho los tramos que lo tocan —o sus paredes cruzarían el giro—, aporta el piso y el techo del giro y levanta pared sólo en las dos caras por las que el pasillo no entra ni sale. Dos tramos paralelos a menos del ancho del pasillo se invaden las paredes mutuamente: el smoke test de pasillos lo detecta como pasillo bloqueado.
+
+El trazado está implementado dos veces, y a propósito: `corridorPlan` en `tools/level-editor/level-format.js` para dibujar el plano y `PlayableLevel._corridor_plan` para construir la geometría. `tests/corridor_layout_smoke_test.gd` recorre cada pasillo de la campaña con raycasts a la altura de los ojos —por el eje y pegado a cada lado— y comprueba que haya techo encima, así que una divergencia entre ambas se detecta como un pasillo bloqueado o descubierto. `tests/corridor_waypoints_smoke_test.gd` fija el contrato del trazado por puntos con los mismos casos que verifica el smoke test del editor del lado JS.
 
 ## Recorrido de la ronda
 
@@ -125,6 +128,6 @@ Las cajas CSG traen UV de 0 a 1 **por cara**, no en metros: mapear por UV estira
 
 ### Assets
 
-Sólo se versiona la selección en uso, en 256 × 256, bajo `assets/textures/packs/<pack>/`. Los paquetes completos siguen comprimidos en `assets/_raw/textures/`, fuera de Git. Para sumar una textura: extraerla, copiarla a su pack, agregar la entrada al catálogo y ya aparece en la herramienta y en el juego.
+Se versiona la selección en uso, en 256 × 256, bajo `assets/textures/packs/<Material>/` (Bricks, Wood, Metal, ...). Los paquetes completos siguen comprimidos en `assets/_raw/textures/`, fuera de Git. Para sumar una textura: extraerla, copiarla a la carpeta de su material, agregar la entrada al catálogo y ya aparece en la herramienta y en el juego.
 
 Ya no hay un nivel comparador versionado: `tests/texture_catalog_smoke_test.gd` arma uno en memoria con una sala por pack y verifica que cada una resuelva sus texturas.

@@ -235,7 +235,21 @@ static func _validate_level(level: Dictionary, path: String) -> bool:
 		if corridor_width < MIN_CORRIDOR_WIDTH or corridor_width > MAX_CORRIDOR_WIDTH:
 			push_error("Connection corridor width is out of range: %s" % path)
 			return false
+		# Los puntos intermedios son opcionales; si estan, cada uno trae x y z.
+		var waypoints_variant: Variant = connection.get("waypoints", [])
+		if not waypoints_variant is Array:
+			push_error("Connection waypoints must be an array: %s" % path)
+			return false
+		for waypoint_variant in waypoints_variant as Array:
+			var waypoint := waypoint_variant as Dictionary
+			if waypoint == null or not _is_number(waypoint.get("x", null)) or not _is_number(waypoint.get("z", null)):
+				push_error("Every corridor waypoint needs numeric x and z: %s" % path)
+				return false
 	return _validate_roles(level, path)
+
+
+static func _is_number(value: Variant) -> bool:
+	return value is float or value is int
 
 
 ## El recorrido del nivel necesita saber donde empieza y donde termina.

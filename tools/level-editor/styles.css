@@ -264,7 +264,10 @@ p.alert { margin: 8px 0 0; }
 .major-grid-line { fill: none; stroke: #243442; stroke-width: .08; }
 .open-sky-line { stroke: #3d6f7d; stroke-width: .12; }
 
-.corridor-shape { fill: #16232d; stroke: #4a5f74; stroke-width: .14; stroke-linejoin: miter; }
+.corridor-shape { fill: #16232d; stroke: #4a5f74; stroke-width: .14; stroke-linejoin: miter; cursor: copy; }
+.corridor-shape:hover { stroke: var(--accent); }
+.corridor-waypoint { fill: var(--accent); stroke: #0b1016; stroke-width: .2; cursor: grab; opacity: .85; }
+.corridor-waypoint:hover { opacity: 1; r: 1; }
 .room-shape { fill: #142530; stroke: #63788d; stroke-width: .16; }
 .room-open-sky { stroke: #3d6f7d; stroke-width: .16; stroke-dasharray: .8 .5; pointer-events: none; opacity: .55; }
 .room-group { cursor: grab; }
@@ -374,6 +377,84 @@ p.alert { margin: 8px 0 0; }
   padding: 12px 16px;
   border-top: 1px solid var(--line);
 }
+
+.file-dialog { width: min(560px, 94vw); }
+.dialog .dialog-title { margin: 0; font-size: 17px; font-weight: 650; }
+.file-dialog .dialog-footer .hint { flex: 1; }
+
+.texture-dialog { width: min(880px, 96vw); }
+.texture-dialog .dialog-header div { flex: 1; }
+#texture-search { width: min(260px, 40vw); }
+.texture-picker-body { min-height: 320px; }
+.texture-pack-title { margin: 14px 0 6px; font-size: 12px; font-weight: 650; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.texture-pack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
+.texture-tile {
+  display: grid;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.texture-tile:hover { border-color: var(--line-strong); background: var(--panel-soft); }
+.texture-tile.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.texture-tile img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 5px; }
+.texture-tile-none {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px dashed var(--line-strong);
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 20px;
+}
+.texture-tile-label { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+.texture-tile.selected .texture-tile-label { color: var(--accent); }
+
+.texture-field { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+.texture-field-button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  min-width: 0;
+}
+.texture-field-button:hover { border-color: var(--line-strong); background: var(--panel-soft); }
+.texture-field-thumb { flex: none; width: 22px; height: 22px; border-radius: 4px; object-fit: cover; }
+.texture-field-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.current-file { color: var(--muted); font-size: 12px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.current-file:empty { display: none; }
+.file-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.file-row { display: flex; align-items: center; gap: 8px; }
+.file-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.file-row-main:hover { border-color: var(--line-strong); background: var(--panel-soft); }
+.file-row-main[disabled] { cursor: default; }
+.file-row-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.file-row-meta { flex: none; margin-left: auto; color: var(--muted); font-size: 11px; }
+.file-row-badge { flex: none; color: var(--accent); font-size: 11px; }
+.file-row-warning { color: var(--exit); }
+.file-row .icon-button { flex: none; }
 
 .segmented { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); }
 .segment { min-width: 78px; border-radius: 0; font-size: 12px; padding: 6px 4px; }

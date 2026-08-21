@@ -240,7 +240,8 @@
       "toRoomId": "21492bf7-d5ed-474a-8227-3806efa62d18",
       "fromWall": "north",
       "toWall": "south",
-      "width": 2
+      "width": 2,
+      "waypoints": []
     },
     {
       "id": "327bdeb3-be6c-4851-acb1-a1a40e274715",
@@ -248,7 +249,8 @@
       "toRoomId": "8ea712a6-2d22-4d84-a23b-5d0eb64cb93c",
       "fromWall": "east",
       "toWall": "west",
-      "width": 2
+      "width": 2,
+      "waypoints": []
     }
   ]
 }

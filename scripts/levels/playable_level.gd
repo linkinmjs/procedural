@@ -340,10 +340,12 @@ func _build_rooms() -> void:
 		var doors: Array[RoomDoor3D] = []
 		for wall in ["north", "east", "south", "west"]:
 			_add_room_wall(safe_name, center, wall, width, depth, wall_height, wall_material)
-			var opening_width := float(room_openings.get(wall, 0.0))
+			var opening: Dictionary = room_openings.get(wall, {}) as Dictionary
+			var opening_width := float(opening.get("width", 0.0))
 			if opening_width <= 0.0:
 				continue
-			doors.append(_add_room_opening(room_marker, wall, width, depth, wall_height, opening_width))
+			doors.append(_add_room_opening(room_marker, wall, width, depth, wall_height,
+					opening_width, float(opening.get("offset", 0.0))))
 		room_doors[room_id] = doors
 
 		_add_room_label(room_marker, str(room.name), wall_height)
@@ -366,14 +368,27 @@ func _build_rooms() -> void:
 ## de ese pasillo. La entrada de la sala inicial es conceptual (orienta sus
 ## bloques), asi que no perfora la pared si no hay nada del otro lado.
 func _collect_room_openings() -> Dictionary:
+	var rooms_by_id: Dictionary = {}
 	var openings: Dictionary = {}
 	for room_variant in level_data.rooms:
-		openings[str((room_variant as Dictionary).id)] = {}
+		var room := room_variant as Dictionary
+		rooms_by_id[str(room.id)] = room
+		openings[str(room.id)] = {}
 	for connection_variant in level_data.connections:
 		var connection := connection_variant as Dictionary
 		var corridor_width := LevelDefinitionLoader.get_corridor_width(level_data, connection)
-		(openings[str(connection.fromRoomId)] as Dictionary)[str(connection.fromWall)] = corridor_width
-		(openings[str(connection.toRoomId)] as Dictionary)[str(connection.toWall)] = corridor_width
+		var from_room: Dictionary = rooms_by_id[str(connection.fromRoomId)]
+		var to_room: Dictionary = rooms_by_id[str(connection.toRoomId)]
+		# El vano se talla donde el pasillo toca la pared, que con puntos
+		# intermedios puede estar corrido del centro.
+		(openings[str(connection.fromRoomId)] as Dictionary)[str(connection.fromWall)] = {
+			"width": corridor_width,
+			"offset": _door_along_offset(from_room, str(connection.fromWall), connection, true, corridor_width),
+		}
+		(openings[str(connection.toRoomId)] as Dictionary)[str(connection.toWall)] = {
+			"width": corridor_width,
+			"offset": _door_along_offset(to_room, str(connection.toWall), connection, false, corridor_width),
+		}
 	return openings
 
 
@@ -388,14 +403,19 @@ func _add_room_wall(safe_name: String, center: Vector3, wall: String, width: flo
 	_add_box(_shell, "%s%sWall" % [safe_name, wall.capitalize()], position, size, wall_material)
 
 
-## Marca el vano para recortarlo y cuelga la barrera que lo sella.
-func _add_room_opening(room_marker: Node3D, wall: String, width: float, depth: float, wall_height: float, opening_width: float) -> RoomDoor3D:
+## Marca el vano para recortarlo y cuelga la barrera que lo sella. along_offset
+## corre la puerta a lo largo de su pared cuando el pasillo no toca el centro.
+func _add_room_opening(room_marker: Node3D, wall: String, width: float, depth: float, wall_height: float, opening_width: float, along_offset: float = 0.0) -> RoomDoor3D:
 	var is_horizontal := wall == "north" or wall == "south"
 	var length := width if is_horizontal else depth
 	var door_width := clampf(opening_width, 1.0, length - 0.2)
 	var door_height := _door_height_for(wall_height)
 	var offset := _wall_offset(wall, width, depth)
 	var local_position := Vector3(offset.x, door_height * 0.5, offset.y)
+	if is_horizontal:
+		local_position.x += along_offset
+	else:
+		local_position.z += along_offset
 	# El recorte cruza la pared de lado a lado para que no queden restos.
 	var cut_depth := WALL_THICKNESS * 3.0
 	var cut_size := Vector3(door_width, door_height, cut_depth) if is_horizontal else Vector3(cut_depth, door_height, door_width)
@@ -572,6 +592,12 @@ func _corridor_plan(from_room: Dictionary, to_room: Dictionary, connection: Dict
 	var start := _wall_point(from_room, from_wall)
 	var end := _wall_point(to_room, str(connection.toWall))
 	var exits_along_depth := from_wall == "north" or from_wall == "south"
+	var waypoints_variant: Variant = connection.get("waypoints", [])
+	var waypoints: Array = waypoints_variant if waypoints_variant is Array else []
+	if not waypoints.is_empty():
+		var slid_start := _door_point(from_room, from_wall, connection, true, corridor_width)
+		var slid_end := _door_point(to_room, str(connection.toWall), connection, false, corridor_width)
+		return {"points": _waypoint_path(slid_start, slid_end, waypoints, connection), "width": corridor_width}
 	var offset := absf(start.x - end.x) if exits_along_depth else absf(start.y - end.y)
 	if offset < 0.01:
 		return {"points": PackedVector2Array([start, end]), "width": corridor_width}
@@ -587,6 +613,94 @@ func _corridor_plan(from_room: Dictionary, to_room: Dictionary, connection: Dict
 		return {"points": PackedVector2Array([start, Vector2(start.x, elbow_y), Vector2(end.x, elbow_y), end]), "width": corridor_width}
 	var elbow_x := (start.x + end.x) * 0.5
 	return {"points": PackedVector2Array([start, Vector2(elbow_x, start.y), Vector2(elbow_x, end.y), end]), "width": corridor_width}
+
+
+## Punta del pasillo sobre una pared, el mismo calculo que doorPoint en
+## tools/level-editor/level-format.js. Sin puntos intermedios es el centro de
+## la pared; con puntos, el primero (o el ultimo, del lado destino) desliza la
+## puerta sobre la pared cuando queda enfrentado a ella. Un punto fuera del
+## frente de la pared no la mueve: el recorrido lo alcanza con codos.
+func _door_point(room: Dictionary, wall: String, connection: Dictionary, is_from: bool, corridor_width: float) -> Vector2:
+	var point := _wall_point(room, wall)
+	var waypoints_variant: Variant = connection.get("waypoints", [])
+	var waypoints: Array = waypoints_variant if waypoints_variant is Array else []
+	if waypoints.is_empty():
+		return point
+	var target := (waypoints[0] if is_from else waypoints[waypoints.size() - 1]) as Dictionary
+	# Una pared norte/sur corre a lo ancho (x); una este/oeste, en profundidad.
+	var along_x := wall == "north" or wall == "south"
+	var half_length := float(room.size.width if along_x else room.size.depth) * 0.5
+	var center := float(room.position.x if along_x else room.position.z)
+	var candidate := float(target.get("x" if along_x else "z", center))
+	if absf(candidate - center) > half_length:
+		return point
+	# La puerta entera tiene que quedar dentro de la pared, lejos de la esquina.
+	var limit := half_length - corridor_width * 0.5 - WALL_THICKNESS
+	if limit <= 0.0:
+		return point
+	var slid := clampf(candidate, center - limit, center + limit)
+	return Vector2(slid, point.y) if along_x else Vector2(point.x, slid)
+
+
+## Desplazamiento de la puerta a lo largo de su pared, para tallar el vano y
+## colgar la barrera donde el pasillo realmente toca la sala.
+func _door_along_offset(room: Dictionary, wall: String, connection: Dictionary, is_from: bool, corridor_width: float) -> float:
+	var point := _door_point(room, wall, connection, is_from, corridor_width)
+	var along_x := wall == "north" or wall == "south"
+	return point.x - float(room.position.x) if along_x else point.y - float(room.position.z)
+
+
+## Trazado por puntos intermedios, el mismo calculo que waypointPath en
+## tools/level-editor/level-format.js: el pasillo pasa por cada punto en orden
+## uniendo tramos en angulo recto, sale perpendicular a la pared que perfora y
+## llega perpendicular a la de destino.
+func _waypoint_path(start: Vector2, end: Vector2, waypoints: Array, connection: Dictionary) -> PackedVector2Array:
+	var points: Array[Vector2] = [start]
+	# true = el proximo tramo avanza en profundidad (z del juego).
+	var vertical := str(connection.fromWall) == "north" or str(connection.fromWall) == "south"
+	for waypoint_variant in waypoints:
+		var waypoint := waypoint_variant as Dictionary
+		var target := Vector2(float(waypoint.get("x", 0.0)), float(waypoint.get("z", 0.0)))
+		var current: Vector2 = points[points.size() - 1]
+		var aligned := absf(current.x - target.x) < 0.01 or absf(current.y - target.y) < 0.01
+		if not aligned:
+			points.append(Vector2(current.x, target.y) if vertical else Vector2(target.x, current.y))
+		points.append(target)
+		var previous: Vector2 = points[points.size() - 2]
+		vertical = absf(target.x - previous.x) < 0.01
+	var last: Vector2 = points[points.size() - 1]
+	var enters_along_depth := str(connection.toWall) == "north" or str(connection.toWall) == "south"
+	if absf(last.x - end.x) >= 0.01 and absf(last.y - end.y) >= 0.01:
+		# El ultimo tramo entra derecho a la puerta: el codo comparte con el
+		# destino el eje por el que no se entra.
+		points.append(Vector2(end.x, last.y) if enters_along_depth else Vector2(last.x, end.y))
+	points.append(end)
+	return _simplify_path(points)
+
+
+## Limpia el trazado: quita puntos repetidos y funde tres puntos sobre el mismo
+## eje en un solo tramo. Eso incluye las idas y vueltas: un pasillo que vuelve
+## sobre su propia linea no se puede construir sano, asi que el desvio
+## redundante se descarta en lugar de degenerar.
+func _simplify_path(points: Array[Vector2]) -> PackedVector2Array:
+	var result: Array[Vector2] = []
+	for point in points:
+		if not result.is_empty() and result[result.size() - 1].distance_to(point) < 0.01:
+			continue
+		result.append(point)
+		while result.size() >= 3:
+			var a: Vector2 = result[result.size() - 3]
+			var b: Vector2 = result[result.size() - 2]
+			var c: Vector2 = result[result.size() - 1]
+			var same_axis := (absf(a.x - b.x) < 0.01 and absf(b.x - c.x) < 0.01) \
+					or (absf(a.y - b.y) < 0.01 and absf(b.y - c.y) < 0.01)
+			if not same_axis:
+				break
+			result.remove_at(result.size() - 2)
+			# Si la vuelta termina donde arranco, el punto duplicado sobra.
+			if result.size() >= 2 and result[result.size() - 2].distance_to(result[result.size() - 1]) < 0.01:
+				result.remove_at(result.size() - 1)
+	return PackedVector2Array(result)
 
 
 ## Arma el pasillo como un tubo continuo: cada tramo aporta piso, techo y sus

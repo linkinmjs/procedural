@@ -4,13 +4,17 @@ Editor web local para diseñar niveles desde arriba. No necesita dependencias ni
 
 ## Uso
 
-Se puede abrir `index.html` directamente, pero conviene servirlo para que el editor pueda leer el catálogo de texturas. Desde la raíz del repositorio:
+Doble click en `tools/level-editor/workshop.cmd`: levanta el servidor y abre el editor en el navegador. Cerrar esa ventana detiene el servidor.
+
+O a mano, desde la raíz del repositorio:
 
 ```powershell
-python -m http.server 8080 --directory .
+node tools/level-editor/serve.js
 ```
 
-Abrir `http://localhost:8080/tools/level-editor/` en el navegador.
+y abrir `http://localhost:8080/tools/level-editor/` en el navegador. El servidor no tiene dependencias: sirve el repositorio como archivos estáticos y expone la API con la que el editor abre y guarda niveles en `level_designs/levels/` y mantiene `level-sequence.json`, sin selectores de archivo ni edición a mano.
+
+Cualquier otro servidor estático (`python -m http.server 8080 --directory .`) también funciona, pero sin esa API el editor esconde *Abrir…* y *Secuencia…* y vuelve a los selectores de archivo del navegador. Abierto con `file://` tampoco puede leer el catálogo de texturas.
 
 La pantalla es el plano. Todo lo que se configura vive en tres ventanas que se abren sobre él, así ninguna propiedad queda detrás de un scroll:
 
@@ -41,6 +45,7 @@ Los avisos en rojo marcan lo que rompe el nivel —sin salida, una sala a la que
 - **Reglas**: tiempo límite en minutos y segundos, y munición inicial. El cargador se recorta a la capacidad del arma: la Glock lleva 10 balas, así que un valor mayor entra igual pero se guarda el resto en la reserva.
 - **Entorno**: el cielo del nivel — día despejado, nublado, atardecer o noche. Además de pintar el cielo coloca el sol, así la luz de las salas acompaña.
 - **Predeterminados de sala**: altura de paredes, ancho de pasillos, alto máximo de los bloques y si las salas llevan techo. La altura y el techo los puede pisar cada sala; el ancho, cada pasillo.
+- **Texturas predeterminadas**: las cinco superficies con el mismo selector visual que usa la sala. Visten todas las salas y pasillos del nivel; cada sala pisa sólo los slots que quiera.
 
 El **alto máximo de bloque** recorta el bloque de ventanas cuando la pared es más alta que él: cubre la pared desde el piso hasta ese valor y deja libre lo que sobra, para que los objetivos no aparezcan donde no se apunta cómodo. Con paredes más bajas el bloque las sigue hasta el techo. Por defecto son 6 m.
 
@@ -61,7 +66,7 @@ A la derecha:
 - **Forma**: tipo, ancho, profundidad y posición.
 - **Volumen**: altura de paredes propia o heredada, y techo heredado / cerrado / a cielo abierto.
 - **Orientación inicial** (sólo en la sala de inicio): una brújula de ocho direcciones decide hacia dónde mira el jugador al aparecer, para que no arranque contra una pared.
-- **Texturas**: paredes, suelo, techo, puertas y bloques, con las texturas del catálogo agrupadas por pack. Sin textura, la superficie usa el material de color plano. Hoy el juego aplica `walls`, `floor` y `ceiling`; los pasillos heredan las de la sala de la que salen.
+- **Texturas**: paredes, suelo, techo, puertas y bloques. Cada superficie muestra la miniatura de su textura y abre una grilla con las imágenes reales, agrupadas por pack y con buscador. Sin textura, la superficie usa el material de color plano. Hoy el juego aplica `walls`, `floor` y `ceiling`; los pasillos heredan las de la sala de la que salen.
 
 La **entrada** es un dato calculado, no un campo. Se entra a cada sala por la pared que la une con la anterior, siguiendo el camino desde el inicio; en la sala de inicio, por la pared que le queda a la espalda del jugador. Cambiar el recorrido reorienta los bloques solo, porque los lados izquierdo, frontal y derecho son relativos a la entrada.
 
@@ -91,21 +96,30 @@ Las familias salen de los comportamientos que enumera `docs/gdd_atractivo_y_prog
 
 - Rueda del mouse para acercar, arrastre del fondo para desplazar, **Encuadrar** para ver todo el nivel.
 - Cada pasillo se dibuja como una sola figura cerrada, con su ancho real y sus codos resueltos, igual que la geometría que arma el juego. Si las puertas quedan desalineadas menos que el ancho, el pasillo se ensancha en lugar de quebrarse.
+- **Puntos intermedios**: doble click sobre un pasillo agrega un punto por el que el recorrido tiene que pasar; el punto se arrastra, y con click derecho se quita. El pasillo une los puntos en ángulo recto, saliendo y llegando perpendicular a las puertas. Un desvío que vuelve sobre su propia línea se descarta en vez de degenerar el trazado. Ojo con acercar dos tramos paralelos a menos del ancho del pasillo: las paredes de uno invaden al otro (el smoke test de pasillos lo detecta).
+- **Mover la puerta**: el primer punto (o el último, del lado destino) también decide dónde está la puerta. Colocado frente a la pared, la puerta se desliza hasta quedar enfrentada al punto —con tope antes de la esquina— y el pasillo sale derecho desde ahí. Un punto fuera del frente de la pared no la mueve: el recorrido lo alcanza con codos, como siempre.
 - Las salas muestran su altura, si están a cielo abierto y cuántas balas entregan; cada bloque, el total de ventanas de cada oleada.
 - La sala de inicio muestra una flecha con la orientación del jugador.
 - Atajos: `Enter` abre la sala seleccionada, `Supr` la elimina, `F` encuadra, `Ctrl+S` guarda.
 
 ## Archivo
 
-- Guardar con el selector de archivos del navegador o descargar el JSON desde el menú **Archivo**.
-- Colocar los archivos definitivos en `level_designs/levels/` y registrarlos en `level_designs/level-sequence.json`.
+Con el servidor del Workshop corriendo (ver *Uso*):
 
-El editor conserva automáticamente un borrador en el almacenamiento local del navegador. Ese borrador es una comodidad y no reemplaza a los JSON versionados en Git.
+- **Abrir…** lista los niveles de `level_designs/levels/` con su nombre, cuántas salas tienen y su posición en la secuencia. Un click y se abre.
+- **Guardar** (o `Ctrl+S`) escribe directo al archivo abierto; el nombre se ve junto al menú Archivo. La primera vez pide sólo el nombre del archivo y, si el nivel no está en la secuencia, ofrece sumarlo al final.
+- **Secuencia…** muestra los niveles en el orden en que el juego los encadena: se reordenan con ↑ ↓, se quitan con ×, y *Agregar nivel actual* suma el que está abierto. Cada cambio se guarda solo en `level_designs/level-sequence.json`.
+- Al guardar un nivel que ya está en la secuencia, su `id` se sincroniza solo: el juego rechaza ids desparejos.
+
+Sin el servidor quedan **Guardar como…** (selector del navegador), **Descargar JSON** e **Importar…**.
+
+El editor conserva automáticamente un borrador en el almacenamiento local del navegador y avisa antes de descartar cambios sin guardar. Ese borrador es una comodidad y no reemplaza a los JSON versionados en Git.
 
 ## Estructura
 
 - `level-format.js` define el modelo de datos: límites, normalización, roles, familias de ventana e inferencia de entradas. Lo comparten el editor, el migrador y los smoke tests, así que la lógica del formato tiene una sola implementación.
 - `app.js` es la interfaz: dibujo del plano, ventanas de configuración y eventos.
+- `serve.js` es el servidor local: archivos estáticos del repositorio más la API de niveles y secuencia (`/api/levels`, `/api/sequence`).
 - `migrate-level.js` actualiza archivos versionados al formato actual.
 
 ## Migrar diseños viejos
@@ -120,12 +134,12 @@ Una oleada guardada como número suelto (`"waves": [5]`) pasa a `{ "windows": { 
 
 ## Texturas
 
-Los desplegables se llenan desde `level_designs/texture-catalog.json`, así que **el editor hay que servirlo** (ver *Uso*): abierto con `file://` el navegador no puede leer el catálogo y los campos quedan vacíos.
+La grilla se llena desde `level_designs/texture-catalog.json` y las miniaturas son los PNG reales de `assets/textures/packs/`, así que **el editor hay que servirlo** (ver *Uso*): abierto con `file://` el navegador no puede leer ni el catálogo ni las imágenes.
 
-Hay tres packs cargados —Horror, Tiny 1 y Tiny 2, todos CC0—. Para compararlos, `tests/texture_catalog_smoke_test.gd` arma en memoria un nivel con una sala por pack.
+Hay catorce packs cargados, agrupados por material (Ladrillos, Madera, Metal, Piedra, ...), todos CC0 de Screaming Brain Studios. Para compararlos, `tests/texture_catalog_smoke_test.gd` arma en memoria un nivel con una sala por pack.
 
-Para sumar texturas: extraer las que falten de `assets/_raw/textures/`, copiarlas a `assets/textures/packs/<pack>/` y agregar su entrada al catálogo.
+Para sumar texturas: extraer las que falten de `assets/_raw/textures/`, copiarlas a la carpeta de su material en `assets/textures/packs/` y regenerar el catálogo (una entrada por PNG, con id `material/nombre-en-minusculas`).
 
 ## Alcance actual
 
-El runtime construye todo lo que declara el formato: alturas, techos, pasillos con su ancho, roles, orientación inicial, munición, recompensas, cielo y las texturas de paredes, suelo y techo. Los slots `door` y `block` se guardan pero todavía no se aplican, y de una oleada sólo usa el total de ventanas: las familias distintas de `normal` esperan su comportamiento.
+El runtime construye todo lo que declara el formato: alturas, techos, pasillos con su ancho y sus puntos intermedios, roles, orientación inicial, munición, recompensas, cielo y las texturas de paredes, suelo y techo. Los slots `door` y `block` se guardan pero todavía no se aplican, y de una oleada sólo usa el total de ventanas: las familias distintas de `normal` esperan su comportamiento.

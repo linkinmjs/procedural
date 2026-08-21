@@ -68,7 +68,14 @@ for (const entry of catalog.textures) {
   assert.ok(fs.existsSync(entry.path.replace("res://", "")), `Falta el archivo de ${entry.id}`);
   assert.ok(entry.tile > 0, `${entry.id} necesita un tamaño de mosaico`);
 }
-assert.match(script, /fillTextureSelect/, "El editor debe poblar los desplegables de textura");
+// Las texturas se eligen viendo la imagen, no adivinando por el nombre.
+assert.match(script, /renderTexturePicker/, "El editor debe dibujar la grilla visual de texturas");
+assert.match(script, /openTexturePicker/, "Cada superficie abre el selector visual");
+assert.match(script, /loading = "lazy"/, "Con 345 miniaturas la grilla carga las imágenes de a poco");
+for (const id of ["texture-dialog", "texture-search", "texture-picker-grid"]) {
+  assert.match(html, new RegExp(`id=["']${id}["']`), `Falta el control #${id}`);
+}
+assert.doesNotMatch(script, /<select data-texture/, "El desplegable de nombres quedó reemplazado por la grilla");
 
 // Los cielos que ofrece la herramienta son los que sabe construir el juego.
 const skyCatalogSource = fs.readFileSync("scripts/environment/sky_catalog.gd", "utf8");
@@ -258,6 +265,92 @@ assert.equal(straightOutline.length, 4, "Un pasillo recto es un rectángulo de c
 assert.match(script, /corridorOutline/, "El plano debe dibujar el pasillo como una sola figura");
 assert.doesNotMatch(script, /class: "corridor-shape corner"/, "Ya no se dibujan parches de esquina sueltos");
 
+// --- Puntos intermedios del pasillo -------------------------------------------
+// Espejan los casos de tests/corridor_waypoints_smoke_test.gd: las dos
+// implementaciones del trazado tienen que coincidir.
+
+/** Dos salas enfrentadas: puertas en (-13, 0) y (-7, 0). */
+function waypointLevel(waypoints) {
+  const level = LevelFormat.createEmptyLevel();
+  const a = Object.assign(LevelFormat.createRoom("small", 1), { id: "wa", role: "start", position: { x: -20, z: 0 } });
+  const b = Object.assign(LevelFormat.createRoom("small", 2), { id: "wb", role: "exit", position: { x: 0, z: 0 } });
+  level.rooms = [a, b];
+  level.connections = [{ id: "wc", fromRoomId: "wa", toRoomId: "wb", fromWall: "east", toWall: "west", width: 3.5, waypoints }];
+  return LevelFormat.normalizeLevel(level);
+}
+
+// Un desvío en U: pasa por los dos puntos, sale y entra perpendicular, y cada
+// tramo es horizontal o vertical.
+const detour = waypointLevel([{ x: -11, z: -8 }, { x: -9, z: -8 }]);
+const detourPlan = LevelFormat.corridorPlan(detour.rooms[0], detour.rooms[1], detour.connections[0]);
+assert.equal(detourPlan.points.length, 6, "El desvío en U describe seis puntos");
+assert.deepEqual(detourPlan.points[0], { x: -13, y: 0 }, "El pasillo arranca en la puerta de origen");
+assert.deepEqual(detourPlan.points.at(-1), { x: -7, y: 0 }, "El pasillo termina en la puerta de destino");
+assert.equal(detourPlan.points[0].y, detourPlan.points[1].y, "Sale perpendicular a la pared este");
+assert.equal(detourPlan.points.at(-2).y, detourPlan.points.at(-1).y, "Llega perpendicular a la pared oeste");
+for (const waypoint of [{ x: -11, y: -8 }, { x: -9, y: -8 }]) {
+  assert.ok(detourPlan.points.some((point) => point.x === waypoint.x && point.y === waypoint.y),
+    `El recorrido debe pasar por (${waypoint.x}, ${waypoint.y})`);
+}
+for (let index = 0; index < detourPlan.points.length - 1; index += 1) {
+  const [p, q] = [detourPlan.points[index], detourPlan.points[index + 1]];
+  assert.ok(Math.abs(p.x - q.x) < 0.01 || Math.abs(p.y - q.y) < 0.01, "Cada tramo es horizontal o vertical");
+}
+
+// Un punto sobre la línea recta no agrega codos.
+const alignedLevel = waypointLevel([{ x: -10, z: 0 }]);
+const alignedPlan = LevelFormat.corridorPlan(alignedLevel.rooms[0], alignedLevel.rooms[1], alignedLevel.connections[0]);
+assert.equal(alignedPlan.points.length, 2, "Un punto alineado deja el pasillo recto");
+
+// Un punto enfrentado a la pared desliza la puerta hasta ese lugar: el pasillo
+// sale derecho desde ahí en vez de acodarse desde el centro.
+const slide = waypointLevel([{ x: -11, z: -4 }]);
+const slidePlan = LevelFormat.corridorPlan(slide.rooms[0], slide.rooms[1], slide.connections[0]);
+assert.deepEqual(slidePlan.points, [{ x: -13, y: -4 }, { x: -7, y: -4 }],
+  "El punto corre las dos puertas y el pasillo queda recto");
+
+// El tope: un punto casi en la esquina deja la puerta entera dentro de la pared.
+const corner = waypointLevel([{ x: -11, z: -6.9 }]);
+const cornerPlan = LevelFormat.corridorPlan(corner.rooms[0], corner.rooms[1], corner.connections[0]);
+assert.ok(Math.abs(cornerPlan.points[0].y) <= 7 - 3.5 / 2 - 0.35 + 1e-9, "La puerta no se mete en la esquina");
+
+// Una ida y vuelta sobre la misma línea se descarta en lugar de degenerar el
+// contorno del pasillo.
+const spur = waypointLevel([{ x: -10, z: -9 }, { x: -10, z: 0 }]);
+const spurPlan = LevelFormat.corridorPlan(spur.rooms[0], spur.rooms[1], spur.connections[0]);
+assert.equal(spurPlan.points.length, 2, "El desvío que vuelve sobre sí mismo se colapsa");
+
+// Sin puntos, el trazado de siempre: el desfase chico ensancha en vez de acodar.
+const widenLevel = waypointLevel([]);
+widenLevel.rooms[1].position.z = 2;
+const widenPlan = LevelFormat.corridorPlan(widenLevel.rooms[0], widenLevel.rooms[1], widenLevel.connections[0]);
+assert.equal(widenPlan.width, 5.5, "Sin puntos el desfase chico sigue ensanchando el pasillo");
+assert.equal(widenPlan.points.length, 2, "Sin puntos el desfase chico sigue yendo recto");
+
+// La normalización completa y limpia los puntos.
+const rawWaypoints = waypointLevel([{ x: "no", z: 1 }, { x: 3, z: -2 }]);
+assert.deepEqual(rawWaypoints.connections[0].waypoints, [{ x: 3, z: -2 }], "Un punto sin coordenadas numéricas se descarta");
+const legacyNoWaypoints = LevelFormat.normalizeLevel({
+  rooms: [
+    Object.assign(LevelFormat.createRoom("small", 1), { id: "l1" }),
+    Object.assign(LevelFormat.createRoom("small", 2), { id: "l2", position: { x: 20, z: 0 } })
+  ],
+  connections: [{ fromRoomId: "l1", toRoomId: "l2" }]
+});
+assert.equal(legacyNoWaypoints.connections.length, 1, "La conexión vieja sobrevive a la normalización");
+assert.deepEqual(legacyNoWaypoints.connections[0].waypoints, [], "Una conexión sin waypoints los gana vacíos");
+assert.ok(schema.$defs.connection.properties.waypoints, "El schema debe aceptar los puntos intermedios");
+
+// La herramienta los edita sobre el plano.
+assert.match(script, /corridor-waypoint/, "El plano debe dibujar los puntos intermedios");
+assert.match(script, /function addWaypoint/, "Doble click sobre el pasillo agrega un punto");
+assert.match(styles, /\.corridor-waypoint/, "Los puntos intermedios necesitan estilos");
+
+// --- Texturas predeterminadas del nivel ---------------------------------------
+
+assert.match(html, /id=["']level-texture-fields["']/, "El diálogo del nivel debe exponer las texturas predeterminadas");
+assert.match(script, /data-texture-level/, "Los predeterminados del nivel usan el mismo selector visual");
+
 // --- Roles -------------------------------------------------------------------
 
 const roles = chainLevel();
@@ -323,12 +416,84 @@ for (const path of levelPaths) {
   for (const connection of level.connections) {
     assert.ok(roomIds.has(connection.fromRoomId) && roomIds.has(connection.toRoomId), `${path}: pasillo huérfano`);
     assert.ok(connection.width >= 1.5 && connection.width <= 12, `${path}: ancho de pasillo inválido`);
+    assert.ok(Array.isArray(connection.waypoints), `${path}: cada pasillo declara sus waypoints`);
   }
   // Los archivos versionados ya deben tener la entrada resuelta.
   const resolved = LevelFormat.resolveEntryWalls(structuredClone(level));
   for (const [index, room] of resolved.rooms.entries()) {
     assert.equal(room.entry.wall, level.rooms[index].entry.wall, `${path}: ${room.name} tiene una entrada desactualizada`);
   }
+}
+
+// --- Secuencia versionada ----------------------------------------------------
+
+// El juego rechaza entradas con id despareja o archivo faltante, así que el
+// archivo versionado tiene que estar siempre consistente.
+const sequenceRaw = fs.readFileSync("level_designs/level-sequence.json", "utf8");
+const sequenceFile = JSON.parse(sequenceRaw);
+assert.ok(Array.isArray(sequenceFile.levels) && sequenceFile.levels.length > 0, "La secuencia debe listar niveles");
+for (const entry of sequenceFile.levels) {
+  assert.match(entry.path, /^res:\/\/level_designs\/levels\//, `La secuencia sólo apunta a levels/: ${entry.path}`);
+  const local = entry.path.replace("res://", "");
+  assert.ok(fs.existsSync(local), `La secuencia apunta a un archivo faltante: ${entry.path}`);
+  const target = JSON.parse(fs.readFileSync(local, "utf8"));
+  assert.equal(target.id, entry.id, `${entry.path}: el id de la secuencia no coincide con el del nivel`);
+}
+
+// --- Servidor del Workshop ---------------------------------------------------
+
+// El editor abre y guarda niveles por la API del servidor, y mantiene la
+// secuencia sin editar el JSON a mano; servido de otra forma, cae en los
+// selectores de archivo de siempre.
+assert.match(script, /\/api\/levels/, "El editor debe hablar con la API del Workshop");
+assert.match(script, /\/api\/sequence/, "El editor debe poder mantener la secuencia");
+for (const id of ["open-file", "open-sequence", "sequence-add-current", "open-dialog", "sequence-dialog", "save-as-file", "current-file"]) {
+  assert.match(html, new RegExp(`id=["']${id}["']`), `Falta el control #${id}`);
+}
+
+const { createLevelServer } = require("../tools/level-editor/serve.js");
+const server = createLevelServer();
+await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+const base = `http://127.0.0.1:${server.address().port}`;
+try {
+  const listed = (await (await fetch(`${base}/api/levels`)).json()).levels;
+  const firstEntry = listed.find((item) => item.file === "nivel-1.json");
+  assert.ok(firstEntry, "La API debe listar nivel-1.json");
+  const levelOne = await (await fetch(`${base}/api/levels/nivel-1.json`)).json();
+  assert.equal(levelOne.id, firstEntry.id, "El listado y el archivo deben coincidir");
+
+  const evil = await fetch(`${base}/api/levels/..%2F..%2Fpwned.json`, { method: "PUT", body: "{}" });
+  assert.equal(evil.status, 400, "La API debe rechazar nombres con rutas");
+
+  // Guardar y releer un nivel de prueba, y limpiarlo del disco.
+  const tmpName = "smoke-test-workshop.json";
+  const putLevel = await fetch(`${base}/api/levels/${tmpName}`, { method: "PUT", body: JSON.stringify(levelOne) });
+  assert.equal(putLevel.status, 200, "La API debe aceptar el guardado");
+  const reread = await (await fetch(`${base}/api/levels/${tmpName}`)).json();
+  assert.equal(reread.id, levelOne.id, "El nivel guardado debe releerse igual");
+  fs.rmSync(`level_designs/levels/${tmpName}`);
+
+  // La secuencia va y vuelve sin cambiar de contenido.
+  const sequenceOverWire = await (await fetch(`${base}/api/sequence`)).json();
+  assert.deepEqual(sequenceOverWire, sequenceFile, "GET /api/sequence devuelve el archivo versionado");
+  const putSequence = await fetch(`${base}/api/sequence`, { method: "PUT", body: JSON.stringify(sequenceOverWire) });
+  assert.equal(putSequence.status, 200);
+  assert.deepEqual(JSON.parse(fs.readFileSync("level_designs/level-sequence.json", "utf8")), sequenceFile,
+    "El PUT de la secuencia conserva el contenido");
+  fs.writeFileSync("level_designs/level-sequence.json", sequenceRaw);
+
+  const badSequence = await fetch(`${base}/api/sequence`, {
+    method: "PUT",
+    body: JSON.stringify({ schemaVersion: 1, levels: [{ id: "x", path: "res://otro/lado.json" }] })
+  });
+  assert.equal(badSequence.status, 400, "La secuencia sólo acepta niveles de level_designs/levels/");
+
+  const page = await (await fetch(`${base}/tools/level-editor/`)).text();
+  assert.match(page, /Level Workshop/, "El servidor debe servir el editor");
+  const outside = await fetch(`${base}/..%2F..%2Fsecret.txt`);
+  assert.equal(outside.status, 404, "El servidor no sirve nada fuera del repositorio");
+} finally {
+  server.close();
 }
 
 console.log("LEVEL EDITOR SMOKE TEST PASSED");

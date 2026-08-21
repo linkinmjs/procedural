@@ -58,7 +58,7 @@
 
   const LEVEL_KEYS = ["schemaVersion", "id", "name", "description", "timeLimitSeconds", "gridSize", "startingAmmo", "sky", "defaults", "rooms", "connections"];
   const ROOM_KEYS = ["id", "name", "type", "role", "position", "size", "entry", "facing", "wallHeight", "hasCeiling", "ammoReward", "textures", "blocks"];
-  const CONNECTION_KEYS = ["id", "fromRoomId", "toRoomId", "fromWall", "toWall", "width"];
+  const CONNECTION_KEYS = ["id", "fromRoomId", "toRoomId", "fromWall", "toWall", "width", "waypoints"];
 
   const LIMITS = {
     timeLimit: { min: 1, max: 3600, fallback: 90 },
@@ -193,7 +193,8 @@
       fromRoomId: from.id,
       toRoomId: to.id,
       ...chooseConnectionWalls(from, to),
-      width: clamp(corridorWidth, LIMITS.corridorWidth)
+      width: clamp(corridorWidth, LIMITS.corridorWidth),
+      waypoints: []
     };
   }
 
@@ -232,11 +233,43 @@
    * sí —, así que el pasillo va recto y se ensancha lo justo para cubrir ambas
    * bocas. Con más desfase describe un codo de cuatro puntos.
    */
+  /**
+   * Punta del pasillo sobre una pared. Sin puntos intermedios es el centro de
+   * la pared. Con puntos, el primero (o el último, del lado destino) desliza
+   * la puerta sobre la pared cuando queda enfrentado a ella: colocar un punto
+   * frente al lugar deseado mueve la puerta ahí y el pasillo sale derecho. Un
+   * punto fuera del frente de la pared no la mueve: el recorrido lo alcanza
+   * con codos, como siempre.
+   */
+  function doorPoint(room, wall, connection, isFrom) {
+    const point = wallPoint(room, wall);
+    const waypoints = Array.isArray(connection?.waypoints) ? connection.waypoints : [];
+    if (!waypoints.length) return point;
+    const target = waypoints[isFrom ? 0 : waypoints.length - 1];
+    // Una pared norte/sur corre a lo ancho (x); una este/oeste, en profundidad.
+    const alongX = wall === "north" || wall === "south";
+    const halfLength = (alongX ? room.size.width : room.size.depth) / 2;
+    const center = alongX ? room.position.x : room.position.z;
+    const candidate = alongX ? Number(target.x) : Number(target.z);
+    if (!Number.isFinite(candidate) || Math.abs(candidate - center) > halfLength) return point;
+    // La puerta entera tiene que quedar dentro de la pared, lejos de la esquina.
+    const limit = halfLength - connection.width / 2 - 0.35;
+    if (limit <= 0) return point;
+    const slid = Math.max(center - limit, Math.min(center + limit, candidate));
+    return alongX ? { x: slid, y: point.y } : { x: point.x, y: slid };
+  }
+
   function corridorPlan(from, to, connection) {
+    const width = connection.width;
+    const waypoints = Array.isArray(connection.waypoints) ? connection.waypoints : [];
+    const exitsAlongDepth = connection.fromWall === "north" || connection.fromWall === "south";
+    if (waypoints.length) {
+      const start = doorPoint(from, connection.fromWall, connection, true);
+      const end = doorPoint(to, connection.toWall, connection, false);
+      return { points: waypointPath(start, end, waypoints, connection), width };
+    }
     const start = wallPoint(from, connection.fromWall);
     const end = wallPoint(to, connection.toWall);
-    const width = connection.width;
-    const exitsAlongDepth = connection.fromWall === "north" || connection.fromWall === "south";
     const offset = exitsAlongDepth ? Math.abs(start.x - end.x) : Math.abs(start.y - end.y);
     if (offset < 0.01) return { points: [start, end], width };
     if (offset <= width) {
@@ -254,6 +287,65 @@
     }
     const midX = (start.x + end.x) / 2;
     return { points: [start, { x: midX, y: start.y }, { x: midX, y: end.y }, end], width };
+  }
+
+  /**
+   * Trazado por puntos intermedios: el pasillo pasa por cada punto en orden,
+   * uniendo tramos en ángulo recto. Sale perpendicular a la pared que perfora
+   * (una salida norte/sur avanza primero en profundidad) y llega perpendicular
+   * a la pared de destino, o la puerta quedaría contra una pared.
+   */
+  function waypointPath(start, end, waypoints, connection) {
+    const points = [start];
+    // true = el próximo tramo avanza en profundidad (y del plano, z del juego).
+    let vertical = connection.fromWall === "north" || connection.fromWall === "south";
+    for (const waypoint of waypoints) {
+      const target = { x: Number(waypoint.x) || 0, y: Number(waypoint.z) || 0 };
+      const current = points[points.length - 1];
+      const aligned = Math.abs(current.x - target.x) < 0.01 || Math.abs(current.y - target.y) < 0.01;
+      if (!aligned) {
+        points.push(vertical ? { x: current.x, y: target.y } : { x: target.x, y: current.y });
+      }
+      points.push(target);
+      const previous = points[points.length - 2];
+      vertical = Math.abs(target.x - previous.x) < 0.01;
+    }
+    const current = points[points.length - 1];
+    const entersAlongDepth = connection.toWall === "north" || connection.toWall === "south";
+    if (Math.abs(current.x - end.x) >= 0.01 && Math.abs(current.y - end.y) >= 0.01) {
+      // El último tramo entra derecho a la puerta: el codo comparte con el
+      // destino el eje por el que no se entra.
+      points.push(entersAlongDepth ? { x: end.x, y: current.y } : { x: current.x, y: end.y });
+    }
+    points.push(end);
+    return simplifyPath(points);
+  }
+
+  /**
+   * Limpia el trazado: quita puntos repetidos y funde tres puntos sobre el
+   * mismo eje en un solo tramo. Eso incluye las idas y vueltas: un pasillo que
+   * vuelve sobre su propia línea no se puede contornear ni construir sano, así
+   * que el desvío redundante se descarta en lugar de degenerar.
+   */
+  function simplifyPath(points) {
+    const result = [];
+    for (const point of points) {
+      const previous = result[result.length - 1];
+      if (previous && Math.abs(previous.x - point.x) < 0.01 && Math.abs(previous.y - point.y) < 0.01) continue;
+      result.push(point);
+      while (result.length >= 3) {
+        const [a, b, c] = result.slice(-3);
+        const sameAxis = (Math.abs(a.x - b.x) < 0.01 && Math.abs(b.x - c.x) < 0.01) ||
+          (Math.abs(a.y - b.y) < 0.01 && Math.abs(b.y - c.y) < 0.01);
+        if (!sameAxis) break;
+        result.splice(result.length - 2, 1);
+        // Si la vuelta termina donde arrancó, el punto duplicado sobra.
+        const last = result[result.length - 1];
+        const prior = result[result.length - 2];
+        if (prior && Math.abs(prior.x - last.x) < 0.01 && Math.abs(prior.y - last.y) < 0.01) result.pop();
+      }
+    }
+    return result;
   }
 
   /**
@@ -481,7 +573,10 @@
         id: connection.id || newId(),
         fromWall: WALLS.includes(connection.fromWall) ? connection.fromWall : "east",
         toWall: WALLS.includes(connection.toWall) ? connection.toWall : "west",
-        width: clamp(connection.width, { ...LIMITS.corridorWidth, fallback: level.defaults.corridorWidth })
+        width: clamp(connection.width, { ...LIMITS.corridorWidth, fallback: level.defaults.corridorWidth }),
+        waypoints: (Array.isArray(connection.waypoints) ? connection.waypoints : [])
+          .map((point) => ({ x: Number(point?.x), z: Number(point?.z) }))
+          .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.z))
       }));
     normalizeRoles(level.rooms);
     applyDefaultFacing(level);
@@ -527,6 +622,7 @@
     createConnection,
     chooseConnectionWalls,
     wallPoint,
+    doorPoint,
     corridorPlan,
     corridorOutline,
     normalizeRoles,

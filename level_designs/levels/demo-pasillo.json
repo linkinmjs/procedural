@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 9,
+  "id": "demo-pasillo-waypoints",
+  "name": "Demo pasillo",
+  "description": "Pasillo con puntos intermedios: una U entre las dos salas.",
+  "timeLimitSeconds": 90,
+  "gridSize": 1,
+  "startingAmmo": {
+    "magazine": 17,
+    "reserve": 51
+  },
+  "sky": "clear-day",
+  "defaults": {
+    "wallHeight": 6,
+    "maxBlockHeight": 6,
+    "hasCeiling": false,
+    "corridorWidth": 3.5,
+    "textures": {
+      "walls": "bricks/brick-01",
+      "floor": "tile/tile-01",
+      "ceiling": "plaster/plaster-01",
+      "door": "wood/wood-01",
+      "block": "metal/metal-01"
+    }
+  },
+  "rooms": [
+    {
+      "id": "demo-a",
+      "name": "Sala 1",
+      "type": "small",
+      "role": "start",
+      "position": {
+        "x": -20,
+        "z": 0
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "facing": 90,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "demo-b",
+      "name": "Sala 2",
+      "type": "small",
+      "role": "exit",
+      "position": {
+        "x": 8,
+        "z": 0
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "demo-u",
+      "fromRoomId": "demo-a",
+      "toRoomId": "demo-b",
+      "fromWall": "east",
+      "toWall": "west",
+      "width": 3.5,
+      "waypoints": [
+        {
+          "x": -8,
+          "z": -14
+        },
+        {
+          "x": -2,
+          "z": -14
+        }
+      ]
+    }
+  ]
+}

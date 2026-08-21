@@ -16,11 +16,11 @@
     "hasCeiling": true,
     "corridorWidth": 3.5,
     "textures": {
-      "walls": "",
-      "floor": "",
-      "ceiling": "",
-      "door": "",
-      "block": ""
+      "walls": "bricks/brick-01",
+      "floor": "tile/tile-01",
+      "ceiling": "plaster/plaster-01",
+      "door": "wood/wood-01",
+      "block": "metal/metal-01"
     }
   },
   "rooms": [
@@ -50,10 +50,10 @@
         "color": "#f4bc59"
       },
       "textures": {
-        "walls": "",
-        "floor": "",
-        "ceiling": "",
-        "door": "",
+        "walls": "bricks/bricks-24",
+        "floor": "floor/horror-floor-09",
+        "ceiling": "floor/horror-floor-06",
+        "door": "elements/elements-07",
         "block": ""
       },
       "waves": [
@@ -250,7 +250,8 @@
       "toRoomId": "49a0da1a-0443-4af3-ac43-fd0c100b96a9",
       "fromWall": "east",
       "toWall": "west",
-      "width": 1.5
+      "width": 1.5,
+      "waypoints": []
     },
     {
       "id": "79698a94-1962-4d02-98e2-08da1eb7f7a8",
@@ -258,7 +259,8 @@
       "toRoomId": "bd70533a-e8c7-4ada-ad2a-bea69f4fdffe",
       "fromWall": "east",
       "toWall": "west",
-      "width": 3.5
+      "width": 3.5,
+      "waypoints": []
     }
   ]
 }

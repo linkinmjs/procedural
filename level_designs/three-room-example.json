@@ -253,7 +253,8 @@
       "toRoomId": "room-arena",
       "fromWall": "east",
       "toWall": "west",
-      "width": 3.5
+      "width": 3.5,
+      "waypoints": []
     },
     {
       "id": "connection-arena-corridor",
@@ -261,7 +262,8 @@
       "toRoomId": "room-corridor",
       "fromWall": "south",
       "toWall": "north",
-      "width": 3.5
+      "width": 3.5,
+      "waypoints": []
     }
   ]
 }

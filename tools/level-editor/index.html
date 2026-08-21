@@ -19,13 +19,17 @@
     </button>
 
     <div class="file-actions">
+      <span id="current-file" class="current-file" title="Archivo en level_designs/levels/"></span>
       <details class="menu" id="file-menu">
         <summary class="button" title="Archivo">Archivo</summary>
         <div class="menu-body">
           <button id="new-level" type="button">Nuevo</button>
+          <button id="open-file" type="button" hidden>Abrir…</button>
+          <button id="open-sequence" type="button" hidden>Secuencia…</button>
           <button id="load-example" type="button">Cargar ejemplo</button>
           <label class="menu-item" for="import-file">Importar…</label>
           <input id="import-file" type="file" accept="application/json,.json" hidden>
+          <button id="save-as-file" type="button">Guardar como…</button>
           <button id="download-file" type="button">Descargar JSON</button>
         </div>
       </details>
@@ -165,6 +169,12 @@
         <p class="hint">Los bloques cubren la pared hasta ese alto, para que las ventanas no queden donde no se apunta cómodo.</p>
       </fieldset>
 
+      <fieldset>
+        <legend>Texturas predeterminadas</legend>
+        <div id="level-texture-fields" class="texture-grid"></div>
+        <p class="hint">Visten todas las salas; cada sala pisa sólo lo que quiera.</p>
+      </fieldset>
+
       <section class="summary-panel">
         <div class="summary-heading">
           <span>Resumen del nivel</span>
@@ -294,6 +304,58 @@
     </footer>
   </dialog>
 
+
+  <dialog id="open-dialog" class="dialog file-dialog">
+    <header class="dialog-header">
+      <div>
+        <p class="eyebrow">ARCHIVO</p>
+        <h2 class="dialog-title">Abrir nivel</h2>
+      </div>
+      <button class="icon-button" type="button" data-close-dialog aria-label="Cerrar">×</button>
+    </header>
+    <div class="dialog-body">
+      <ul id="open-list" class="file-list"></ul>
+      <p id="open-empty" class="hint"></p>
+    </div>
+    <footer class="dialog-footer">
+      <span class="hint">Los niveles viven en level_designs/levels/.</span>
+      <button class="subtle" type="button" data-close-dialog>Cancelar</button>
+    </footer>
+  </dialog>
+
+  <dialog id="sequence-dialog" class="dialog file-dialog">
+    <header class="dialog-header">
+      <div>
+        <p class="eyebrow">JUEGO</p>
+        <h2 class="dialog-title">Secuencia de niveles</h2>
+      </div>
+      <button class="icon-button" type="button" data-close-dialog aria-label="Cerrar">×</button>
+    </header>
+    <div class="dialog-body">
+      <ul id="sequence-list" class="file-list"></ul>
+      <p id="sequence-empty" class="hint"></p>
+    </div>
+    <footer class="dialog-footer">
+      <span class="hint">El orden de acá es el orden en que el juego encadena los niveles.</span>
+      <button id="sequence-add-current" class="subtle" type="button">Agregar nivel actual</button>
+      <button class="primary" type="button" data-close-dialog>Listo</button>
+    </footer>
+  </dialog>
+
+  <dialog id="texture-dialog" class="dialog texture-dialog">
+    <header class="dialog-header">
+      <div>
+        <p class="eyebrow">TEXTURA</p>
+        <h2 id="texture-dialog-title" class="dialog-title">Elegir textura</h2>
+      </div>
+      <input id="texture-search" type="search" placeholder="Buscar… (brick, madera, horror)" aria-label="Buscar textura">
+      <button class="icon-button" type="button" data-close-dialog aria-label="Cerrar">×</button>
+    </header>
+    <div class="dialog-body texture-picker-body">
+      <div id="texture-picker-grid"></div>
+      <p id="texture-picker-empty" class="hint"></p>
+    </div>
+  </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="level-format.js"></script>

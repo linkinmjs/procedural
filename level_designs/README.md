@@ -55,8 +55,9 @@ El formato anterior escribía la oleada como un número suelto (`"waves": [5]`);
 
 - `fromWall` y `toWall` salen de la posición relativa de las dos salas.
 - `width`: ancho del pasillo en metros. Su largo sale de la distancia entre las salas, así que separarlas en el plano alarga el pasillo. El vano que perfora la pared toma este mismo ancho.
+- `waypoints`: puntos `{x, z}` por los que el recorrido pasa, en orden. Vacío, el trazado se resuelve solo entre las dos puertas. El primero (o el último, del lado destino) también desliza la puerta sobre la pared cuando queda enfrentado a ella.
 
-El pasillo sale perpendicular a la pared que perfora: una conexión norte / sur avanza primero en profundidad y una este / oeste, primero a lo ancho. Con las puertas alineadas queda recto; desalineadas menos que su ancho, va recto y se ensancha para cubrir ambas; y con más desfase describe un codo. Va cerrado con piso, paredes y techo, y su altura es la del vano, no la de las salas.
+El pasillo sale perpendicular a la pared que perfora: una conexión norte / sur avanza primero en profundidad y una este / oeste, primero a lo ancho. Con las puertas alineadas queda recto; desalineadas menos que su ancho, va recto y se ensancha para cubrir ambas; y con más desfase describe un codo. Con `waypoints`, el pasillo une puerta, puntos y puerta con tramos en ángulo recto. Va cerrado con piso, paredes y techo, y su altura es la del vano, no la de las salas.
 
 ## Migración
 

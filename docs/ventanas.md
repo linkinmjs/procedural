@@ -114,7 +114,7 @@ Un bloque de 15 m de ancho admite unas siete posiciones, con solape entre vecina
 
 Las oleadas, el color del panel, el movimiento y el cierre del bloque no cambian: al destruir la última ventana de una oleada aparece la siguiente, y al terminar todas el bloque se cierra.
 
-[`level_designs/levels/nivel-ventanas.json`](../level_designs/levels/nivel-ventanas.json) es el nivel de pruebas. Está al final de `level-sequence.json`, así que se llega con F7 desde el nivel 1; para arrancar directamente ahí, mover su entrada al principio del catálogo. Tiene una sala con dos oleadas estáticas y otra con tres bloques, uno de ellos en movimiento.
+Ya no hay un nivel de pruebas dedicado: el test visual recorre `level-sequence.json` y usa el primer nivel que tenga un bloque con ventanas en su primera oleada. Para mirar una sala concreta, alcanza con ponerla en un nivel al principio del catálogo.
 
 ## Probar
 

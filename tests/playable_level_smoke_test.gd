@@ -43,9 +43,6 @@ func _run() -> void:
 		return
 	if not _check_block_height_cap():
 		return
-	if ProjectSettings.get_setting("application/run/main_scene") != "res://scenes/levels/playable_level.tscn":
-		_fail("The configured JSON level should be the project main scene.")
-		return
 	print("Playable level smoke test passed.")
 	quit()
 

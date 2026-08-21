@@ -1,10 +1,10 @@
 extends SceneTree
 
 ## El catalogo de texturas tiene que resolver cada identificador a un material
-## utilizable, y el nivel comparador tiene que construirse con esos materiales
-## en lugar de los colores planos.
-
-const COMPARATOR_PATH := "res://level_designs/levels/nivel-texturas.json"
+## utilizable, y un nivel que declara texturas por sala tiene que construirse
+## con esos materiales en lugar de los colores planos. El nivel comparador se
+## arma en memoria desde el propio catalogo, asi que no depende de ningun JSON
+## versionado.
 
 
 func _initialize() -> void:
@@ -59,9 +59,9 @@ func _check_catalog() -> bool:
 ## El nivel comparador existe para mirar los packs uno al lado del otro: cada
 ## sala tiene que quedar con las texturas que declara.
 func _check_comparator() -> bool:
-	var level := LevelDefinitionLoader.load_level(COMPARATOR_PATH)
-	if level.is_empty():
-		_fail("The texture comparator level should load.")
+	var level := _build_comparator_level()
+	if level.rooms.is_empty():
+		_fail("The texture comparator level should have rooms to compare.")
 		return false
 	var packs := {}
 	for room_variant in level.rooms:
@@ -84,6 +84,31 @@ func _check_comparator() -> bool:
 		_fail("The comparator should show three different packs, found %d." % packs.size())
 		return false
 	return true
+
+
+## Una sala por pack del catalogo, cada una vestida con texturas de su pack.
+## get_room_texture y resolve solo miran Dictionaries, asi que el nivel no
+## necesita existir como archivo.
+func _build_comparator_level() -> Dictionary:
+	var by_pack := {}
+	for id in TextureCatalog.get_ids():
+		var pack := str(id).get_slice("/", 0)
+		if not by_pack.has(pack):
+			by_pack[pack] = []
+		by_pack[pack].append(str(id))
+	var rooms := []
+	for pack in by_pack:
+		var ids: Array = by_pack[pack]
+		rooms.append({
+			"id": "comparator-%s" % pack,
+			"name": "Sala %s" % pack,
+			"textures": {
+				"walls": ids[0],
+				"floor": ids[1 % ids.size()],
+				"ceiling": ids[2 % ids.size()],
+			},
+		})
+	return {"defaults": {"textures": {}}, "rooms": rooms}
 
 
 func _fail(message: String) -> void:

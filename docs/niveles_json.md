@@ -127,4 +127,4 @@ Las cajas CSG traen UV de 0 a 1 **por cara**, no en metros: mapear por UV estira
 
 Sólo se versiona la selección en uso, en 256 × 256, bajo `assets/textures/packs/<pack>/`. Los paquetes completos siguen comprimidos en `assets/_raw/textures/`, fuera de Git. Para sumar una textura: extraerla, copiarla a su pack, agregar la entrada al catálogo y ya aparece en la herramienta y en el juego.
 
-`level_designs/levels/nivel-texturas.json` es el nivel comparador: tres salas idénticas, un pack en cada una, para mirarlos uno al lado del otro antes de decidir.
+Ya no hay un nivel comparador versionado: `tests/texture_catalog_smoke_test.gd` arma uno en memoria con una sala por pack y verifica que cada una resuelva sus texturas.

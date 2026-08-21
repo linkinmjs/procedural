@@ -39,6 +39,9 @@ var movement_speed := 0.65
 var crossing_damage := 15.0
 var activated := false
 var cleared := false
+## Si la sala llego a desplegar algun bloque. Una sala vacia se limpia al entrar
+## pero no cuenta como combate: sin esto tambien cobraria la recompensa.
+var deployed_blocks := false
 
 var _pending_blocks: Array[TargetBlock3D] = []
 var _current_wave_index := -1
@@ -126,6 +129,7 @@ func _available_blocks(wave: Dictionary) -> Dictionary:
 
 
 func _spawn_wave(blocks: Dictionary) -> void:
+	deployed_blocks = true
 	var controller := _get_round_controller()
 	if controller != null and waves.size() > 1:
 		controller.add_log(tr("LOG_ROOM_WAVE").format({

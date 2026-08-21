@@ -122,7 +122,7 @@ Una oleada guardada como número suelto (`"waves": [5]`) pasa a `{ "windows": { 
 
 Los desplegables se llenan desde `level_designs/texture-catalog.json`, así que **el editor hay que servirlo** (ver *Uso*): abierto con `file://` el navegador no puede leer el catálogo y los campos quedan vacíos.
 
-Hay tres packs cargados —Horror, Tiny 1 y Tiny 2, todos CC0—. Para compararlos, el nivel `nivel-texturas` tiene tres salas idénticas con un pack en cada una.
+Hay tres packs cargados —Horror, Tiny 1 y Tiny 2, todos CC0—. Para compararlos, `tests/texture_catalog_smoke_test.gd` arma en memoria un nivel con una sala por pack.
 
 Para sumar texturas: extraer las que falten de `assets/_raw/textures/`, copiarlas a `assets/textures/packs/<pack>/` y agregar su entrada al catálogo.
 

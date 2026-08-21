@@ -45,7 +45,7 @@
       "wallHeight": 4,
       "hasCeiling": null,
       "ammoReward": {
-        "enabled": true,
+        "enabled": false,
         "amount": 30,
         "color": "#f4bc59"
       },

@@ -240,7 +240,7 @@ Las ventanas estilo Windows son los objetivos con personalidad que reemplazaran 
 
 Hay dos estilos con su propio theme y template: Windows XP y retro gris. Para crear una ventana nueva se duplica el template correspondiente de `scenes/windows/templates/`. El procedimiento completo esta en [`docs/ventanas.md`](docs/ventanas.md).
 
-`level_designs/levels/nivel-ventanas.json` es el nivel de pruebas del sistema. Esta al final del catalogo, asi que se llega con F7 desde el nivel inicial.
+El test visual del sistema recorre el catalogo y usa el primer nivel con un bloque de ventanas, asi que no depende de ningun nivel de pruebas dedicado.
 
 Prueba del sistema de ventanas:
 

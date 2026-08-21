@@ -476,11 +476,27 @@ func _on_encounter_cleared(encounter: ConfiguredRoomEncounter3D) -> void:
 		door.open()
 	if was_sealed:
 		round_controller.add_log(tr("LOG_ROOM_CLEAR").format({"room": encounter.room_label.to_upper()}), "system")
-	_spawn_ammo_reward(encounter.room_id)
+	# La recompensa se gana limpiando: una sala sin bloques no suelta nada aunque
+	# declare ammoReward (si no, caeria a los pies del jugador al entrar).
+	if encounter.deployed_blocks:
+		_spawn_ammo_reward(encounter.room_id)
+	else:
+		_warn_unused_ammo_reward(encounter.room_id)
 	# El puntaje de la sala ya se cobro arriba, asi que cerrar aca deja el
 	# resumen del nivel con la ultima sala ya contada.
 	if encounter == _exit_encounter and encounter.activated:
 		_complete_round()
+
+
+## Un ammoReward habilitado sobre una sala sin bloques queda sin efecto; avisar
+## para que el dato del editor no se pierda en silencio.
+func _warn_unused_ammo_reward(room_id: String) -> void:
+	var room := _room_by_id(room_id)
+	if room.is_empty():
+		return
+	var reward := LevelDefinitionLoader.get_room_ammo_reward(room)
+	if bool(reward.enabled) and int(reward.amount) > 0:
+		push_warning("La sala '%s' declara ammoReward pero no tiene bloques: la recompensa no se entrega." % str(room.name))
 
 
 ## Limpiar una sala configurada como recompensa deja un cargador en su centro.

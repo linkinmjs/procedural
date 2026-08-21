@@ -9,8 +9,13 @@ signal all_targets_destroyed
 ## Cubre las pelotas (destroyed, left) y las ventanas (closed).
 const RESOLVE_SIGNALS: Array[String] = ["destroyed", "left", "closed"]
 
-## Escenas que se pueden distribuir. Cada objetivo elige una al azar.
+## Escenas que se pueden distribuir. Cada objetivo elige una al azar. Es como lo
+## usan las pelotas, que no tienen familias.
 @export var target_scenes: Array[PackedScene] = [preload("res://scenes/targets/target_ball.tscn")]
+## Escenas concretas, una por objetivo y en orden. Cuando esta cargada manda
+## sobre target_scenes y target_count: es lo que usan los bloques de ventanas,
+## donde cada capa declara que familia va en cada lugar y el azar no decide.
+@export var scripted_targets: Array[PackedScene] = []
 @export var penalty_target_scene: PackedScene = preload("res://scenes/targets/blue_penalty_ball.tscn")
 @export_range(1, 64, 1) var target_count := 8
 @export_range(0, 64, 1) var penalty_target_count := 0
@@ -50,6 +55,8 @@ func _ready() -> void:
 func spawn_targets() -> void:
 	if Engine.is_editor_hint() or _usable_target_scenes().is_empty():
 		return
+	if not scripted_targets.is_empty():
+		target_count = scripted_targets.size()
 	_debug_active = true
 	_update_debug_bounds()
 	clear_targets()
@@ -63,7 +70,7 @@ func spawn_targets() -> void:
 	var penalty_indices := _pick_penalty_indices(positions.size(), rng)
 	for index in positions.size():
 		var is_penalty := penalty_indices.has(index)
-		var scene_to_spawn := penalty_target_scene if is_penalty else scenes[rng.randi_range(0, scenes.size() - 1)]
+		var scene_to_spawn := penalty_target_scene if is_penalty else _scene_for_index(index, scenes, rng)
 		var target := scene_to_spawn.instantiate() as Node3D
 		if target == null:
 			push_error("TargetSpawnVolume3D requires target scenes with a Node3D root.")
@@ -93,7 +100,17 @@ func _place_target(target: Node3D, position: Vector3, index: int) -> Vector3:
 	return placed
 
 
+## Con una lista escrita, cada lugar recibe la escena que le toca; sin ella, una
+## al azar del repertorio.
+func _scene_for_index(index: int, scenes: Array[PackedScene], rng: RandomNumberGenerator) -> PackedScene:
+	if index < scripted_targets.size():
+		return scripted_targets[index]
+	return scenes[rng.randi_range(0, scenes.size() - 1)]
+
+
 func _usable_target_scenes() -> Array[PackedScene]:
+	if not scripted_targets.is_empty():
+		return scripted_targets.duplicate()
 	var scenes: Array[PackedScene] = []
 	for scene in target_scenes:
 		if scene != null:
@@ -105,6 +122,38 @@ func _connect_target(target: Node3D) -> void:
 	for signal_name in RESOLVE_SIGNALS:
 		if target.has_signal(signal_name):
 			target.connect(signal_name, _on_target_resolved)
+
+
+## Suma un objetivo que nacio despues del reparto, como la publicidad que llama a
+## otra. Sin esto la capa se daria por limpia con la nueva todavia en pantalla.
+##
+## Ademas lo ubica dentro del volumen: una ventana que se pone sola al lado de la
+## que la llamo termina, despues de unas cuantas, fuera del bloque y debajo del
+## piso.
+func adopt_target(target: Node3D) -> void:
+	if target == null or active_targets.has(target):
+		return
+	active_targets.append(target)
+	_connect_target(target)
+	target.position = _random_spot(active_targets.size() - 1, target)
+
+
+## Un lugar libre dentro del volumen, con el mismo escalonado en profundidad que
+## usa el reparto inicial.
+func _random_spot(order: int, target: Node3D) -> Vector3:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var half := Vector3(
+		maxf(size.x * 0.5 - edge_padding.x, 0.0),
+		maxf(size.y * 0.5 - edge_padding.y, 0.0),
+		maxf(size.z * 0.5 - edge_padding.z, 0.0)
+	)
+	var spot := Vector3(
+		rng.randf_range(-half.x, half.x),
+		rng.randf_range(-half.y, half.y),
+		rng.randf_range(-half.z, half.z)
+	)
+	return _place_target(target, spot, order)
 
 
 func clear_targets() -> void:

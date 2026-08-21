@@ -1,0 +1,111 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/targets/blue_screen_3d.gd" id="1_screen"]
+
+[sub_resource type="ViewportTexture" id="ScreenTexture"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="StandardMaterial3D" id="ScreenMaterial"]
+resource_local_to_scene = true
+cull_mode = 2
+shading_mode = 0
+albedo_texture = SubResource("ScreenTexture")
+texture_filter = 0
+
+[sub_resource type="QuadMesh" id="ScreenMesh"]
+resource_local_to_scene = true
+material = SubResource("ScreenMaterial")
+size = Vector2(6.667, 2.667)
+
+[sub_resource type="LabelSettings" id="BodyText"]
+font_size = 15
+font_color = Color(0.87, 0.87, 0.87, 1)
+
+[node name="BlueScreen" type="Node3D"]
+script = ExtResource("1_screen")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+disable_3d = true
+handle_input_locally = false
+size = Vector2i(640, 256)
+render_target_update_mode = 4
+
+[node name="Screen" type="Control" parent="SubViewport"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="SubViewport/Screen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.11, 0.65, 1)
+
+[node name="Banner" type="ColorRect" parent="SubViewport/Screen"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -54.0
+offset_top = 22.0
+offset_right = 54.0
+offset_bottom = 46.0
+grow_horizontal = 2
+color = Color(0.72, 0.72, 0.72, 1)
+
+[node name="BannerText" type="Label" parent="SubViewport/Screen/Banner"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.03, 0.11, 0.65, 1)
+theme_override_font_sizes/font_size = 17
+text = "SISTEMA"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Body" type="Label" parent="SubViewport/Screen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 60.0
+offset_right = -30.0
+offset_bottom = -52.0
+grow_horizontal = 2
+grow_vertical = 2
+label_settings = SubResource("BodyText")
+text = "Se produjo un error irrecuperable. Para continuar:
+
+Presione ENTER para volver al sistema, o
+Presione CTRL+ALT+SUPR para reiniciar el equipo.
+
+Si lo hace, perdera lo que no haya guardado."
+
+[node name="Code" type="Label" parent="SubViewport/Screen"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = -40.0
+offset_right = -30.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+label_settings = SubResource("BodyText")
+text = "Error: 0E : 016F : BFF9B3D4"
+
+[node name="Screen" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("ScreenMesh")

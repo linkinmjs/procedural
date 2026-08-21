@@ -18,11 +18,18 @@ func _run() -> void:
 	var player := CharacterBody3D.new()
 	root.add_child(player)
 	var target_block := BLOCK_SCENE.instantiate() as TargetBlock3D
+	# Con pelotas: el bloque reparte target_scenes en vez de consultar el
+	# catalogo de familias de ventana.
+	target_block.uses_window_families = false
 	target_block.target_scenes = [BALL_SCENE]
 	target_block.target_separation = Vector2(1.0, 1.0)
 	target_block.target_padding = Vector2(0.35, 0.35)
 	target_block.target_count = 0
-	target_block.waves.assign([2, 3])
+	# Dos capas: la primera de dos objetivos, la segunda de tres.
+	target_block.layers.assign([
+		PackedStringArray(["normal", "normal"]),
+		PackedStringArray(["normal", "normal", "normal"]),
+	])
 	target_block.block_color = Color("d84cff")
 	target_block.crossing_damage = 15.0
 	root.add_child(target_block)
@@ -81,7 +88,7 @@ func _run() -> void:
 	var window_block := BLOCK_SCENE.instantiate() as TargetBlock3D
 	window_block.block_size = Vector2(16.0, 4.0)
 	window_block.target_count = 0
-	window_block.waves.assign([3])
+	window_block.layers.assign([PackedStringArray(["normal", "normal", "normal"])])
 	root.add_child(window_block)
 	if window_block.spawn_volume.active_targets.size() != 3:
 		_fail("A block should spawn windows by default, got %d." % window_block.spawn_volume.active_targets.size())
@@ -98,7 +105,17 @@ func _run() -> void:
 		if zones.is_empty():
 			_fail("Spawned windows should build their hit zones inside the block.")
 			return
-		zones[0].Hit_Successful(1.0)
+		# Se busca una zona que resuelva: la barra de titulo tambien es zona pero
+		# solo trae la ventana al frente.
+		var closing: WindowHitBody3D = null
+		for zone in zones:
+			if zone.closes_window:
+				closing = zone
+				break
+		if closing == null:
+			_fail("A spawned window should offer a control that closes it.")
+			return
+		closing.Hit_Successful(1.0)
 	await process_frame
 	if is_instance_valid(window_block):
 		_fail("Destroying every window should close the block.")

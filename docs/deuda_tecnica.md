@@ -122,9 +122,6 @@ bloques. Ninguna senala un error del editor ni del formato.
   catalogo se rehizo con tres niveles puntuados.
   **Fix:** armar el nivel comparador dentro de la prueba, en vez de depender de
   un JSON que el catalogo puede volver a mover.
-- [ ] `tests/level_editor_smoke_test.mjs:28` — espera el control `#room-inspector`
-  del editor web, que se reemplazo por dialogos.
-  **Fix:** apuntar la prueba a los dialogos que existen hoy.
 - [ ] `tests/window_level_visual_smoke_test.gd:8` — recorre el catalogo buscando
   el nivel `nivel-ventanas`, que se fue en la misma limpieza que `nivel-texturas`.
   **Fix:** el mismo que ese: armar el nivel de prueba dentro del test en vez de

@@ -122,26 +122,27 @@ func _check_openings(level: PlayableLevel, room: Dictionary, shell: CSGCombiner3
 	return true
 
 
-## Cada sala despliega un bloque por cada slot habilitado, con sus oleadas.
+## Al entrar, la sala despliega los bloques de su PRIMERA oleada, con las capas
+## que declara cada uno. Las oleadas siguientes esperan a que se limpie esta.
 func _check_blocks(level: PlayableLevel) -> bool:
 	for room_variant in level.level_data.rooms:
 		var room := room_variant as Dictionary
-		var expected_waves: Array[Array] = []
-		for slot in ["left", "front", "right"]:
-			var config := room.blocks[slot] as Dictionary
-			if not bool(config.enabled):
-				continue
-			expected_waves.append(LevelDefinitionLoader.get_wave_counts(config))
+		var waves := LevelDefinitionLoader.get_room_waves(room)
+		var expected_layers: Array[Array] = []
+		if not waves.is_empty():
+			var first_blocks := LevelDefinitionLoader.get_wave_blocks(waves[0])
+			for slot in first_blocks:
+				expected_layers.append(LevelDefinitionLoader.get_block_layers(first_blocks[slot]))
 		var encounter: ConfiguredRoomEncounter3D = level.room_encounters[str(room.id)]
 		encounter.activate()
 		await process_frame
 		var blocks := _direct_blocks(encounter)
-		if blocks.size() != expected_waves.size():
-			_fail("Room %s should deploy %d blocks." % [str(room.name), expected_waves.size()])
+		if blocks.size() != expected_layers.size():
+			_fail("Room %s should deploy %d blocks in its first wave." % [str(room.name), expected_layers.size()])
 			return false
 		for index in blocks.size():
-			if blocks[index].waves != expected_waves[index]:
-				_fail("Room %s should deploy the waves declared in its JSON." % str(room.name))
+			if blocks[index].layers != expected_layers[index]:
+				_fail("Room %s should deploy the layers declared in its JSON." % str(room.name))
 				return false
 		if not _check_block_height(level, room, blocks):
 			return false

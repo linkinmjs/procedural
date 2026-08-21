@@ -61,9 +61,44 @@ window.close()                 # cierre por código
 
 Al recibir un disparo la ventana reporta el impacto al `RoundController` si hay uno en escena, usando `window_label` más el `zone_id` de la zona golpeada. Sin controller funciona igual.
 
+## Familias
+
+Una familia es una regla de juego, no una apariencia. El nivel declara cuántas ventanas de cada familia trae una capa, y [`window_catalog.gd`](../scripts/windows/window_catalog.gd) resuelve cuál escena instanciar. Una familia puede tener varias escenas: son variantes visuales de la misma regla.
+
+| Familia | Qué cobra | Cómo se resuelve |
+| --- | --- | --- |
+| `normal` | Nada: es la base | Un disparo a su control |
+| `popup` | La demora | El botón cuenta `SKIP 5, SKIP 4…` y no resuelve hasta llegar a cero. Al llegar escupe **una** publicidad y se queda con el SKIP disponible. Errarle al cuerpo abre otra. Tope de 7 por capa |
+| `firewall` | La falta de prioridad | Un disparo. Mientras esté en pie, las demás ventanas de su capa quedan protegidas: los tiros rebotan, se tiñen de azul y no puntúan |
+| `critical-error` | El disparo apurado | Tiene un control que cierra y dos que castigan, con el `zone_id` de trampa. Nacen barajados y se vuelven a barajar cada vez que se falla |
+| `download` | El apuro, en las dos direcciones | Dejarla terminar muestra **Finalizar**: un disparo, 60 puntos. Cancelarla —por el botón o la X— abre la confirmación: dos disparos, 160 puntos |
+| `infected-download` | Ignorarla | No se puede dejar terminar. Si la barra llega al final **cuelga el bloque y deja su pared fuera de juego**: se borra lo que hubiera en pantalla, el panel se apaga y queda una pantalla de error encendida para siempre. No llegan las capas que faltaban ni lo que las oleadas siguientes ponían **en esa pared**; las otras paredes siguen su curso. El bloque queda en pie estorbando, pero cuenta como resuelto |
+
+Las dos descargas comparten escena y layout; la infectada se distingue por el nombre de archivo en rojo, que es la única advertencia que da.
+
+La pantalla de error del bloque colgado vive en [`blue_screen.tscn`](../scenes/targets/blue_screen.tscn). No tiene zonas disparables ni ofrece ninguna tecla: ese es el punto, el bloque quedó inservible. El texto imita al error de sistema de los noventa sin nombrar a nadie, porque la gracia es el reconocimiento y no la cita.
+
+El popup tiene dos variantes de espera, de 5 y 10 segundos. Son escenas distintas de la misma familia: la regla es la misma, cambia cuánto ahoga.
+
+Las familias que el formato acepta pero todavía no tienen escena —`confirm`, `ad`, `fake-close`, `task-manager`, `corrupt-file`, `installer`— se juegan como `normal`. `WindowCatalog.is_implemented()` distingue unas de otras, y la herramienta las marca como `planned`.
+
+Agregar una familia es escribir su escena, darle un script que extienda `WindowPanel3D` con su regla, y sumarla a `VARIANTS` en el catálogo. El formato y la herramienta ya la aceptan.
+
+### Traer al frente
+
+La barra de título de toda ventana es una zona: acertarle la adelanta sobre sus hermanas, como al hacer clic en un escritorio. No cierra, no puntúa y se puede repetir. Es lo que le da sentido a que las ventanas de un bloque se superpongan.
+
+### Zonas que no puntúan
+
+`WindowHitZone.scores` existe por una razón concreta: el puntaje cobra **cualquier** zona acertada, y una zona con un `zone_id` desconocido cae en `default_zone_value`. Una zona que no resuelve nada y no declara `scores = false` es una fuente infinita de puntos. Traer al frente y el rebote contra un escudo pasan por ahí.
+
+### Ventanas protegidas
+
+`WindowPanel3D.shielded` es lo que usa el firewall. Una ventana protegida se tiñe, informa el impacto como `shielded` y **rearma la zona**: el disparo que rebota no gasta el control, así que al caer el firewall se le puede volver a apuntar al mismo lugar.
+
 ## Dentro de un bloque
 
-`TargetBlock3D` spawnea ventanas por defecto: su propiedad `target_scenes` trae las tres ventanas de ejemplo y cada objetivo elige una al azar. Para volver a las esferas basta con reemplazar esa lista por `target_ball.tscn`.
+`TargetBlock3D` reparte las familias que declaran sus capas, resolviéndolas contra el catálogo. Para probar con esferas en vez de ventanas se apaga `uses_window_families`: ahí el bloque vuelve a repartir al azar lo que haya en `target_scenes`, respetando el tamaño de cada capa.
 
 El bloque también expone la métrica de distribución, ya ajustada al tamaño de una ventana:
 

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 8,
+  "schemaVersion": 9,
   "id": "f4-three-room-example",
   "name": "Circuito de tres salas",
   "description": "Ejemplo editable con sala pequeña, sala grande y pasillo.",
@@ -56,35 +56,39 @@
         "door": "",
         "block": ""
       },
-      "blocks": {
-        "left": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
-        },
-        "front": {
-          "enabled": true,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": [
-            {
-              "windows": {
-                "normal": 4
-              }
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 4
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
             }
-          ]
-        },
-        "right": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
+          }
         }
-      }
+      ]
     },
     {
       "id": "room-arena",
@@ -118,52 +122,56 @@
         "door": "",
         "block": ""
       },
-      "blocks": {
-        "left": {
-          "enabled": true,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#35d4c7",
-          "waves": [
-            {
-              "windows": {
-                "normal": 5
-              }
-            }
-          ]
-        },
-        "front": {
-          "enabled": true,
-          "movement": "opposite",
-          "movementSpeed": 0.8,
-          "color": "#f4bc59",
-          "waves": [
-            {
-              "windows": {
-                "normal": 3
-              }
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#35d4c7",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 5
+                  }
+                }
+              ]
             },
-            {
-              "windows": {
-                "normal": 6
-              }
+            "front": {
+              "enabled": true,
+              "movement": "opposite",
+              "movementSpeed": 0.8,
+              "color": "#f4bc59",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3
+                  }
+                },
+                {
+                  "windows": {
+                    "normal": 6
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#35d4c7",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 5
+                  }
+                }
+              ]
             }
-          ]
-        },
-        "right": {
-          "enabled": true,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#35d4c7",
-          "waves": [
-            {
-              "windows": {
-                "normal": 5
-              }
-            }
-          ]
+          }
         }
-      }
+      ]
     },
     {
       "id": "room-corridor",
@@ -197,41 +205,45 @@
         "door": "",
         "block": ""
       },
-      "blocks": {
-        "left": {
-          "enabled": true,
-          "movement": "opposite",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": [
-            {
-              "windows": {
-                "normal": 4
-              }
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": true,
+              "movement": "opposite",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 4
+                  }
+                }
+              ]
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "right": {
+              "enabled": true,
+              "movement": "opposite",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 4
+                  }
+                }
+              ]
             }
-          ]
-        },
-        "front": {
-          "enabled": false,
-          "movement": "static",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": []
-        },
-        "right": {
-          "enabled": true,
-          "movement": "opposite",
-          "movementSpeed": 0.65,
-          "color": "#2ed5c5",
-          "waves": [
-            {
-              "windows": {
-                "normal": 4
-              }
-            }
-          ]
+          }
         }
-      }
+      ]
     }
   ],
   "connections": [

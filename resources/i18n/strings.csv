@@ -117,7 +117,16 @@ LOG_NO_PREVIOUS_LEVEL,NO HAY NIVEL ANTERIOR,NÃO HÁ NÍVEL ANTERIOR,NO PREVIOUS
 LOG_ROOM_SEALED,{room} SELLADA,{room} SELADA,{room} SEALED
 LOG_ROOM_CLEAR,{room} LIMPIA // PUERTAS ABIERTAS,{room} LIMPA // PORTAS ABERTAS,{room} CLEAR // DOORS OPEN
 LOG_AMMO_REWARD,{room} // +{amount} BALAS,{room} // +{amount} BALAS,{room} // +{amount} ROUNDS
-LOG_WAVE,{block} // OLEADA {wave}/{total} // {targets} OBJETIVOS,{block} // ONDA {wave}/{total} // {targets} ALVOS,{block} // WAVE {wave}/{total} // {targets} TARGETS
+LOG_LAYER,{block} // CAPA {layer}/{total} // {targets} OBJETIVOS,{block} // CAMADA {layer}/{total} // {targets} ALVOS,{block} // LAYER {layer}/{total} // {targets} TARGETS
+LOG_ROOM_WAVE,{room} // OLEADA {wave}/{total},{room} // ONDA {wave}/{total},{room} // WAVE {wave}/{total}
 LOG_BLOCK_CLOSED,{block} CERRADO,{block} FECHADO,{block} CLOSED
 LOG_LAB_CONFIGURED,LABORATORIO LISTO // ENTRA A LA SALA,LABORATÓRIO PRONTO // ENTRE NA SALA,LAB CONFIGURED // ENTER THE ROOM
+LOG_LAB_CLEARED,LABORATORIO LIMPIO // TAB PARA RECONFIGURAR,LABORATÓRIO LIMPO // TAB PARA RECONFIGURAR,LAB CLEARED // TAB TO RECONFIGURE
+LOG_LAB_ROOM,LABORATORIO,LABORATÓRIO,LAB
+LOG_LAB_BLOCK_RECIPE,   {family} // {layers} CAPA(S) DE {targets},   {family} // {layers} CAMADA(S) DE {targets},   {family} // {layers} LAYER(S) OF {targets}
+LOG_SLOT_DISABLED,{room} // {slot} FUERA DE SERVICIO,{room} // {slot} FORA DE SERVICO,{room} // {slot} OUT OF ORDER
+LOG_BLOCK_CRASHED,{block} COLGADO // {source} INFECTO EL SISTEMA,{block} TRAVADO // {source} INFECTOU O SISTEMA,{block} CRASHED // {source} INFECTED THE SYSTEM
+AD_WAIT,Esperá {seconds}s,Aguarde {seconds}s,Wait {seconds}s
+AD_SKIP,Saltear ahora,Pular agora,Skip now
+LOG_WINDOW_SHIELDED,{window} PROTEGIDA // DESACTIVA EL FIREWALL,{window} PROTEGIDA // DESATIVE O FIREWALL,{window} SHIELDED // DISABLE THE FIREWALL
 LOG_BLOCK_DEPLOYED,BLOQUE {slot} DESPLEGADO,BLOCO {slot} IMPLANTADO,{slot} BLOCK DEPLOYED

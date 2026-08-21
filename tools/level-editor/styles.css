@@ -546,3 +546,145 @@ p.alert { margin: 8px 0 0; }
   .room-dialog-body, .dialog-grid, .summary-columns { grid-template-columns: 1fr; }
   .texture-grid, .field-row.four, .field-row.three { grid-template-columns: 1fr 1fr; }
 }
+
+/* --- Oleadas, bloques y capas -----------------------------------------------
+
+   Los tres bloques de una oleada se ven al mismo tiempo y las capas se editan
+   sin abrir nada: antes cada bloque vivia en su propio dialogo y armar una sala
+   de tres oleadas eran nueve aperturas y otros tantos cierres. */
+
+.waves-section { min-width: 0; }
+
+/* Lo que casi nunca se toca se guarda: forma, volumen y texturas se abren
+   cuando hacen falta y no empujan las oleadas fuera de la pantalla. */
+.room-extras {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--line, #1e2a38);
+  margin-top: 4px;
+  padding-top: 10px;
+}
+
+.room-extras > summary {
+  cursor: pointer;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted, #8aa0b4);
+  margin-bottom: 10px;
+}
+
+.room-extras > summary:hover { color: inherit; }
+
+.wave-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wave-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 12px;
+  border: 1px solid var(--line, #1e2a38);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1.2;
+}
+
+.wave-tab small { opacity: 0.6; font-size: 11px; }
+.wave-tab:hover:not(:disabled) { border-color: #2ed5c5; }
+.wave-tab[aria-selected="true"] { border-color: #2ed5c5; background: rgba(46, 213, 197, 0.12); }
+.wave-tab.add { justify-content: center; font-size: 16px; padding: 6px 10px; }
+.wave-tab.danger:not(:disabled):hover { border-color: #ff6577; color: #ff6577; }
+.wave-tab:disabled { opacity: 0.35; cursor: default; }
+
+.wave-hint { margin: 8px 0 10px; }
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.slot-card {
+  border: 1px solid var(--line, #1e2a38);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 128px;
+}
+
+.slot-card.active { border-color: rgba(46, 213, 197, 0.5); }
+.slot-card > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.slot-wall { font-size: 11px; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.04em; }
+.slot-empty { margin: auto 0; text-align: center; opacity: 0.4; font-size: 12px; }
+
+.slot-props { display: grid; grid-template-columns: 1fr 64px 34px; gap: 6px; }
+.slot-props select,
+.slot-props input { width: 100%; }
+
+.layer-stack { display: flex; flex-direction: column; gap: 5px; }
+
+.layer-row {
+  display: grid;
+  grid-template-columns: 16px 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.layer-index { font-size: 11px; opacity: 0.5; text-align: right; }
+.layer-total { font-size: 12px; opacity: 0.75; min-width: 18px; text-align: right; }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+
+/* El chip lleva el glifo de la familia y su cantidad. Un clic suma, el derecho
+   resta: ajustar una capa no deberia costar mas que eso. */
+.family-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, var(--tone, #2ed5c5) 55%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tone, #2ed5c5) 14%, transparent);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.family-chip b { color: var(--tone, #2ed5c5); font-size: 10px; letter-spacing: 0.02em; }
+.family-chip:hover { border-color: var(--tone, #2ed5c5); }
+.family-chip.planned { border-style: dashed; }
+.family-chip.add { border-style: dashed; opacity: 0.7; padding: 2px 8px; }
+
+.palette { position: relative; display: inline-flex; }
+.palette-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 5;
+  max-width: 240px;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--line, #1e2a38);
+  border-radius: 8px;
+  background: var(--panel, #0f1620);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+}
+
+.palette.open .palette-menu { display: flex; }
+
+.ghost-add.wide { width: 100%; }
+.icon-button.tiny { padding: 0 6px; font-size: 13px; line-height: 1.4; }
+.icon-button.danger:not(:disabled):hover { border-color: #ff6577; color: #ff6577; }

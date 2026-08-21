@@ -68,6 +68,19 @@ patch_margin_top = 8
 patch_margin_right = 7
 patch_margin_bottom = 2
 
+[node name="RaiseZone" type="Control" parent="SubViewport/Window/TitleBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_zone")
+zone_id = "raise"
+closes_window = false
+scores = false
+
 [node name="Title" type="Label" parent="SubViewport/Window/TitleBar"]
 layout_mode = 1
 anchors_preset = 4

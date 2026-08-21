@@ -1,0 +1,257 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/windows/download_window.gd" id="1_panel"]
+[ext_resource type="Script" path="res://scripts/windows/window_hit_zone.gd" id="2_zone"]
+[ext_resource type="Theme" path="res://resources/themes/retro_theme.tres" id="3_theme"]
+[ext_resource type="Texture2D" path="res://assets/textures/ui/retro/window_frame.png" id="4_frame"]
+[ext_resource type="Texture2D" path="res://assets/textures/ui/retro/icon_close.png" id="5_icon_close"]
+
+[sub_resource type="ViewportTexture" id="ScreenTexture"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="StandardMaterial3D" id="ScreenMaterial"]
+resource_local_to_scene = true
+transparency = 2
+alpha_scissor_threshold = 0.5
+cull_mode = 2
+shading_mode = 0
+albedo_texture = SubResource("ScreenTexture")
+texture_filter = 0
+
+[sub_resource type="QuadMesh" id="ScreenMesh"]
+resource_local_to_scene = true
+material = SubResource("ScreenMaterial")
+size = Vector2(3.562, 1.781)
+
+[node name="InfectedDownloadWindow" type="Node3D"]
+script = ExtResource("1_panel")
+window_label = "descarga infectada"
+infected = true
+
+[node name="SubViewport" type="SubViewport" parent="."]
+disable_3d = true
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(260, 130)
+render_target_update_mode = 4
+
+[node name="Window" type="Control" parent="SubViewport"]
+texture_filter = 1
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("3_theme")
+
+[node name="Frame" type="NinePatchRect" parent="SubViewport/Window"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_frame")
+patch_margin_left = 3
+patch_margin_top = 25
+patch_margin_right = 3
+patch_margin_bottom = 3
+
+[node name="RaiseZone" type="Control" parent="SubViewport/Window"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 26.0
+grow_horizontal = 2
+mouse_filter = 2
+script = ExtResource("2_zone")
+zone_id = "raise"
+closes_window = false
+scores = false
+
+[node name="Title" type="Label" parent="SubViewport/Window"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 8.0
+offset_top = 5.0
+offset_right = -30.0
+offset_bottom = 23.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Descargando"
+vertical_alignment = 1
+
+[node name="CloseZone" type="Button" parent="SubViewport/Window"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -26.0
+offset_top = 5.0
+offset_right = -6.0
+offset_bottom = 23.0
+grow_horizontal = 0
+mouse_filter = 2
+icon = ExtResource("5_icon_close")
+script = ExtResource("2_zone")
+zone_id = "cancel"
+closes_window = false
+
+[node name="Message" type="Label" parent="SubViewport/Window"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 14.0
+offset_top = 38.0
+offset_right = -14.0
+offset_bottom = 56.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.75, 0.05, 0.08, 1)
+theme_override_font_sizes/font_size = 12
+text = "factura_impaga.exe"
+
+[node name="Progress" type="ProgressBar" parent="SubViewport/Window"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 14.0
+offset_top = 62.0
+offset_right = -14.0
+offset_bottom = 80.0
+grow_horizontal = 2
+value = 0.0
+
+[node name="CancelZone" type="Button" parent="SubViewport/Window"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -76.0
+offset_top = -32.0
+offset_right = -14.0
+offset_bottom = -11.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+text = "Cancelar"
+script = ExtResource("2_zone")
+zone_id = "cancel"
+closes_window = false
+
+[node name="FinishZone" type="Button" parent="SubViewport/Window"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -76.0
+offset_top = -32.0
+offset_right = -14.0
+offset_bottom = -11.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+text = "Finalizar"
+script = ExtResource("2_zone")
+zone_id = "finish"
+
+[node name="ConfirmDialog" type="ColorRect" parent="SubViewport/Window"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.42, 0.42, 0.40, 1)
+
+[node name="DialogFace" type="ColorRect" parent="SubViewport/Window/ConfirmDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.84, 0.83, 0.78, 1)
+
+[node name="DialogBar" type="ColorRect" parent="SubViewport/Window/ConfirmDialog"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = 20.0
+grow_horizontal = 2
+color = Color(0.16, 0.24, 0.55, 1)
+
+[node name="DialogTitle" type="Label" parent="SubViewport/Window/ConfirmDialog/DialogBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "Confirmar"
+vertical_alignment = 1
+
+[node name="ConfirmText" type="Label" parent="SubViewport/Window/ConfirmDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 26.0
+offset_right = -12.0
+offset_bottom = -46.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.05, 0.05, 0.08, 1)
+theme_override_font_sizes/font_size = 13
+text = "¿Desea cancelar la descarga?"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="ConfirmZone" type="Button" parent="SubViewport/Window/ConfirmDialog"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -36.0
+offset_top = -34.0
+offset_right = 36.0
+offset_bottom = -11.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+text = "Sí"
+script = ExtResource("2_zone")
+zone_id = "close"
+
+[node name="Screen" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("ScreenMesh")
+
+[node name="HitZones" type="Node3D" parent="."]

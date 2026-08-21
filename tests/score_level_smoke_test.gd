@@ -95,7 +95,11 @@ func _check_room_run() -> bool:
 	# los disparos, los fallos y el daño de esa sala no se contarian.
 	if not _level.round_controller.is_running:
 		return _fail("Starting an encounter must start the round instead of leaving it on standby.")
+	# Se cuentan por separado las ventanas que se cerraron y los disparos que
+	# costaron: no son lo mismo desde que hay familias que piden mas de un tiro,
+	# como la descarga, que primero pregunta y despues cierra.
 	var resolved := 0
+	var shots := 0
 	var peak_pot := 0
 	for _step in MAX_WAVE_STEPS:
 		if encounter.cleared:
@@ -103,9 +107,13 @@ func _check_room_run() -> bool:
 		for _frame in 3:
 			await process_frame
 		for window in _live_windows(encounter):
-			if _shoot_close_zone(window):
+			if not _shoot_close_zone(window):
+				continue
+			shots += 1
+			peak_pot = maxi(peak_pot, _score.pot)
+			await process_frame
+			if not is_instance_valid(window):
 				resolved += 1
-				peak_pot = maxi(peak_pot, _score.pot)
 	if not encounter.cleared:
 		return _fail("Shooting every window should clear the room.")
 	# La sala puede entregar menos objetivos de los que declara si no entran en su
@@ -113,9 +121,11 @@ func _check_room_run() -> bool:
 	# se cobre lo que efectivamente aparecio.
 	if resolved <= 0 or resolved > targets:
 		return _fail("The room should hand out at most the targets its JSON declares, and at least one.")
+	if shots < resolved:
+		return _fail("Closing a window should never cost less than one shot.")
 	if peak_pot <= 0:
 		return _fail("Resolved windows should feed the pot.")
-	if _level.round_controller.attacks - shots_before != resolved:
+	if _level.round_controller.attacks - shots_before != shots:
 		return _fail("Every shot fired in the room should reach the round counters.")
 	await process_frame
 	if _score.pot != 0 or _score.chain_hits != 0:
@@ -215,14 +225,36 @@ func _live_windows(node: Node) -> Array[WindowPanel3D]:
 
 ## Reproduce lo que hace una bala: el disparo se contabiliza y el cuerpo de la
 ## zona recibe el impacto.
+## Le dispara a la ventana al control que la resuelve. No todas se cierran de un
+## tiro ni con la misma zona: la descarga pide cancelar y despues confirmar, asi
+## que cuando no hay ningun control que cierre se le pega al que hace avanzar su
+## estado y en la vuelta siguiente ya aparece el que cierra.
 func _shoot_close_zone(window: WindowPanel3D) -> bool:
-	var body := window.find_hit_body("close")
+	var body := _closing_body(window)
+	if body == null:
+		body = _advancing_body(window)
 	if body == null:
 		return false
 	_level.round_controller.report_attack_fired()
 	_level.round_controller.report_attack_hit()
 	body.Hit_Successful(10.0)
 	return true
+
+
+func _closing_body(window: WindowPanel3D) -> WindowHitBody3D:
+	for body in window.get_hit_bodies():
+		if body.closes_window:
+			return body
+	return null
+
+
+## Una zona que cambia el estado de la ventana sin resolverla. Se saltean la
+## barra de titulo, que solo la trae al frente, y las trampas, que castigan.
+func _advancing_body(window: WindowPanel3D) -> WindowHitBody3D:
+	for body in window.get_hit_bodies():
+		if body.zone_id != WindowPanel3D.RAISE_ZONE and body.zone_id != "trap":
+			return body
+	return null
 
 
 func _fail(message: String) -> bool:

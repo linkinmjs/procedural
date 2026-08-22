@@ -17,7 +17,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 9
+      "const": 10
     },
     "id": {
       "type": "string",
@@ -193,6 +193,24 @@
       },
       "additionalProperties": false
     },
+    "radio": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "corner"
+      ],
+      "description": "Radio con música en loop apoyada en una esquina de la sala, mirando al centro. Se rompe de un disparo.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "corner": {
+          "type": "string",
+          "enum": ["ne", "nw", "se", "sw"]
+        }
+      },
+      "additionalProperties": false
+    },
     "block": {
       "type": "object",
       "required": [
@@ -245,6 +263,7 @@
         "wallHeight",
         "hasCeiling",
         "ammoReward",
+        "radio",
         "textures",
         "waves"
       ],
@@ -344,6 +363,9 @@
         },
         "ammoReward": {
           "$ref": "#/$defs/ammoReward"
+        },
+        "radio": {
+          "$ref": "#/$defs/radio"
         },
         "textures": {
           "$ref": "#/$defs/textures"

@@ -61,12 +61,19 @@ Extiende `AudioStreamPlayer3D` con delay por distancia, reverb por raycasts
 contra la geometría (tamaño de sala medido) y oclusión tras paredes. **Es caro
 por nodo** (cada fuente crea ~10 buses con efectos, 9 reverbs y ~45 rayos a
 10 ticks/s): sirve para fuentes persistentes, no para el pool de one-shots.
-Hoy lo usa solo el `FireAudio` del arma (`player_character.tscn`), llamado vía
-`do_play()`/`do_set_stream()` desde `weapon_state_machine.gd`.
+Lo usan el `FireAudio` del arma (`player_character.tscn`, vía
+`do_play()`/`do_set_stream()` desde `weapon_state_machine.gd`) y el `Speaker`
+de las radios (`scenes/props/radio.tscn`), que solo se enciende en la radio más
+cercana al jugador.
 
-Parche local: el original enviaba sus buses generados directo a `Master`,
-salteando el volumen de SFX de las opciones; se agregó el export `output_bus`
-(seteado a `SFX` en el arma). Si se actualiza el addon, reaplicar.
+Parches locales (si se actualiza el addon, reaplicar):
+- El original enviaba sus buses generados directo a `Master`, salteando el
+  volumen de SFX de las opciones; se agregó el export `output_bus` (seteado a
+  `SFX` en el arma y a `Music` en la radio).
+- `do_play(from_position)` en toda la cadena (`SpatialAudio3D` → `Soundsource`
+  → `Reverber` → `Soundplayer`). La radio lo usa para arrancar el espacial
+  sincronizado con su reproductor común cuando el `RadioDirector` le pasa la
+  acústica de sala.
 
 Candidatos futuros para el plugin: música/ambiente por sala, zumbido de
 servidores, pantalla azul del bloque. Nunca los impactos.

@@ -9,6 +9,13 @@ const CEILING_THICKNESS := 0.3
 const AMMO_PICKUP_SCENE := preload("res://scenes/weapons/glock_ammo_pickup.tscn")
 const RADIO_SCENE := preload("res://scenes/props/radio.tscn")
 const WALL_THICKNESS := 0.35
+## Distancia de la radio a la cara interior de cada pared de su esquina.
+const RADIO_CORNER_MARGIN := 0.5
+## Signo de X y Z de cada esquina respecto del centro de la sala.
+const CORNER_SIGNS := {
+	"ne": Vector2(1.0, -1.0), "nw": Vector2(-1.0, -1.0),
+	"se": Vector2(1.0, 1.0), "sw": Vector2(-1.0, 1.0),
+}
 ## Alto del vano. Deja dintel sobre la puerta en vez de abrir la pared entera,
 ## para que despues entre una hoja de puerta.
 const DOOR_HEIGHT := 3.0
@@ -25,9 +32,13 @@ const GENERIC_NAME_FILLER := " -_.0123456789"
 ## Segundos entre el cierre del nivel y la pantalla de resultados. El cobro de
 ## la ultima cadena sigue a la vista durante ese rato.
 @export_range(0.0, 30.0, 0.1) var results_delay := 3.0
-## Experimental: una radio con musica en loop en la sala de salida, para
-## escuchar como se comporta el audio 3D con una fuente continua.
-@export var spawn_exit_radio := true
+## Fraccion de luz que conserva una sala limpiada. Bajar la luz invita a salir:
+## el pasillo, mas frio y ahora mas brillante, pasa a ser el foco. No conviene
+## bajar de ~0.2 porque la recompensa de municion aparece en el centro.
+@export_range(0.0, 1.0, 0.05) var cleared_light_factor := 0.3
+@export_range(0.0, 5.0, 0.1) var cleared_light_fade_seconds := 1.2
+## La sala de salida se apaga junto con la camara lenta del cierre de ronda.
+@export_range(0.0, 1.0, 0.05) var exit_light_factor := 0.15
 
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 @onready var sun: DirectionalLight3D = $DirectionalLight3D
@@ -45,6 +56,8 @@ var room_nodes: Dictionary = {}
 var room_encounters: Dictionary = {}
 ## Puertas por sala: se cierran al entrar y se abren al limpiar sus bloques.
 var room_doors: Dictionary = {}
+## Luminaria de cada sala, para atenuarla cuando la sala queda limpia.
+var room_lights: Dictionary = {}
 ## IDs de las salas ordenadas de la entrada a la salida, siguiendo las conexiones.
 var room_order: Array[String] = []
 ## Si este nivel se presento con su intertitulo al construirse. Queda como
@@ -136,7 +149,7 @@ func load_and_build_level() -> void:
 	score_controller.level_scored.connect(_on_level_scored)
 	round_controller.arm_round()
 	_wire_round_triggers()
-	_spawn_exit_radio()
+	_spawn_radios()
 	status_label.text = tr("HUD_LEVEL_STATUS").format({
 		"rooms": level_data.rooms.size(),
 		"connections": level_data.connections.size(),
@@ -244,6 +257,9 @@ const SLOWMO_FADE_IN_SECONDS := 0.8
 ## muestra el resultado y el jugador decide si reintenta, avanza o se va.
 func _on_level_scored(summary: Dictionary) -> void:
 	_start_slow_motion()
+	# La sala final se apaga con la misma curva y duracion que el time_scale.
+	if _exit_encounter != null:
+		_dim_room_light(_exit_encounter.room_id, exit_light_factor, SLOWMO_FADE_IN_SECONDS, true)
 	round_controller.add_log(tr("LOG_RESULTS_IN").format({"seconds": "%.0f" % results_delay}), "system")
 	# El timer ignora el time_scale: la camara lenta no puede estirar la espera
 	# de la pantalla de resultados.
@@ -392,7 +408,7 @@ func _build_rooms() -> void:
 		room_doors[room_id] = doors
 
 		_add_room_label(room_marker, str(room.name), wall_height)
-		_add_room_light(room_marker, Vector3(width, wall_height, depth))
+		room_lights[room_id] = _add_room_light(room_marker, Vector3(width, wall_height, depth))
 		var encounter := ConfiguredRoomEncounter3D.new()
 		encounter.name = "%sEncounter" % safe_name
 		encounter.position = center
@@ -543,6 +559,10 @@ func _on_encounter_cleared(encounter: ConfiguredRoomEncounter3D) -> void:
 	# declare ammoReward (si no, caeria a los pies del jugador al entrar).
 	if encounter.deployed_blocks:
 		_spawn_ammo_reward(encounter.room_id)
+		# La sala limpia baja la luz: invita a seguir. La de salida espera a la
+		# camara lenta para apagarse a su ritmo.
+		if encounter != _exit_encounter:
+			_dim_room_light(encounter.room_id, cleared_light_factor, cleared_light_fade_seconds, false)
 	else:
 		_warn_unused_ammo_reward(encounter.room_id)
 	# El puntaje de la sala ya se cobro arriba, asi que cerrar aca deja el
@@ -562,22 +582,27 @@ func _warn_unused_ammo_reward(room_id: String) -> void:
 		push_warning("La sala '%s' declara ammoReward pero no tiene bloques: la recompensa no se entrega." % str(room.name))
 
 
-## La radio va contra la pared norte de la sala de salida, mirando al centro,
-## para que el jugador la encuentre al entrar y tenga paredes cerca que la
-## reflejen.
-func _spawn_exit_radio() -> void:
-	if not spawn_exit_radio:
-		return
-	var exit_room := LevelDefinitionLoader.get_exit_room(level_data)
-	if exit_room.is_empty():
-		return
-	var radio := RADIO_SCENE.instantiate() as Node3D
-	radio.name = "ExitRadio"
-	var wall := _wall_point(exit_room, "north")
-	radio.position = Vector3(wall.x, 0.0, wall.y + 0.6)
-	# El modelo mira hacia +Z; la pared norte esta en -Z, asi que de frente al
-	# centro de la sala es la orientacion por defecto.
-	add_child(radio)
+## Cada sala puede pedir una radio en una de sus esquinas, apoyada contra las
+## dos paredes y mirando en diagonal al centro. Todas suenan a la vez: el audio
+## 3D de las que quedan lejos dice que hay mas en otras salas. El director
+## decide cual de ellas lleva la acustica de sala, que es cara.
+func _spawn_radios() -> void:
+	var director := RadioDirector.new()
+	director.name = "RadioDirector"
+	add_child(director)
+	for room_variant in level_data.rooms:
+		var room := room_variant as Dictionary
+		var config := LevelDefinitionLoader.get_room_radio(room)
+		if not bool(config.enabled):
+			continue
+		var radio := RADIO_SCENE.instantiate() as RadioProp
+		radio.name = "%sRadio" % _safe_node_name(str(room.name))
+		radio.position = _room_corner(room, str(config.corner))
+		# El modelo mira hacia +Z; girarlo hasta que ese frente apunte al centro.
+		var to_center := _room_center(room) - radio.position
+		radio.rotation.y = atan2(to_center.x, to_center.z)
+		add_child(radio)
+		director.register(radio)
 
 
 ## Limpiar una sala configurada como recompensa deja un cargador en su centro.
@@ -859,14 +884,22 @@ func _apply_starting_ammo() -> void:
 	manager.update_ammo.emit([slot.current_ammo, slot.reserve_ammo])
 
 
-func _add_room_light(parent: Node3D, room_size: Vector3) -> void:
-	var room_light := ROOM_LIGHT_SCENE.instantiate()
+func _add_room_light(parent: Node3D, room_size: Vector3) -> RoomLight:
+	var room_light := ROOM_LIGHT_SCENE.instantiate() as RoomLight
 	room_light.energy = 3.0
 	room_light.max_range = 24.0
 	parent.add_child(room_light)
 	# La luz cuelga bajo el techo, asi que sigue a la altura de la sala.
 	room_light.position = Vector3(0.0, minf(room_size.y - 0.8, 3.2), 0.0)
 	room_light.configure_for_room(room_size)
+	return room_light
+
+
+func _dim_room_light(room_id: String, factor: float, duration: float, realtime: bool) -> void:
+	var room_light := room_lights.get(room_id) as RoomLight
+	if room_light == null:
+		return
+	room_light.dim_to(factor, duration, realtime)
 
 
 func _add_room_label(parent: Node3D, label_text: String, wall_height: float) -> void:
@@ -896,6 +929,15 @@ func _level_wall_height() -> float:
 
 func _room_center(room: Dictionary) -> Vector3:
 	return Vector3(float(room.position.x), 0.0, float(room.position.z))
+
+
+## Punto en el piso pegado a una esquina, metido `margin` desde la cara interior
+## de cada pared. Norte es -Z y este es +X, igual que en _wall_point.
+func _room_corner(room: Dictionary, corner: String, margin: float = RADIO_CORNER_MARGIN) -> Vector3:
+	var signs: Vector2 = CORNER_SIGNS.get(corner, CORNER_SIGNS.ne)
+	var inset_x := float(room.size.width) * 0.5 - WALL_THICKNESS * 0.5 - margin
+	var inset_z := float(room.size.depth) * 0.5 - WALL_THICKNESS * 0.5 - margin
+	return _room_center(room) + Vector3(signs.x * inset_x, 0.0, signs.y * inset_z)
 
 
 func _wall_point(room: Dictionary, wall: String) -> Vector2:

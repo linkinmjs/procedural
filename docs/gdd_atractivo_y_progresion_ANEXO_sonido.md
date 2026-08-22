@@ -232,7 +232,7 @@ fanfarria por cada impacto.
 | --- | --- | --- | --- | --- | --- |
 | `amb_desktop_room` | Fondo constante del escritorio | P2 | 2D | Pendiente | Casi imperceptible: ventilador, disco o sala doméstica. |
 | `amb_level_base` | Cama ambiental general del nivel | P1 | 2D/3D | Pendiente | Evitar silencio absoluto entre encuentros. |
-| `amb_computer_hum` | Ventanas u objetos electrónicos | P2 | 3D | Pendiente | Localizable y muy suave. |
+| `amb_computer_hum` | Bloques (pantalla LED) | P2 | 3D | Integrado | Zumbido sintetizado por código (`scripts/audio/led_hum_synth.gd`): suave de lejos, sube y se desafina de cerca. Se corta al cerrar o colgar el bloque. |
 | `amb_fluorescent` | Luces interiores | P2 | 3D | Pendiente | Solo en luminarias cercanas; no uno por cada luz. |
 | `amb_wind_exterior` | Salas abiertas o cielo expuesto | P2 | 2D/3D | Pendiente | Depender del tipo de sala. |
 | `amb_room_variant` | Variación por tema de nivel | P2 | 2D | Futuro | Permite identidad sin componer música nueva para todo. |

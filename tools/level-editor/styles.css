@@ -289,6 +289,8 @@ p.alert { margin: 8px 0 0; }
 .target-block.moving { stroke: var(--moving); stroke-width: .16; }
 .block-count { fill: var(--bg); font-size: .6px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .ammo-mark { fill: var(--ammo); stroke: #0b1016; stroke-width: .14; opacity: .9; pointer-events: none; }
+.radio-mark { fill: #d9a066; stroke: #0b1016; stroke-width: .12; opacity: .95; pointer-events: none; }
+.radio-glyph { fill: #0b1016; font-size: .9px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .ammo-count { fill: #0b1016; font-size: .6px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 
 .legend {

@@ -33,6 +33,15 @@ mesh = SubResource("BlockMesh")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("BlockShape")
 
+[node name="HumPlayer" type="AudioStreamPlayer3D" parent="."]
+volume_db = -14.0
+unit_size = 1.8
+max_db = -6.0
+max_distance = 11.0
+attenuation_model = 1
+attenuation_filter_cutoff_hz = 4000.0
+bus = &"SFX"
+
 [node name="TargetSpawnVolume3D" parent="." instance=ExtResource("2_volume")]
 spawn_on_ready = false
 debug_bounds_visible = false

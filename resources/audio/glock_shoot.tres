@@ -1,9 +1,9 @@
 [gd_resource type="AudioStreamRandomizer" format=3 uid="uid://bskgxwyr2wu6e"]
 
-[ext_resource type="AudioStream" path="res://assets/audio/sfx/glock/glock_shoot_1.wav" id="1_shot1"]
-[ext_resource type="AudioStream" path="res://assets/audio/sfx/glock/glock_shoot_2.wav" id="2_shot2"]
-[ext_resource type="AudioStream" path="res://assets/audio/sfx/glock/glock_shoot_3.wav" id="3_shot3"]
-[ext_resource type="AudioStream" path="res://assets/audio/sfx/glock/glock_shoot_4.wav" id="4_shot4"]
+[ext_resource type="AudioStream" uid="uid://e4forw8oxw1u" path="res://assets/audio/sfx/glock/glock_shoot_1.wav" id="1_shot1"]
+[ext_resource type="AudioStream" uid="uid://b46ew71ei5t4v" path="res://assets/audio/sfx/glock/glock_shoot_2.wav" id="2_shot2"]
+[ext_resource type="AudioStream" uid="uid://chxauffdlk2p3" path="res://assets/audio/sfx/glock/glock_shoot_3.wav" id="3_shot3"]
+[ext_resource type="AudioStream" uid="uid://r4pva105vf4m" path="res://assets/audio/sfx/glock/glock_shoot_4.wav" id="4_shot4"]
 
 [resource]
 playback_mode = 1
@@ -11,10 +11,6 @@ random_pitch = 1.05
 random_volume_offset_db = 1.0
 streams_count = 4
 stream_0/stream = ExtResource("1_shot1")
-stream_0/weight = 1.0
 stream_1/stream = ExtResource("2_shot2")
-stream_1/weight = 1.0
 stream_2/stream = ExtResource("3_shot3")
-stream_2/weight = 1.0
 stream_3/stream = ExtResource("4_shot4")
-stream_3/weight = 1.0

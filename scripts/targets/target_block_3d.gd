@@ -36,10 +36,24 @@ signal crashed(block: TargetBlock3D)
 ## se recorta contra los bordes del bloque, asi que el solape se ve limpio.
 @export var target_separation := Vector2(2.0, 1.0)
 @export var target_padding := Vector2(0.2, 0.2)
+## Zumbido de pantalla del bloque. De lejos apenas se siente; de cerca sube de
+## volumen y se desafina un poco, que es lo que inquieta.
+@export_group("Hum")
+@export var hum_enabled := true
+@export_range(-40.0, 0.0, 0.5) var hum_volume_db := -14.0
+@export_range(-40.0, 0.0, 0.5) var hum_near_volume_db := -4.0
+## Distancia a la camara desde la que el zumbido esta a pleno.
+@export_range(0.5, 20.0, 0.5) var hum_near_distance := 3.0
+## Variacion de tono entre bloques, para que no suenen clonados.
+@export_range(0.0, 0.5, 0.01) var hum_pitch_jitter := 0.04
+## Cuanto sube el tono al acercarse.
+@export_range(0.0, 0.5, 0.01) var hum_near_detune := 0.08
+@export_group("")
 
 @onready var block_mesh: MeshInstance3D = $BlockMesh
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var spawn_volume: TargetSpawnVolume3D = $TargetSpawnVolume3D
+@onready var hum_player: AudioStreamPlayer3D = get_node_or_null("HumPlayer")
 
 const BLUE_SCREEN_SCENE := preload("res://scenes/targets/blue_screen.tscn")
 ## Cuanto se adelanta la pantalla de error respecto de la cara del bloque, para
@@ -55,11 +69,17 @@ var _crashed := false
 var _bodies_inside: Array[Node3D] = []
 var _layers: Array[PackedStringArray] = []
 var _current_layer_index := 0
+var _hum_base_pitch := 1.0
+## Cercania actual (0 lejos, 1 encima), suavizada para que no salte.
+var _hum_closeness := 0.0
+var _hum_accumulator := 0.0
+const HUM_UPDATE_SECONDS := 0.1
 
 
 func _ready() -> void:
 	_update_geometry()
 	_update_appearance()
+	_start_hum()
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 	_layers.assign(layers)
@@ -81,6 +101,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_update_hum(delta)
 	if not moves_to_opposite_side or _closing or movement_direction.is_zero_approx():
 		return
 	if _distance_travelled >= travel_distance:
@@ -135,6 +156,8 @@ func crash(source_label: String) -> void:
 	if _crashed or _closing:
 		return
 	_crashed = true
+	# La pantalla se cuelga y el zumbido se corta en seco con ella.
+	_stop_hum()
 	# Lo que quedaba de la capa se va con el bloque: no hay capa intermedia ni
 	# nada mas que romper. El bloque queda inservible de una.
 	spawn_volume.clear_targets()
@@ -225,11 +248,49 @@ func _close() -> void:
 	if _closing or _crashed:
 		return
 	_closing = true
+	_stop_hum()
 	var controller := _get_round_controller()
 	if controller != null:
 		controller.add_log(tr("LOG_BLOCK_CLOSED").format({"block": block_label.to_upper()}), "system")
 	closed.emit(self)
 	queue_free()
+
+
+## Arranca el zumbido desde un punto al azar del loop: varios bloques en fase
+## sonarian como uno solo mas fuerte.
+func _start_hum() -> void:
+	if hum_player == null or not hum_enabled:
+		return
+	hum_player.stream = LedHumSynth.get_stream()
+	_hum_base_pitch = 1.0 + randf_range(-hum_pitch_jitter, hum_pitch_jitter)
+	hum_player.pitch_scale = _hum_base_pitch
+	hum_player.volume_db = hum_volume_db
+	hum_player.play(randf() * LedHumSynth.LOOP_SECONDS)
+
+
+func _stop_hum() -> void:
+	if hum_player != null:
+		hum_player.stop()
+
+
+## Cuanto mas cerca la camara, mas fuerte y mas agudo. Se mide cada decima de
+## segundo y se suaviza: la distancia cambia a saltos con el jugador corriendo.
+func _update_hum(delta: float) -> void:
+	if hum_player == null or not hum_player.playing:
+		return
+	_hum_accumulator += delta
+	if _hum_accumulator < HUM_UPDATE_SECONDS:
+		return
+	_hum_accumulator = 0.0
+	var camera := get_viewport().get_camera_3d()
+	if camera == null:
+		return
+	var distance := global_position.distance_to(camera.global_position)
+	var far := maxf(hum_player.max_distance, hum_near_distance + 0.01)
+	var target := 1.0 - clampf((distance - hum_near_distance) / (far - hum_near_distance), 0.0, 1.0)
+	_hum_closeness = lerpf(_hum_closeness, target, 0.35)
+	hum_player.volume_db = lerpf(hum_volume_db, hum_near_volume_db, _hum_closeness)
+	hum_player.pitch_scale = _hum_base_pitch * (1.0 + hum_near_detune * _hum_closeness * _hum_closeness)
 
 
 func _get_round_controller() -> RoundController:

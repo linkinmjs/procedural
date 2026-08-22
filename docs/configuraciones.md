@@ -28,13 +28,21 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | `POOL_2D_SIZE` / `POOL_3D_SIZE` | `scripts/audio/sfx.gd` | 6 / 12 | Sonidos simultáneos antes de robar el más viejo. |
 | `step_distance` | `player_character.gd` → `Footsteps` | 2.1 m | Metros entre paso y paso corriendo (se acorta con la velocidad). |
 | Pitch de `land` | `player_character.gd` → `_physics_process` | 0.7–0.8 | Grave del aterrizaje respecto del paso. |
-| `spawn_exit_radio` | `scripts/levels/playable_level.gd` | on | Experimental: radio con música en loop en la sala de salida de cada nivel. |
-| Posición de la radio | `playable_level.gd` → `_spawn_exit_radio` | pared norte, 0.6 m adentro | Dónde aparece la radio dentro de la sala de salida. |
-| `volume_db` / `unit_size` / `max_db` | `scenes/props/radio.tscn` → nodo `Speaker` | -4 / 3 m / 0 | Volumen de la radio y qué tan rápido se atenúa con la distancia. |
+| `radio` por sala | `level_designs/levels/*.json` → `rooms[].radio` | `{ enabled, corner }` | Qué salas tienen radio y en qué esquina (`ne`/`nw`/`se`/`sw`); se edita en el Level Workshop. |
+| `RADIO_CORNER_MARGIN` | `scripts/levels/playable_level.gd` | 0.5 m | Distancia de la radio a la cara interior de cada pared de su esquina. Mira al centro en diagonal. |
+| `poll_seconds` / `switch_hysteresis` | `scripts/props/radio_director.gd` | 0.5 s / 1.5 m | Cada cuánto se elige la radio más cercana y cuánto tiene que ganarle a la activa para quitarle la acústica de sala. |
+| `crossfade_seconds` | `scripts/props/radio_prop.gd` | 0.25 s | Fundido entre el reproductor común y el espacial al cambiar de radio activa. |
+| Rotura de la radio | `radio_prop.gd` → `break_radio` | `target_destroyed` a pitch 0.7 | Un disparo la calla, suelta esquirlas y la deja gris. |
+| `volume_db` / `unit_size` / `max_db` | `scenes/props/radio.tscn` → nodos `Speaker` y `PlainSpeaker` | -4 / 3 m / 0 | Volumen de la radio y qué tan rápido se atenúa con la distancia. |
 | `reverb_volume_db` / `roomsize_multiplicator` / `occlusion_lp_cutoff` | ídem | -10 / 4.0 / 500 Hz | Reverb de sala y cuánto se apaga la música tras una pared. |
 | `output_bus` | ídem | `Music` | La radio responde al volumen de música de las opciones aunque sea 3D. |
 | `loop` | `assets/audio/music/human_tetris_fade.mp3.import` | on | Repetición de la canción (opción de importación del mp3). |
 | Buses `Master` / `Music` / `SFX` | `resources/audio/default_bus_layout.tres` | — | Volúmenes base; los del usuario los maneja `Settings`. |
+| `BASE_HZ` / `WHINE_HZ` / ganancias | `scripts/audio/led_hum_synth.gd` | 60 Hz / 9900 Hz / 0.55·0.18·0.06·0.04 | Timbre del zumbido de pantalla de los bloques (hum de red, octava, silbido, ruido). Se sintetiza una vez y se comparte. |
+| `MIX_RATE` / `LOOP_SECONDS` | ídem | 24000 / 1 s | Resolución y largo del loop; mantener frecuencias múltiplos enteros de 1 Hz para que cierre sin click. |
+| `unit_size` / `max_distance` / `attenuation_model` | `scenes/targets/target_block_3d.tscn` → nodo `HumPlayer` | 1.8 m / 11 m / inverso cuadrático | Qué tan rápido se apaga el zumbido con la distancia y desde dónde deja de oírse. |
+| `hum_volume_db` / `hum_near_volume_db` | `scripts/targets/target_block_3d.gd` | -14 / -4 dB | Volumen del zumbido lejos y pegado a la pantalla. |
+| `hum_near_distance` / `hum_near_detune` / `hum_pitch_jitter` | ídem | 3 m / 0.08 / 0.04 | Desde dónde está a pleno, cuánto se desafina al acercarse y la variación de tono entre bloques. |
 
 ## Cámara y feedback del jugador
 
@@ -122,5 +130,7 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | `max_health` / `round_duration` | `scripts/gameplay/round_controller.gd` | 100 / 90 s | Vida del jugador y tiempo de la ronda. |
 | `results_delay` | `scripts/levels/playable_level.gd` | 3 s | Espera entre el cierre del nivel y la pantalla de resultados. |
 | `SLOWMO_SCALE` / `SLOWMO_FADE_IN_SECONDS` | ídem | 0.25 / 0.8 s | Qué tan lenta queda la cámara lenta del final y cuánto tarda en hundirse. |
+| `cleared_light_factor` / `cleared_light_fade_seconds` | ídem | 0.3 / 1.2 s | A cuánto baja la luz de una sala al limpiarla y cuánto tarda. Invita a salir: el pasillo queda más brillante. No bajar de ~0.2 o no se ve la recompensa. |
+| `exit_light_factor` | ídem | 0.15 | A cuánto baja la luz de la sala de salida; se funde junto con la cámara lenta (`SLOWMO_FADE_IN_SECONDS`). |
 | Reintento de resultados | → `_show_results` | 0.5 s | Cada cuánto reintenta abrir resultados si otro menú está abierto. |
 | Intertítulo de nivel | `scripts/ui/level_intro.gd` | 0.5 / 1.15 / 0.55 s | Fade-in, sostén y fade-out del título del nivel. |

@@ -21,6 +21,8 @@ La escena inicial `scenes/levels/playable_level.tscn` construye el nivel activo 
 - Bloques izquierdo, frontal y derecho relativos a la pared de entrada, cubriendo su pared completa de piso a techo.
 - El jugador dentro de la sala marcada como `start`, orientado según su `facing`, con la munición de `startingAmmo`.
 - Un bloque de munición en el centro de las salas que declaran `ammoReward`, al caer su último bloque.
+- Una radio con música en loop en la esquina de las salas que declaran `radio`, apoyada contra las dos paredes y mirando al centro. Se rompe de un disparo; entre varias, solo la más cercana lleva la acústica de sala (`RadioDirector`).
+- La luz de una sala baja al limpiarla (`cleared_light_factor`); la de salida se apaga junto con la cámara lenta del cierre.
 - El HUD y el tiempo de ronda de `timeLimitSeconds`.
 - El cielo declarado por `sky`, que además coloca el sol.
 
@@ -102,9 +104,9 @@ Una lista de capas vacía conserva el comportamiento de bloque sin objetivos, co
 
 Las familias y su comportamiento están en [`ventanas.md`](ventanas.md). En la herramienta se editan con chips: un clic suma una ventana de esa familia, clic derecho resta. Las que todavía no tienen escena propia se juegan como `normal`: el nivel las declara igual y empiezan a portarse distinto el día que su escena exista, sin tocar el archivo.
 
-### Migración desde v8
+### Migraciones (v8 → v9 → v10)
 
-Hasta v8 la sala tenía un único grupo de bloques y los tres aparecían juntos; dentro del bloque, lo que hoy son `layers` se llamaba `waves`. `LevelDefinitionLoader` migra ese formato al cargar: el grupo único pasa a ser la primera y única oleada. La migración es en memoria, así que un archivo viejo se juega sin convertirlo, y la herramienta lo guarda ya en v9 la primera vez que se lo edita.
+Hasta v8 la sala tenía un único grupo de bloques y los tres aparecían juntos; dentro del bloque, lo que hoy son `layers` se llamaba `waves`. `LevelDefinitionLoader` migra ese formato al cargar: el grupo único pasa a ser la primera y única oleada. v10 agrega `radio` por sala (`{ enabled, corner }`); una sala sin el campo recibe la radio apagada. Las migraciones son en memoria, así que un archivo viejo se juega sin convertirlo, y la herramienta lo guarda ya en la versión actual la primera vez que se lo edita.
 
 El panel cubre su pared entera menos `WALL_MARGIN` (0,4 m) a lo ancho y a lo alto, de modo que no queda hueco por el que colarse mientras avanza hacia el lado contrario.
 

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 9,
+  "schemaVersion": 10,
   "id": "demo-pasillo-waypoints",
   "name": "Demo pasillo",
   "description": "Pasillo con puntos intermedios: una U entre las dos salas.",
@@ -48,6 +48,10 @@
         "enabled": false,
         "amount": 30,
         "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
       },
       "textures": {
         "walls": "",
@@ -108,6 +112,10 @@
         "enabled": false,
         "amount": 30,
         "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
       },
       "textures": {
         "walls": "",

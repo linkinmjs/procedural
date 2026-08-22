@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 9,
+  "schemaVersion": 10,
   "id": "f4-three-room-example",
   "name": "Circuito de tres salas",
   "description": "Ejemplo editable con sala pequeña, sala grande y pasillo.",
@@ -48,6 +48,10 @@
         "enabled": false,
         "amount": 30,
         "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
       },
       "textures": {
         "walls": "",
@@ -114,6 +118,10 @@
         "enabled": true,
         "amount": 40,
         "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
       },
       "textures": {
         "walls": "",
@@ -197,6 +205,10 @@
         "enabled": false,
         "amount": 30,
         "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
       },
       "textures": {
         "walls": "",

@@ -59,7 +59,7 @@ Arriba, el nombre y el **rol**:
 
 Marcar una sala como inicio o salida devuelve a tránsito a la que tenía ese rol.
 
-A la izquierda, el **plano de la sala**: muestra la puerta de entrada, la orientación del jugador si es la sala de inicio, y las tres paredes que pueden llevar bloque. Cada pared dice cuántas ventanas trae cada oleada y se abre con un click; las que están apagadas aparecen punteadas con un `+`. Debajo, el resumen de la entrada y la **recompensa al limpiar**: un bloque de munición con la cantidad indicada, que aparece cuando cae el último bloque y se abren las puertas.
+A la izquierda, el **plano de la sala**: muestra la puerta de entrada, la orientación del jugador si es la sala de inicio, y las tres paredes que pueden llevar bloque. Cada pared dice cuántas ventanas trae cada oleada y se abre con un click; las que están apagadas aparecen punteadas con un `+`. Debajo, el resumen de la entrada y la **recompensa al limpiar**: un bloque de munición con la cantidad indicada, que aparece cuando cae el último bloque y se abren las puertas. Más abajo, la **radio**: un interruptor y la esquina donde se apoya (NE/NO/SE/SO); en el plano general se dibuja como una marca con una nota musical pegada a esa esquina. En el juego suena en loop mirando al centro, se rompe de un disparo y, si hay varias, solo la más cercana lleva la acústica de sala.
 
 A la derecha:
 
@@ -142,4 +142,4 @@ Para sumar texturas: extraer las que falten de `assets/_raw/textures/`, copiarla
 
 ## Alcance actual
 
-El runtime construye todo lo que declara el formato: alturas, techos, pasillos con su ancho y sus puntos intermedios, roles, orientación inicial, munición, recompensas, cielo y las texturas de paredes, suelo y techo. Los slots `door` y `block` se guardan pero todavía no se aplican, y de una oleada sólo usa el total de ventanas: las familias distintas de `normal` esperan su comportamiento.
+El runtime construye todo lo que declara el formato: alturas, techos, pasillos con su ancho y sus puntos intermedios, roles, orientación inicial, munición, recompensas, radios por esquina, cielo y las texturas de paredes, suelo y techo. Los slots `door` y `block` se guardan pero todavía no se aplican, y de una oleada sólo usa el total de ventanas: las familias distintas de `normal` esperan su comportamiento.

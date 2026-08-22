@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 9,
+  "schemaVersion": 10,
   "id": "level-1787192042769",
   "name": "Nivel 3",
   "description": "",
@@ -48,6 +48,10 @@
         "enabled": false,
         "amount": 30,
         "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
       },
       "textures": {
         "walls": "",
@@ -108,6 +112,10 @@
         "enabled": false,
         "amount": 30,
         "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
       },
       "textures": {
         "walls": "",
@@ -180,6 +188,10 @@
         "enabled": false,
         "amount": 30,
         "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": true,
+        "corner": "ne"
       },
       "textures": {
         "walls": "",

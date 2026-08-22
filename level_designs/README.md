@@ -12,7 +12,7 @@ Esta carpeta contiene las definiciones versionadas creadas con `tools/level-edit
 
 ## Formato actual
 
-El formato usa `schemaVersion: 8`.
+El formato usa `schemaVersion: 10`.
 
 ### Nivel
 
@@ -34,6 +34,7 @@ El formato usa `schemaVersion: 8`.
 - `wallHeight`: altura propia en metros, o `null` para heredar la del nivel.
 - `hasCeiling`: `true` cerrada, `false` a cielo abierto, `null` para heredar.
 - `ammoReward`: `{ enabled, amount, color }`. Con `enabled` en `true`, al destruir el último bloque de la sala aparece un bloque con `amount` balas.
+- `radio`: `{ enabled, corner }`. Con `enabled` en `true`, una radio con música en loop aparece en la esquina `corner` (`ne`, `nw`, `se`, `sw`; norte es -Z, este es +X), apoyada contra las dos paredes y mirando al centro. Se rompe de un disparo.
 - `textures`: identificadores del catálogo `texture-catalog.json`, por superficie. Una cadena vacía hereda la del nivel; si el nivel tampoco define una, se usa el material de color plano. El juego aplica hoy `walls`, `floor` y `ceiling`; `door` y `block` se guardan pero todavía no se dibujan.
 - `blocks`: cada bloque define color, velocidad y una lista ordenada de oleadas. Los lados `left`, `front` y `right` son relativos a `entry.wall`: con una entrada `south`, el bloque `front` cae sobre la pared `north`. Cada bloque cubre el ancho completo de su pared y se levanta desde el piso hasta `defaults.maxBlockHeight`, o hasta el techo si la sala es más baja.
 

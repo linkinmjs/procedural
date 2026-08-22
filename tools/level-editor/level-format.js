@@ -4,7 +4,7 @@
 (() => {
   "use strict";
 
-  const SCHEMA_VERSION = 9;
+  const SCHEMA_VERSION = 10;
 
   const ROOM_PRESETS = {
     small: { label: "Habitación pequeña", width: 14, depth: 14 },
@@ -57,7 +57,7 @@
   const WALL_DEGREES = { north: 0, east: 90, south: 180, west: 270 };
 
   const LEVEL_KEYS = ["schemaVersion", "id", "name", "description", "timeLimitSeconds", "gridSize", "startingAmmo", "sky", "defaults", "rooms", "connections"];
-  const ROOM_KEYS = ["id", "name", "type", "role", "position", "size", "entry", "facing", "wallHeight", "hasCeiling", "ammoReward", "textures", "blocks"];
+  const ROOM_KEYS = ["id", "name", "type", "role", "position", "size", "entry", "facing", "wallHeight", "hasCeiling", "ammoReward", "radio", "textures", "waves"];
   const CONNECTION_KEYS = ["id", "fromRoomId", "toRoomId", "fromWall", "toWall", "width", "waypoints"];
 
   const LIMITS = {
@@ -146,6 +146,13 @@
 
   const blankAmmoReward = () => ({ enabled: false, amount: LIMITS.ammoReward.fallback, color: "#f4bc59" });
 
+  // Esquinas donde puede apoyarse la radio de una sala. Tienen que coincidir
+  // con VALID_RADIO_CORNERS en scripts/levels/level_definition_loader.gd.
+  const RADIO_CORNERS = ["ne", "nw", "se", "sw"];
+  const RADIO_CORNER_LABELS = { ne: "Noreste", nw: "Noroeste", se: "Sureste", sw: "Suroeste" };
+  const DEFAULT_RADIO_CORNER = "ne";
+  const blankRadio = () => ({ enabled: false, corner: DEFAULT_RADIO_CORNER });
+
   function createEmptyLevel() {
     return {
       schemaVersion: SCHEMA_VERSION,
@@ -182,6 +189,7 @@
       wallHeight: null,
       hasCeiling: null,
       ammoReward: blankAmmoReward(),
+      radio: blankRadio(),
       textures: blankTextures(),
       waves: [blankRoomWave()]
     };
@@ -532,6 +540,11 @@
         amount: clampInt(room.ammoReward?.amount, LIMITS.ammoReward),
         color: isHexColor(room.ammoReward?.color) ? room.ammoReward.color : "#f4bc59"
       };
+      // v10 agrega la radio por sala; las salas viejas no tenian ninguna.
+      room.radio = {
+        enabled: Boolean(room.radio?.enabled),
+        corner: RADIO_CORNERS.includes(room.radio?.corner) ? room.radio.corner : DEFAULT_RADIO_CORNER
+      };
       room.textures = blankTextures(room.textures);
       // Hasta v8 la sala tenia un solo grupo de bloques y los tres aparecian
       // juntos: ese grupo es exactamente su primera y unica oleada.
@@ -617,6 +630,10 @@
     layerTotal,
     normalizeLayer,
     blankAmmoReward,
+    RADIO_CORNERS,
+    RADIO_CORNER_LABELS,
+    DEFAULT_RADIO_CORNER,
+    blankRadio,
     createEmptyLevel,
     createRoom,
     createConnection,

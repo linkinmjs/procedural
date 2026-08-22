@@ -1,16 +1,20 @@
 class_name LevelDefinitionLoader
 extends RefCounted
 
-const SUPPORTED_SCHEMA_VERSION := 9
+const SUPPORTED_SCHEMA_VERSION := 10
 ## Versiones viejas que se leen igual, migrandolas en memoria al cargar. El
 ## archivo en disco no se toca: se actualiza recien cuando alguien lo guarda
 ## desde la herramienta.
-const MIGRATABLE_SCHEMA_VERSIONS := [8]
+const MIGRATABLE_SCHEMA_VERSIONS := [8, 9]
 const VALID_ROOM_TYPES := ["small", "large", "corridor", "custom"]
 const VALID_WALLS := ["north", "east", "south", "west"]
 const VALID_BLOCK_SLOTS := ["left", "front", "right"]
 const VALID_TEXTURE_SLOTS := ["walls", "floor", "ceiling", "door", "block"]
 const VALID_ROLES := ["start", "transition", "exit"]
+## Esquinas donde puede apoyarse la radio de una sala. Tienen que coincidir con
+## RADIO_CORNERS en tools/level-editor/level-format.js.
+const VALID_RADIO_CORNERS := ["ne", "nw", "se", "sw"]
+const DEFAULT_RADIO_CORNER := "ne"
 ## Familias de ventana que puede declarar una capa. Tienen que coincidir con
 ## WINDOW_TYPES en tools/level-editor/level-format.js, que es lo que escribe los
 ## archivos. Las que todavia no tienen escena propia se spawnean como una
@@ -61,6 +65,8 @@ static func load_level(path: String) -> Dictionary:
 static func _migrate(level: Dictionary) -> void:
 	if int(level.get("schemaVersion", 0)) == 8:
 		_migrate_8_to_9(level)
+	if int(level.get("schemaVersion", 0)) == 9:
+		_migrate_9_to_10(level)
 
 
 ## v8 tenia un solo grupo de bloques por sala, y los tres aparecian juntos. En v9
@@ -84,6 +90,14 @@ static func _migrate_8_to_9(level: Dictionary) -> void:
 		room["waves"] = [{"blocks": blocks}]
 		room.erase("blocks")
 	level["schemaVersion"] = 9
+
+
+## v10 agrega la radio por sala. Las salas viejas no tenian ninguna.
+static func _migrate_9_to_10(level: Dictionary) -> void:
+	for room_variant in level.get("rooms", []):
+		if room_variant is Dictionary and not (room_variant as Dictionary).has("radio"):
+			(room_variant as Dictionary)["radio"] = {"enabled": false, "corner": DEFAULT_RADIO_CORNER}
+	level["schemaVersion"] = 10
 
 
 ## Cielo declarado por el nivel. Si no nombra ninguno, o nombra uno que ya no
@@ -168,6 +182,16 @@ static func get_room_ammo_reward(room: Dictionary) -> Dictionary:
 		"enabled": enabled,
 		"amount": clampi(int(reward.get("amount", 0)), 0, 999) if enabled else 0,
 		"color": Color.from_string(str(reward.get("color", "#f4bc59")), Color(0.96, 0.74, 0.35, 1.0)),
+	}
+
+
+## Radio de la sala: si hay una y en que esquina se apoya.
+static func get_room_radio(room: Dictionary) -> Dictionary:
+	var radio: Dictionary = room.get("radio", {}) as Dictionary
+	var corner := str(radio.get("corner", DEFAULT_RADIO_CORNER))
+	return {
+		"enabled": bool(radio.get("enabled", false)),
+		"corner": corner if VALID_RADIO_CORNERS.has(corner) else DEFAULT_RADIO_CORNER,
 	}
 
 
@@ -340,6 +364,8 @@ static func _validate_room(room: Dictionary, room_id: String) -> bool:
 		return false
 	if not _validate_ammo_reward(room, room_id):
 		return false
+	if not _validate_radio(room, room_id):
+		return false
 	if not _validate_textures(room.get("textures", null), "Room %s" % room_id):
 		return false
 	if not room.get("waves", null) is Array:
@@ -458,6 +484,20 @@ static func get_block_layers(block: Dictionary) -> Array[PackedStringArray]:
 		if not types.is_empty():
 			layers.append(types)
 	return layers
+
+
+static func _validate_radio(room: Dictionary, room_id: String) -> bool:
+	if not room.get("radio", null) is Dictionary:
+		push_error("Room %s needs a radio object." % room_id)
+		return false
+	var radio := room.radio as Dictionary
+	if not radio.get("enabled", null) is bool:
+		push_error("Room %s has an invalid radio.enabled value." % room_id)
+		return false
+	if not VALID_RADIO_CORNERS.has(str(radio.get("corner", ""))):
+		push_error("Room %s has an invalid radio corner." % room_id)
+		return false
+	return true
 
 
 static func _validate_ammo_reward(room: Dictionary, room_id: String) -> bool:

@@ -132,8 +132,10 @@ func _physics_process(_delta):
 	_tick_counter += 1
 
 
-func do_play():
-	soundsource.do_play()
+## Parche local: from_position permite arrancar sincronizado con otro reproductor
+## que ya venia sonando (el original siempre empezaba desde cero).
+func do_play(from_position: float = 0.0):
+	soundsource.do_play(from_position)
 
 
 func do_stop():
@@ -496,7 +498,7 @@ class Soundsource extends SpatialAudio3D:
 					r.soundplayer_standby.stream = s
 
 
-	func do_play():
+	func do_play(from_position: float = 0.0):
 		if shut_up:
 			return
 
@@ -510,11 +512,11 @@ class Soundsource extends SpatialAudio3D:
 
 		if reverb_enabled:
 			for r in reverbers:
-				r.do_play()
+				r.do_play(from_position)
 
 		# start play on both
-		soundplayer_active.do_play()
-		soundplayer_standby.do_play()
+		soundplayer_active.do_play(from_position)
+		soundplayer_standby.do_play(from_position)
 
 
 	func _clear_play_lock():
@@ -649,9 +651,9 @@ class Reverber extends SpatialAudio3D:
 		pass
 
 
-	func do_play():
-		soundplayer_active.do_play()
-		soundplayer_standby.do_play()
+	func do_play(from_position: float = 0.0):
+		soundplayer_active.do_play(from_position)
+		soundplayer_standby.do_play(from_position)
 
 
 	func do_stop():
@@ -822,9 +824,9 @@ class Soundplayer extends SpatialAudio3D:
 			remove_child(c)
 
 
-	func do_play():
+	func do_play(from_position: float = 0.0):
 		#if debug: printerr(str(Time.get_ticks_msec()) + ": start playing on " + name + ", stream: " + str(stream))
-		play()
+		play(from_position)
 
 
 	func do_stop():

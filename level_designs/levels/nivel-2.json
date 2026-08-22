@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 9,
+  "schemaVersion": 10,
   "id": "level-1787180619943",
   "name": "Nivel-2",
   "description": "",
@@ -48,6 +48,10 @@
         "enabled": true,
         "amount": 10,
         "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
       },
       "textures": {
         "walls": "",
@@ -125,6 +129,10 @@
         "amount": 30,
         "color": "#f4bc59"
       },
+      "radio": {
+        "enabled": true,
+        "corner": "ne"
+      },
       "textures": {
         "walls": "",
         "floor": "",
@@ -196,6 +204,10 @@
         "enabled": false,
         "amount": 30,
         "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
       },
       "textures": {
         "walls": "",
@@ -278,6 +290,10 @@
         "enabled": false,
         "amount": 30,
         "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
       },
       "textures": {
         "walls": "",

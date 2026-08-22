@@ -465,10 +465,26 @@
     group.append(rect, label);
   }
 
+  // La radio se dibuja pegada a su esquina, como queda en el juego.
+  function addRadio(group, room) {
+    if (!room.radio.enabled) return;
+    const size = 1.2;
+    const inset = 0.9;
+    const signX = room.radio.corner.endsWith("e") ? 1 : -1;
+    const signZ = room.radio.corner.startsWith("n") ? -1 : 1;
+    const cx = room.position.x + signX * (room.size.width / 2 - inset);
+    const cz = room.position.z + signZ * (room.size.depth / 2 - inset);
+    const rect = svgElement("rect", { x: cx - size / 2, y: cz - size / 2, width: size, height: size, rx: .2, class: "radio-mark" });
+    const label = svgElement("text", { x: cx, y: cz, class: "radio-glyph" });
+    label.textContent = "\u266a";
+    group.append(rect, label);
+  }
+
   function roomBadges(room) {
     const badges = [`H ${roomWallHeight(room)} m`];
     if (!roomHasCeiling(room)) badges.push("CIELO ABIERTO");
     if (room.ammoReward.enabled) badges.push(`+${room.ammoReward.amount} BALAS`);
+    if (room.radio.enabled) badges.push(`RADIO ${room.radio.corner.toUpperCase()}`);
     return badges.join(" · ");
   }
 
@@ -494,6 +510,7 @@
       addFacingArrow(group, room);
       for (const [slot, config] of Object.entries(room.waves[0].blocks)) addBlock(group, room, slot, config);
       addAmmoReward(group, room);
+      addRadio(group, room);
       if (room.role !== "transition") {
         const role = svgElement("text", {
           x: room.position.x,
@@ -1196,6 +1213,9 @@
     $("#room-ammo-color").disabled = !room.ammoReward.enabled;
     $("#room-ammo-amount").value = room.ammoReward.amount;
     $("#room-ammo-color").value = room.ammoReward.color;
+    $("#room-radio-enabled").checked = room.radio.enabled;
+    $("#room-radio-corner").disabled = !room.radio.enabled;
+    $("#room-radio-corner").value = room.radio.corner;
     document.querySelectorAll("#room-dialog .segment").forEach((button) =>
       button.setAttribute("aria-checked", String(button.dataset.role === room.role)));
     renderEntrySummary(room);
@@ -1975,6 +1995,29 @@
       if (!room) return;
       room.ammoReward.color = event.target.value;
       commit("Recompensa actualizada");
+    });
+
+    const cornerSelect = $("#room-radio-corner");
+    for (const corner of LevelFormat.RADIO_CORNERS) {
+      const option = document.createElement("option");
+      option.value = corner;
+      option.textContent = `${LevelFormat.RADIO_CORNER_LABELS[corner]} (${corner.toUpperCase()})`;
+      cornerSelect.append(option);
+    }
+
+    $("#room-radio-enabled").addEventListener("change", (event) => {
+      const room = dialogRoom();
+      if (!room) return;
+      room.radio.enabled = event.target.checked;
+      commit(room.radio.enabled ? "Radio agregada" : "Radio quitada");
+    });
+
+    cornerSelect.addEventListener("change", (event) => {
+      const room = dialogRoom();
+      if (!room) return;
+      room.radio.corner = LevelFormat.RADIO_CORNERS.includes(event.target.value)
+        ? event.target.value : LevelFormat.DEFAULT_RADIO_CORNER;
+      commit("Radio movida de esquina");
     });
 
     const openSlot = (event) => {

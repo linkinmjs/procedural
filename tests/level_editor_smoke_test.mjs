@@ -23,7 +23,7 @@ for (const id of [
   "texture-fields", "room-list", "connection-list", "level-time-minutes", "level-time-seconds",
   "level-ammo-magazine", "level-ammo-reserve", "level-wall-height", "level-corridor-width",
   "level-has-ceiling", "room-wall-height", "room-wall-height-mode", "room-ceiling",
-  "room-ammo-enabled", "room-ammo-amount", "facing-compass", "entry-summary",
+  "room-ammo-enabled", "room-ammo-amount", "room-radio-enabled", "room-radio-corner", "facing-compass", "entry-summary",
   "duplicate-room", "zoom-fit", "import-file", "download-file"
 ]) {
   assert.match(html, new RegExp(`id=["']${id}["']`), `Falta el control #${id}`);
@@ -54,8 +54,19 @@ assert.deepEqual(schema.$defs.role.enum, ["start", "transition", "exit"]);
 assert.equal(schema.$defs.facing.maximum, 359);
 assert.ok(schema.$defs.connection.required.includes("width"), "Cada pasillo declara su ancho");
 assert.ok(schema.$defs.levelDefaults.required.includes("corridorWidth"));
-for (const key of ["role", "facing", "wallHeight", "hasCeiling", "ammoReward", "textures"]) {
+for (const key of ["role", "facing", "wallHeight", "hasCeiling", "ammoReward", "radio", "textures"]) {
   assert.ok(schema.$defs.room.required.includes(key), `La sala debe declarar ${key}`);
+}
+assert.deepEqual(schema.$defs.radio.properties.corner.enum, LevelFormat.RADIO_CORNERS, "Las esquinas de la radio del schema y la tool deben coincidir");
+{
+  const legacy = LevelFormat.createEmptyLevel();
+  const room = LevelFormat.createRoom("small", 1);
+  delete room.radio;
+  legacy.rooms.push(room);
+  const normalized = LevelFormat.normalizeLevel(legacy);
+  assert.deepEqual(normalized.rooms[0].radio, { enabled: false, corner: LevelFormat.DEFAULT_RADIO_CORNER }, "Una sala sin radio recibe la radio apagada");
+  room.radio = { enabled: true, corner: "xx" };
+  assert.equal(LevelFormat.normalizeLevel(legacy).rooms[0].radio.corner, LevelFormat.DEFAULT_RADIO_CORNER, "Una esquina inválida cae a la de defecto");
 }
 assert.ok(Array.isArray(catalog.textures), "El catálogo de texturas debe listar sus entradas");
 assert.ok(catalog.textures.length > 0, "El catálogo de texturas ya no puede estar vacío");

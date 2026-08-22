@@ -38,6 +38,9 @@ class_name RecoilProfile
 @export var air_spread: float = 3.0
 ## Multiplicador de toda la dispersion mientras se esta agachado.
 @export var crouch_multiplier: float = 0.55
+## Multiplicador de toda la dispersion mientras se apunta con la mira (ADS).
+## Se combina con el de agachado: los dos se multiplican.
+@export var ads_multiplier: float = 0.6
 ## Tope absoluto de la dispersion resultante.
 @export var max_spread: float = 6.0
 

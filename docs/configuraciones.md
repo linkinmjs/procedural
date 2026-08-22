@@ -48,6 +48,9 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | Hitmarker | `hud.gd` → `_on_weapons_manager_hit_successfull` | 1.6x, 0.07 + 0.18 s | Escala de entrada y duración del marcador de acierto. |
 | `landing_dip` / `_min_speed` / `_max_speed` | `player_character.gd` → `Jump Parameters` | 1.8° / 5 / 14 | Hundimiento de la vista al aterrizar según la caída. |
 | `line_length` / `minimum_gap` / `follow_speed` | `scripts/player/dynamic_crosshair.gd` | 9 / 4 / 14 | Tamaño, apertura mínima y reacción de la mira dinámica. |
+| `ads_fov` / `ads_speed` | `scripts/weapons/weapon_state_machine.gd` → `Aim Down Sights` | 55° / 12 | Zoom al apuntar con click derecho (la cámara parte de 75°) y velocidad del fundido. La sensibilidad del mouse baja sola en la relación `fov_actual / fov_base`. |
+| `ads_offset` / `ads_rotation_degrees` | ídem | (-0.155, 0.096, 0.1) / (0, -2.86, 0) | Pose del rig del arma al apuntar, relativa a la cámara. Calibrar con `glock-ads.png` del test visual: la mira trasera tiene que quedar en el centro. |
+| `enable_ads` | ídem | on | Apaga el apuntado por completo. |
 
 ## Arma (Glock)
 
@@ -60,6 +63,7 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | `kick_snappiness` / `recovery_speed` | ídem | 26 / 4.5 | Qué tan rápido entra la patada y vuelve la vista. |
 | `spread_per_shot` / `max_shot_spread` / `spread_recovery` | ídem | 0.75 / 3.0 / 2.5 | Dispersión acumulada por ráfaga y su recuperación. |
 | `move_spread` / `air_spread` / `crouch_multiplier` | ídem | 1.8 / 3.0 / 0.55 | Dispersión por moverse, saltar y agacharse. |
+| `ads_multiplier` | ídem | 0.6 | Multiplicador de toda la dispersión mientras se apunta (se combina con el de agachado). |
 | `shot_reset_time` | ídem | 0.35 s | Pausa que reinicia el contador de ráfaga. |
 | Decal de impacto | `scenes/effects/bullet_impact.tscn` → `Decal`; `bullet_impact.gd` | 0.14 m, 8 s, fade 1.5 s | Tamaño y vida de la marca en la pared. |
 | Chispas | `bullet_impact.tscn` → `Sparks` | 10 partículas, 0.4 s | Cantidad y vida de las chispas de impacto. |

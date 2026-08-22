@@ -9,12 +9,18 @@ extends CharacterBody3D
 @export var subviewport_camera: Camera3D
 @export var main_camera:Camera3D
 @export var animation_tree: AnimationTree
+## El rig del arma (Weapons_Manager). Avisa con aim_changed cuanto se esta
+## apuntando para frenar el mouse en proporcion al zoom.
+@export var weapons_manager: Node3D
 
 var camera_rotation: Vector2 = Vector2(0.0,0.0)
 ## La fija el jugador desde el menu de opciones. Se lee al nacer y se
 ## actualiza si la cambian con la partida en curso, que es lo que pasa al
 ## abrir opciones desde la pausa.
 var mouse_sensitivity: float = 0.001
+## Factor que frena el mouse al apuntar: fov_actual / fov_base, asi un mismo
+## desplazamiento de mouse recorre la misma porcion de pantalla con y sin zoom.
+var _aim_sensitivity_scale: float = 1.0
 var crouched: bool = false
 var crouch_blocked: bool = false
 
@@ -116,6 +122,7 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	calculate_movement_parameters()
 	_bind_settings()
+	_bind_aim()
 	_shake_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
 	_shake_noise.frequency = 1.0
 
@@ -128,6 +135,15 @@ func _bind_settings() -> void:
 		return
 	mouse_sensitivity = settings.get_sensitivity()
 	settings.sensitivity_changed.connect(func(value: float) -> void: mouse_sensitivity = value)
+
+## La sensibilidad sigue al FOV: cuando el arma hace zoom, el mouse se frena en
+## la misma proporcion.
+func _bind_aim() -> void:
+	if weapons_manager == null or main_camera == null:
+		return
+	var base_fov: float = main_camera.fov
+	weapons_manager.aim_changed.connect(func(_blend: float) -> void:
+		_aim_sensitivity_scale = main_camera.fov / base_fov)
 
 ## Deja camera_rotation en linea con la pose actual. Tiene que ser la inversa
 ## exacta de apply_view_rotation(), que aplica los dos angulos negados: copiarlos
@@ -144,7 +160,7 @@ func update_camera_rotation() -> void:
 ## capturado y partidas con el mouse suelto.
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
-		var MouseEvent = event.relative * mouse_sensitivity
+		var MouseEvent = event.relative * mouse_sensitivity * _aim_sensitivity_scale
 		camera_look(MouseEvent)
 
 	if enable_crouch:

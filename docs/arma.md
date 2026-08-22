@@ -43,6 +43,16 @@ FOV. El comportamiento imita al Counter-Strike 1.6:
   el aire; agacharse la reduce con `crouch_multiplier`. La dispersion baja sola
   a `spread_recovery` grados por segundo y el contador de rafaga se reinicia
   tras `shot_reset_time` sin disparar.
+- **Apuntar (ADS)**: mientras se mantiene `Secondary_Fire` (click derecho)
+  `Weapon_State_Machine` funde su propia pose hacia `ads_offset` /
+  `ads_rotation_degrees` (se mueve el rig entero, `Weapons_Manager`, y no el
+  nodo `Glock`, porque las animaciones escriben `Glock:position` en absoluto y
+  pisarian cualquier lerp) y lleva el FOV de la camara a `ads_fov`. Emite
+  `aim_changed(blend)`: el HUD funde las dos miras y el jugador frena el mouse
+  en la relacion `fov_actual / fov_base`. Toda la dispersion se multiplica por
+  `ads_multiplier`, que se combina con el de agachado. El estado de la accion
+  se consulta por frame en vez de escuchar pressed/released: si el boton se
+  suelta con la pausa abierta el released nunca llega.
 - **Mira**: `Weapon_State_Machine` emite `spread_changed` con la dispersion ya
   convertida a pixeles y
   [`dynamic_crosshair.gd`](../scripts/player/dynamic_crosshair.gd)
@@ -79,9 +89,16 @@ Revisa el cargador de 10, la recarga completa, las animaciones declaradas, la
 patada de camara, la imprecision al moverse o saltar y la recuperacion de la
 vista.
 
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/ads_smoke_test.gd`
+
+Revisa el apuntado: con el click derecho mantenido el FOV llega a `ads_fov`, el
+rig queda en `ads_offset`, las miras se funden, el mouse se frena y la
+dispersion se multiplica por `ads_multiplier`; al soltar todo vuelve.
+
 Para mirar el arma: `Godot_v4.7-stable_win64_console.exe --path . res://tests/glock_visual_smoke_test.tscn`
-guarda en `.godot/` capturas del arma en reposo, disparando, recargando y con la
-mira abierta.
+guarda en `.godot/` capturas del arma en reposo, disparando, recargando, con la
+mira abierta y apuntando (`glock-ads.png`: la mira trasera tiene que caer sobre
+el centro de la imagen; si no, ajustar `ads_offset`).
 
 ## Pendientes conocidos
 

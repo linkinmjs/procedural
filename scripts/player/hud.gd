@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 @onready var spread_sight: DynamicCrosshair = $SpreadSight
+@onready var main_sight: TextureRect = $MainSight
 @onready var current_weapon_label = $debug_hud/HBoxContainer/CurrentWeapon
 @onready var current_ammo_label = $debug_hud/HBoxContainer2/CurrentAmmo
 @onready var current_weapon_stack = $debug_hud/HBoxContainer3/WeaponStack
@@ -28,6 +29,14 @@ func _bind_round_controller() -> void:
 
 func _on_weapons_manager_spread_changed(spread_pixels: float) -> void:
 	spread_sight.set_spread(spread_pixels)
+
+
+## Al apuntar la mira se apunta con el arma, no con el HUD: las dos cruces se
+## funden. Se baja el alfa y no la visibilidad para que sigan en su lugar.
+func _on_weapons_manager_aim_changed(blend: float) -> void:
+	var alpha := 1.0 - blend
+	main_sight.modulate.a = alpha
+	spread_sight.modulate.a = alpha
 
 
 func _on_weapons_manager_update_weapon_stack(WeaponStack):

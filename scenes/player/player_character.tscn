@@ -2129,7 +2129,7 @@ node_connections = [&"output", 0, &"lean", &"Crouch_Blend", 0, &"ground", &"Crou
 [sub_resource type="SphereShape3D" id="SphereShape3D_cx3sy"]
 radius = 0.45
 
-[node name="Player_Character" type="CharacterBody3D" unique_id=1930488979 node_paths=PackedStringArray("subviewport_camera", "main_camera", "animation_tree", "crouch_collision", "right_lean_collision", "left_lean_collision")]
+[node name="Player_Character" type="CharacterBody3D" unique_id=1930488979 node_paths=PackedStringArray("subviewport_camera", "main_camera", "animation_tree", "weapons_manager", "crouch_collision", "right_lean_collision", "left_lean_collision")]
 disable_mode = 1
 collision_layer = 2
 floor_max_angle = 0.872665
@@ -2137,6 +2137,7 @@ script = ExtResource("1_h0t42")
 subviewport_camera = NodePath("CanvasLayer/SubViewportContainer/SubViewport/Camera3D")
 main_camera = NodePath("Camera/LeanPivot/MainCamera")
 animation_tree = NodePath("AnimationTree")
+weapons_manager = NodePath("Camera/LeanPivot/MainCamera/Weapons_Manager")
 crouch_toggle = true
 crouch_collision = NodePath("CrouchCollider")
 right_lean_collision = NodePath("Camera/LeanLeftCollision")
@@ -2437,6 +2438,7 @@ target_position = Vector3(0, 0.4, 0)
 [connection signal="hit_successfull" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_hit_successfull"]
 [connection signal="update_ammo" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_update_ammo"]
 [connection signal="spread_changed" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_spread_changed"]
+[connection signal="aim_changed" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_aim_changed"]
 [connection signal="update_weapon_stack" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_update_weapon_stack"]
 [connection signal="weapon_changed" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_weapon_changed"]
 [connection signal="body_entered" from="PickUpDetection" to="Camera/LeanPivot/MainCamera/Weapons_Manager" method="_on_pick_up_detection_body_entered"]

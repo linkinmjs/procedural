@@ -12,6 +12,9 @@ signal connect_weapon_to_hud
 ## Dispersion actual del arma expresada en pixeles de viewport. La usa la mira
 ## para abrirse cuando el jugador dispara o se mueve.
 signal spread_changed(spread_pixels: float)
+## Cuanto se esta apuntando con la mira, de 0 (cadera) a 1 (ADS completo).
+## Lo usan la mira del HUD para desvanecerse y el jugador para frenar el mouse.
+signal aim_changed(blend: float)
 
 @export var animation_player: AnimationPlayer
 @export var melee_hitbox: ShapeCast3D
@@ -23,6 +26,28 @@ signal spread_changed(spread_pixels: float)
 ## AudioStreamPlayer comun, sin posicion ni reverb: esos ruidos son del propio
 ## jugador y tienen que sonar pegados y secos.
 @export var reload_audio: AudioStreamPlayer
+
+@export_group("Aim Down Sights")
+## Si esta apagado, el click derecho no hace nada.
+@export var enable_ads := true
+## FOV de la camara mientras se apunta. El FOV base se lee de la camara al
+## nacer (75 por defecto), asi que el zoom es la relacion entre ambos.
+@export var ads_fov: float = 55.0
+## Velocidad del fundido entre cadera y mira (1/s). Mas alto = mas seco.
+@export var ads_speed: float = 12.0
+## Desplazamiento de todo el rig del arma (este nodo) al apuntar, relativo a la
+## camara. La Glock descansa en (0.135, -0.165, -0.42): la x cancela ese
+## corrimiento lateral y la y/z suben y acercan la mira al centro de la vista.
+@export var ads_offset: Vector3 = Vector3(-0.155, 0.096, 0.1)
+## Giro del rig al apuntar, en grados. El yaw cancela los 0.05 rad de escorzo
+## de la pose de reposo para que el canion quede paralelo a la vista. Con pitch
+## 0 se mira a lo largo de la corredera y el centro de pantalla apoya sobre la
+## punta del poste delantero. Un pitch positivo baja la culata y muestra mas
+## lomo del arma; como gira alrededor de la camara tambien la sube (~0.0055 de
+## ads_offset.y por grado): compensar restando eso.
+@export var ads_rotation_degrees: Vector3 = Vector3(0.0, -2.86, 0.0)
+@export_group("")
+
 @onready var bullet_point = get_node("%BulletPoint")
 @onready var debug_bullet = preload("res://scenes/projectiles/hit_debug.tscn")
 
@@ -34,6 +59,14 @@ var _shot_spread: float = 0.0
 var _time_since_shot: float = 0.0
 var _last_spread_pixels: float = -1.0
 
+# Estado del apuntado (ADS). El rig interpola entre su pose de reposo y
+# ads_offset/ads_rotation_degrees; la camara entre su FOV base y ads_fov.
+var _camera: Camera3D
+var _aim_blend: float = 0.0
+var _base_fov: float = 75.0
+var _rest_position: Vector3 = Vector3.ZERO
+var _rest_rotation_degrees: Vector3 = Vector3.ZERO
+
 #The List of All Available weapons in the game
 var spray_profiles: Dictionary = {}
 var _count = 0
@@ -42,6 +75,11 @@ var shot_tween
 var current_weapon_slot: WeaponSlot = null
 
 func _ready() -> void:
+	_camera = get_parent() as Camera3D
+	if _camera:
+		_base_fov = _camera.fov
+	_rest_position = position
+	_rest_rotation_degrees = rotation_degrees
 	if weapon_stack.is_empty():
 		push_error("Weapon Stack is empty, please populate with weapons")
 	else:
@@ -104,10 +142,41 @@ func _process(delta: float) -> void:
 			_burst_shots = 0
 		_shot_spread = maxf(_shot_spread - profile.spread_recovery * delta, 0.0)
 
+	_update_aim(delta)
+
 	var pixels := _spread_to_pixels(_current_spread_degrees())
 	if not is_equal_approx(pixels, _last_spread_pixels):
 		_last_spread_pixels = pixels
 		spread_changed.emit(pixels)
+
+## Cuanto se esta apuntando ahora mismo, de 0 a 1.
+func aim_blend() -> float:
+	return _aim_blend
+
+## Se apunta mientras se mantiene Secondary_Fire (click derecho). Se consulta
+## el estado de la accion por frame en vez de escuchar pressed/released: si el
+## boton se suelta con la pausa abierta el released nunca llega y el jugador
+## quedaria apuntando para siempre.
+func _update_aim(delta: float) -> void:
+	var wants_aim := enable_ads and Input.is_action_pressed("Secondary_Fire") \
+		and current_weapon_slot != null and current_weapon_slot.weapon != null
+	var target := 1.0 if wants_aim else 0.0
+	if _aim_blend == target:
+		return
+	var blend := lerpf(_aim_blend, target, clampf(ads_speed * delta, 0.0, 1.0))
+	# El lerp es asintotico: cerca del objetivo se encaja para dejar de
+	# escribir FOV y transform cada frame.
+	if absf(blend - target) < 0.001:
+		blend = target
+	_apply_aim(blend)
+
+func _apply_aim(blend: float) -> void:
+	_aim_blend = blend
+	position = _rest_position.lerp(ads_offset, blend)
+	rotation_degrees = _rest_rotation_degrees.lerp(ads_rotation_degrees, blend)
+	if _camera:
+		_camera.fov = lerpf(_base_fov, ads_fov, blend)
+	aim_changed.emit(blend)
 
 func check_valid_weapon_slot()->bool:
 	if current_weapon_slot:
@@ -274,6 +343,8 @@ func _current_spread_degrees() -> float:
 		elif body.get("crouched") == true:
 			spread *= profile.crouch_multiplier
 	
+	spread *= lerpf(1.0, profile.ads_multiplier, _aim_blend)
+	
 	return minf(spread, profile.max_spread)
 
 ## Convierte un angulo de dispersion a pixeles sobre el plano de proyeccion.
@@ -281,17 +352,16 @@ func _spread_to_pixels(spread_degrees: float) -> float:
 	if spread_degrees <= 0.0:
 		return 0.0
 	
-	var camera := get_parent() as Camera3D
-	if camera == null:
+	if _camera == null:
 		return 0.0
 	
-	var viewport_height: float = camera.get_viewport().get_visible_rect().size.y
-	var pixels_per_radian := (viewport_height * 0.5) / tan(deg_to_rad(camera.fov) * 0.5)
+	var viewport_height: float = _camera.get_viewport().get_visible_rect().size.y
+	var pixels_per_radian := (viewport_height * 0.5) / tan(deg_to_rad(_camera.fov) * 0.5)
 	return tan(deg_to_rad(spread_degrees)) * pixels_per_radian
 		
 func load_projectile(_spread):
 	var _projectile:Projectile = current_weapon_slot.weapon.projectile_to_load.instantiate()
-	_projectile.aim_camera = get_parent() as Camera3D
+	_projectile.aim_camera = _camera
 	
 	_projectile.position = bullet_point.global_position
 	_projectile.rotation = owner.rotation

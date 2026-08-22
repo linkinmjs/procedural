@@ -45,7 +45,7 @@ Los menus de pausa, confirmacion y resultados no son escenas: los arma
 ## Controles
 
 - WASD: mover (se corre siempre); Espacio: saltar; Shift: caminar despacio; C: agacharse; Q/E: inclinarse.
-- Mouse izquierdo: disparar; R: recargar; F: melee.
+- Mouse izquierdo: disparar; mouse derecho (mantener): apuntar con la mira; R: recargar; F: melee.
 - Esc: pausa; Retroceso: reintentar el nivel al instante, sin confirmacion.
 - F1: dungeon; F2: armas; F3: reiniciar escena; F4: laboratorio de bloques; F5: regenerar dungeon; F6: nivel JSON actual; F7/F8: nivel siguiente/anterior.
 
@@ -82,7 +82,9 @@ El jugador lleva una unica Glock semiautomatica con cargador de 10 balas y 60 de
 reserva. Dispara con retroceso al estilo Counter-Strike 1.6: la vista sube con
 cada tiro y vuelve sola al soltar el gatillo, y la punteria se abre al encadenar
 disparos, al moverse y sobre todo en el aire. Agacharse la mejora. La mira
-central muestra esa dispersion en tiempo real.
+central muestra esa dispersion en tiempo real. Manteniendo el click derecho se
+apunta con la mira de la propia Glock: el arma se centra, la camara hace un
+zoom leve, el mouse se frena en proporcion y la dispersion baja.
 
 El detalle del sistema y los valores que conviene tocar estan en
 [`docs/arma.md`](docs/arma.md).
@@ -278,6 +280,10 @@ Prueba del nivel JSON inicial:
 Prueba del arma:
 
 `Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/glock_weapon_smoke_test.gd`
+
+Prueba del apuntado con la mira (click derecho):
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/ads_smoke_test.gd`
 
 Prueba de la movilidad:
 

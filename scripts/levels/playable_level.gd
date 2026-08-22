@@ -226,16 +226,54 @@ func _complete_round() -> void:
 	round_controller.complete_round()
 
 
+## Factor de camara lenta al cerrarse la partida, y cuanto tarda el mundo en
+## hundirse hasta ahi (en segundos reales, porque corre ignorando el
+## time_scale). No hay rampa de salida: la camara lenta se sostiene hasta que
+## la pantalla de resultados esta por abrirse, y es _show_results quien
+## devuelve la velocidad normal.
+const SLOWMO_SCALE := 0.25
+const SLOWMO_FADE_IN_SECONDS := 0.8
+
+
 ## Cerrar el nivel ya no arrastra al siguiente: el puntaje se resuelve, se
 ## muestra el resultado y el jugador decide si reintenta, avanza o se va.
 func _on_level_scored(summary: Dictionary) -> void:
+	_start_slow_motion()
 	round_controller.add_log(tr("LOG_RESULTS_IN").format({"seconds": "%.0f" % results_delay}), "system")
-	get_tree().create_timer(results_delay).timeout.connect(_show_results.bind(summary))
+	# El timer ignora el time_scale: la camara lenta no puede estirar la espera
+	# de la pantalla de resultados.
+	get_tree().create_timer(results_delay, true, false, true).timeout.connect(_show_results.bind(summary))
+
+
+## El final de la partida se hunde gradualmente en camara lenta y se queda
+## ahi: el mundo baja de 1.0 a 0.25 en un suspiro y sostiene ese ritmo hasta
+## los resultados. El tween corre en tiempo real y aunque el arbol se pause.
+func _start_slow_motion() -> void:
+	var tween := create_tween()
+	tween.set_ignore_time_scale(true)
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.tween_method(
+		func(value: float) -> void: Engine.time_scale = value,
+		1.0, SLOWMO_SCALE, SLOWMO_FADE_IN_SECONDS
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+## Red de seguridad: el time_scale es global y sobrevive al cambio de escena,
+## asi que el nivel lo deja como lo encontro pase lo que pase.
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 
 
 func _show_results(summary: Dictionary) -> void:
+	# La camara lenta se sostuvo hasta aca: se suelta justo cuando el menu esta
+	# por cargar. Se restaura aunque otro menu bloquee los resultados, para que
+	# el time_scale no quede colgado en 0.25.
+	Engine.time_scale = 1.0
 	var menus := _menus()
 	if menus.is_open():
+		# El jugador esta en otro menu (la pausa, tipicamente): los resultados
+		# no se tragan, se reintenta hasta encontrar el paso libre.
+		get_tree().create_timer(0.5, true, false, true).timeout.connect(_show_results.bind(summary))
 		return
 	var level_title := str(level_data.get("name", "Nivel"))
 	menus.open(LevelResults.create(summary, level_title, _level_sequence().has_next_level()))

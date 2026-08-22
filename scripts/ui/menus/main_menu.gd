@@ -163,6 +163,8 @@ func _build_start_menu() -> void:
 	start_menu.add_entry("START_SELECT_LEVEL", ICON_FOLDER, Callable(), false)
 	start_menu.add_entry("START_OPTIONS", ICON_GEAR, open_options)
 	start_menu.add_shutdown(quit_game)
+	# El escritorio no pasa por MenuStack.open(): se cablea aca.
+	Sfx.wire_ui(self)
 
 
 func _on_start_toggled(pressed: bool) -> void:

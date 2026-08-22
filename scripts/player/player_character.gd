@@ -100,6 +100,12 @@ enum {LEFT = 1, CENTRE = 0, RIGHT = -1}
 ## Velocidad de caida que produce el hundimiento completo.
 @export var landing_dip_max_speed: float = 14.0
 
+@export_category("Footsteps")
+## Metros recorridos entre paso y paso corriendo. Caminando y agachado el
+## tramo se acorta en proporcion a la velocidad, asi el ritmo acompania.
+@export var step_distance: float = 2.1
+var _step_accumulator: float = 0.0
+
 var jump_velocity: float
 var _time_since_grounded: float = INF
 var _jump_buffer: float = 0.0
@@ -287,6 +293,28 @@ func _physics_process(delta: float) -> void:
 
 	if was_airborne and is_on_floor():
 		apply_landing_dip(fall_speed)
+		Sfx.play("land", randf_range(0.7, 0.8))
+	update_footsteps(delta)
+
+
+## Pasos por distancia recorrida sobre el suelo. Van sin posicion: son del
+## propio jugador y no tienen que atenuarse ni colorearse por la sala.
+func update_footsteps(delta: float) -> void:
+	if not is_on_floor():
+		_step_accumulator = 0.0
+		return
+	var planar_speed := Vector2(velocity.x, velocity.z).length()
+	if planar_speed < 0.5:
+		_step_accumulator = 0.0
+		return
+	_step_accumulator += planar_speed * delta
+	# El tramo se acorta con la velocidad: agachado (mas lento) pisa mas seguido
+	# en metros pero mas despacio en tiempo, que es lo que suena natural.
+	var stride := step_distance * clampf(planar_speed / run_speed, 0.55, 1.0)
+	if _step_accumulator >= stride:
+		_step_accumulator -= stride
+		var pitch := 1.0 if not crouched else 0.9
+		Sfx.play("footstep", pitch)
 
 ## Hunde la vista al aterrizar, en proporcion a lo fuerte que fue la caida.
 func apply_landing_dip(fall_speed: float) -> void:

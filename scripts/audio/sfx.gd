@@ -33,6 +33,34 @@ static func play_at(event: String, world_position: Vector3, pitch: float = 1.0) 
 		host.play_event_at(event, world_position, pitch)
 
 
+## Engancha los sonidos de UI a todos los botones de un subarbol: hover y
+## foco suenan ui_hover, presionar suena ui_click. Es idempotente: un boton ya
+## cableado se saltea, asi que se puede llamar sobre arboles que se reabren.
+static func wire_ui(root: Node) -> void:
+	if root == null:
+		return
+	for node in root.find_children("*", "BaseButton", true, false):
+		_wire_button(node as BaseButton)
+	var root_button := root as BaseButton
+	if root_button != null:
+		_wire_button(root_button)
+
+
+static func _wire_button(button: BaseButton) -> void:
+	if button == null or button.has_meta("sfx_wired"):
+		return
+	button.set_meta("sfx_wired", true)
+	button.mouse_entered.connect(func() -> void: play("ui_hover"))
+	# Un clic con el mouse tambien da foco: si el boton esta bajo el cursor, el
+	# hover ya sono al entrar y el foco no debe repetirlo. Asi focus_entered
+	# solo suena en navegacion por teclado o gamepad.
+	button.focus_entered.connect(func() -> void:
+		if not button.is_hovered():
+			play("ui_hover")
+	)
+	button.pressed.connect(func() -> void: play("ui_click"))
+
+
 static func _ensure_host() -> SfxHost:
 	if _host != null and is_instance_valid(_host):
 		return _host
@@ -82,6 +110,7 @@ class SfxHost:
 		var player := _next_free_2d()
 		player.stream = stream
 		player.pitch_scale = pitch
+		player.volume_db = _volume_for(event)
 		player.play()
 
 	func play_event_at(event: String, world_position: Vector3, pitch: float) -> void:
@@ -94,12 +123,18 @@ class SfxHost:
 		player.global_position = world_position
 		player.stream = stream
 		player.pitch_scale = pitch
+		player.volume_db = _volume_for(event)
 		player.play()
 
 	func _stream_for(event: String) -> AudioStream:
 		if _library == null:
 			return null
-		return _library.streams.get(event) as AudioStream
+		return _library.stream_for(event)
+
+	func _volume_for(event: String) -> float:
+		if _library == null:
+			return 0.0
+		return _library.volume_for(event)
 
 	## Si todos estan sonando se roba el primero: con este tamanio de pool casi
 	## nunca pasa, y cortar el sonido mas viejo es lo menos notorio.

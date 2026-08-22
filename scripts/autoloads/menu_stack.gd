@@ -38,6 +38,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	get_viewport().set_input_as_handled()
 	if top().dismissable:
+		Sfx.play("ui_back")
 		close_top()
 
 
@@ -50,6 +51,9 @@ func open(menu: MenuScreen) -> MenuScreen:
 	add_child(menu)
 	_apply_state()
 	menu.focus_default()
+	# Los botones del menu ya existen (los construye en su _ready). Se cablean
+	# despues del foco inicial, para que abrir el menu no suene como un hover.
+	Sfx.wire_ui(menu)
 	menu_opened.emit(menu)
 	return menu
 

@@ -30,7 +30,8 @@ func place(hit_position: Vector3, normal: Vector3, with_decal := true) -> void:
 
 	decal.visible = with_decal
 	sparks.emitting = true
-	Sfx.play_at("impact_wall", hit_position, randf_range(0.92, 1.08))
+	# El sample base es un paso sobre piedra: agudizado suena a esquirla seca.
+	Sfx.play_at("impact_wall", hit_position, randf_range(1.45, 1.75))
 
 	var lifetime := decal_lifetime if with_decal else 1.0
 	if with_decal:

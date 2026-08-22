@@ -77,6 +77,9 @@ func _gui_input(event: InputEvent) -> void:
 	if click.double_click:
 		activate()
 		return
+	# El sonido va con el clic y no dentro de select(): select() es API publica
+	# (se llama desde activate() y puede llamarse por codigo) y no debe sonar.
+	Sfx.play("ui_hover")
 	select()
 
 
@@ -87,6 +90,7 @@ func select() -> void:
 
 func activate() -> void:
 	select()
+	Sfx.play("ui_click")
 	activated.emit()
 	if _on_activated.is_valid():
 		_on_activated.call()

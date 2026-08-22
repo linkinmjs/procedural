@@ -1,7 +1,122 @@
-[gd_resource type="Resource" script_class="SfxLibrary" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="SfxLibrary" load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://scripts/audio/sfx_library.gd" id="1_library"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/footsteps/stone/stone_1.ogg" id="fs_stone_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/footsteps/stone/stone_2.ogg" id="fs_stone_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/footsteps/stone/stone_3.ogg" id="fs_stone_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/footsteps/stone/stone_4.ogg" id="fs_stone_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/footsteps/concrete/concrete_1.ogg" id="fs_concrete_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/footsteps/concrete/concrete_2.ogg" id="fs_concrete_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/footsteps/concrete/concrete_3.ogg" id="fs_concrete_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/footsteps/concrete/concrete_4.ogg" id="fs_concrete_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/footsteps/concrete/concrete_5.ogg" id="fs_concrete_5"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/african_1.ogg" id="ui_african_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/african_3.ogg" id="ui_african_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/wood_block_1.ogg" id="ui_wood_block_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/wood_block_2.ogg" id="ui_wood_block_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/modern_3.ogg" id="ui_modern_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/retro_11.ogg" id="ui_retro_11"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/retro_12.ogg" id="ui_retro_12"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/retro_10.ogg" id="ui_retro_10"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/coffee_2.ogg" id="ui_coffee_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/retro_9.ogg" id="ui_retro_9"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/minimalist_12.ogg" id="ui_minimalist_12"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/modern_10.ogg" id="ui_modern_10"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/retro_8.ogg" id="ui_retro_8"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/minimalist_13.ogg" id="ui_minimalist_13"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/minimalist_8.ogg" id="ui_minimalist_8"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/modern_13.ogg" id="ui_modern_13"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/minimalist_2.ogg" id="ui_minimalist_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/modern_2.ogg" id="ui_modern_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/modern_11.ogg" id="ui_modern_11"]
+
+[sub_resource type="AudioStreamRandomizer" id="rnd_impact_wall"]
+random_pitch = 1.15
+random_volume_offset_db = 2.0
+streams_count = 4
+stream_0/stream = ExtResource("fs_stone_1")
+stream_0/weight = 1.0
+stream_1/stream = ExtResource("fs_stone_2")
+stream_1/weight = 1.0
+stream_2/stream = ExtResource("fs_stone_3")
+stream_2/weight = 1.0
+stream_3/stream = ExtResource("fs_stone_4")
+stream_3/weight = 1.0
+
+[sub_resource type="AudioStreamRandomizer" id="rnd_footstep"]
+random_pitch = 1.1
+random_volume_offset_db = 2.5
+streams_count = 5
+stream_0/stream = ExtResource("fs_concrete_1")
+stream_0/weight = 1.0
+stream_1/stream = ExtResource("fs_concrete_2")
+stream_1/weight = 1.0
+stream_2/stream = ExtResource("fs_concrete_3")
+stream_2/weight = 1.0
+stream_3/stream = ExtResource("fs_concrete_4")
+stream_3/weight = 1.0
+stream_4/stream = ExtResource("fs_concrete_5")
+stream_4/weight = 1.0
+
+[sub_resource type="AudioStreamRandomizer" id="rnd_target_destroyed"]
+random_pitch = 1.12
+streams_count = 2
+stream_0/stream = ExtResource("ui_african_1")
+stream_0/weight = 1.0
+stream_1/stream = ExtResource("ui_african_3")
+stream_1/weight = 1.0
+
+[sub_resource type="AudioStreamRandomizer" id="rnd_window_button"]
+random_pitch = 1.08
+streams_count = 2
+stream_0/stream = ExtResource("ui_wood_block_1")
+stream_0/weight = 1.0
+stream_1/stream = ExtResource("ui_wood_block_2")
+stream_1/weight = 1.0
 
 [resource]
 script = ExtResource("1_library")
-streams = {}
+streams = {
+"ad_skip_ready": ExtResource("ui_retro_10"),
+"bank": ExtResource("ui_modern_13"),
+"chain_lost": ExtResource("ui_retro_8"),
+"chain_saved": ExtResource("ui_minimalist_13"),
+"chain_tick": ExtResource("ui_minimalist_8"),
+"combo_drop": ExtResource("ui_modern_10"),
+"combo_step_up": ExtResource("ui_minimalist_12"),
+"footstep": SubResource("rnd_footstep"),
+"hitmarker": ExtResource("ui_coffee_2"),
+"impact_wall": SubResource("rnd_impact_wall"),
+"land": SubResource("rnd_footstep"),
+"player_hurt": ExtResource("ui_retro_9"),
+"shield_blocked": ExtResource("ui_retro_12"),
+"target_destroyed": SubResource("rnd_target_destroyed"),
+"ui_back": ExtResource("ui_modern_11"),
+"ui_click": ExtResource("ui_modern_2"),
+"ui_hover": ExtResource("ui_minimalist_2"),
+"window_button": SubResource("rnd_window_button"),
+"window_close": ExtResource("ui_modern_3"),
+"window_error": ExtResource("ui_retro_11")
+}
+volumes_db = {
+"ad_skip_ready": 3.0,
+"bank": 5.0,
+"chain_lost": 4.0,
+"chain_saved": -3.0,
+"chain_tick": -4.0,
+"combo_drop": 4.0,
+"combo_step_up": -2.0,
+"footstep": -10.0,
+"hitmarker": 1.0,
+"impact_wall": -6.0,
+"land": -4.0,
+"player_hurt": 5.0,
+"shield_blocked": 8.0,
+"target_destroyed": 6.0,
+"ui_back": 2.0,
+"ui_click": 1.0,
+"ui_hover": -9.0,
+"window_button": -4.0,
+"window_close": 3.0,
+"window_error": 8.0
+}

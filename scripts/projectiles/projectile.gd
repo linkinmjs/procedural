@@ -13,7 +13,7 @@ signal Hit_Successfull
 @export var Rigid_Body_Projectile: PackedScene
 @export var pass_through: bool = false
 
-@onready var Debug_Bullet = preload("res://scenes/projectiles/hit_debug.tscn")
+@onready var Impact_Effect = preload("res://scenes/effects/bullet_impact.tscn")
 
 var damage: float = 0
 var Projectiles_Spawned = []
@@ -65,8 +65,10 @@ func Camera_Ray_Cast(_spread: Vector2 = Vector2.ZERO, _range: float = 1000):
 func Hit_Scan_Collision(Collision: Array,_damage: float, origin_point: Vector3):
 	var Point = Collision[1]
 	if Collision[0]:
-		Load_Decal(Point, Collision[2])
-		
+		# Contra un objetivo no queda decal: el objetivo muere y la marca
+		# flotaria en el aire. Contra el mundo si.
+		Load_Decal(Point, Collision[2], not Collision[0].is_in_group("Target"))
+
 		if Collision[0].is_in_group("Target"):
 			var Bullet = get_world_3d().direct_space_state
 
@@ -76,7 +78,7 @@ func Hit_Scan_Collision(Collision: Array,_damage: float, origin_point: Vector3):
 			New_Intersection.set_hit_from_inside(false)
 			New_Intersection.set_exclude(hit_objects)
 			var Bullet_Collision = Bullet.intersect_ray(New_Intersection)
-	
+
 			if Bullet_Collision:
 				Hit_Scan_damage(Bullet_Collision.collider, Bullet_Direction,Bullet_Collision.position,_damage)
 				if pass_through and check_pass_through(Bullet_Collision.collider, Bullet_Collision.rid):
@@ -84,7 +86,9 @@ func Hit_Scan_Collision(Collision: Array,_damage: float, origin_point: Vector3):
 					var pass_through_damage: float = damage/2
 					Hit_Scan_Collision(pass_through_collision,pass_through_damage,Bullet_Collision.position)
 					return
-			queue_free()
+	# El proyectil ya resolvio: sin esto, los tiros a pared o al aire quedaban
+	# vivos hasta el timer de expiracion (10 s) por un queue_free mal indentado.
+	queue_free()
 
 func check_pass_through(collider: Node3D, rid: RID)-> bool:
 	var valid_pass_though: bool = false
@@ -99,12 +103,14 @@ func Hit_Scan_damage(Collider, Direction, Position, _damage):
 		Collider.Hit_Successful(_damage, Direction, Position)
 
 
-func Load_Decal(_pos,_normal):
+# La normal viaja como Variant: el camino del proyectil rigido puede llegar
+# con null cuando el rayo de apuntado no toco nada.
+func Load_Decal(_pos: Vector3, _normal: Variant, with_decal: bool = true) -> void:
 	if Display_Debug_Decal:
-		var rd = Debug_Bullet.instantiate()
+		var impact: BulletImpact = Impact_Effect.instantiate()
 		var world = get_tree().get_root()
-		world.add_child(rd)
-		rd.global_translate(_pos+(_normal*.01))
+		world.add_child(impact)
+		impact.place(_pos, _normal if _normal != null else Vector3.UP, with_decal)
 		
 func Launch_Rigid_Body_Projectile(Collision_Data, _projectile, _origin_point):
 	var _Point = Collision_Data[1]

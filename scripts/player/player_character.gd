@@ -26,6 +26,20 @@ var recoil_offset: Vector2 = Vector2.ZERO
 var recoil_snappiness: float = 24.0
 var recoil_recovery: float = 7.5
 
+@export_category("Camera Shake")
+## Cuanto trauma se descarga por segundo. El trauma lo acumulan los golpes
+## (danio, explosiones) y la sacudida es trauma al cuadrado, asi que los golpes
+## chicos apenas se notan y los grandes pegan fuerte.
+@export var shake_decay: float = 1.9
+## Amplitud maxima de la sacudida, en grados por eje (pitch, yaw, roll).
+@export var shake_max_degrees: Vector3 = Vector3(3.2, 3.2, 2.4)
+## Que tan rapido vibra la sacudida.
+@export var shake_frequency: float = 22.0
+var _trauma: float = 0.0
+var _shake_offset: Vector3 = Vector3.ZERO
+var _shake_time: float = 0.0
+var _shake_noise := FastNoiseLite.new()
+
 @export_category("Crouch Parametres")
 @export var enable_crouch: bool = true
 @export var crouch_toggle: bool = false
@@ -96,6 +110,8 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	calculate_movement_parameters()
 	_bind_settings()
+	_shake_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
+	_shake_noise.frequency = 1.0
 
 
 ## La sensibilidad la manda el autoload de ajustes, no este script: cambiarla
@@ -189,8 +205,33 @@ func apply_view_rotation() -> void:
 	camera.transform.basis = Basis()
 
 	rotate_object_local(Vector3(0,1,0),-camera_rotation.x) # first rotate in Y
-	camera.rotate_object_local(Vector3(0,1,0), recoil_offset.x) # el retroceso lateral no desvia el movimiento
-	camera.rotate_object_local(Vector3(1,0,0), -camera_rotation.y + recoil_offset.y) # then rotate in X
+	camera.rotate_object_local(Vector3(0,1,0), recoil_offset.x + _shake_offset.y) # el retroceso lateral no desvia el movimiento
+	camera.rotate_object_local(Vector3(1,0,0), -camera_rotation.y + recoil_offset.y + _shake_offset.x) # then rotate in X
+	camera.rotate_object_local(Vector3(0,0,1), _shake_offset.z)
+
+## Acumula trauma de sacudida. La escala util va de 0.2 (golpe chico) a 0.6
+## (golpe fuerte); el tope evita que varios golpes seguidos mareen.
+func add_trauma(amount: float) -> void:
+	_trauma = clampf(_trauma + amount, 0.0, 1.0)
+
+## Sacudida por ruido: tres canales de FastNoiseLite desincronizados, con
+## amplitud trauma^2, que se descarga sola. Se integra en apply_view_rotation
+## porque la Basis se reconstruye ahi: un offset aplicado por fuera se pisaria.
+func update_shake(delta: float) -> void:
+	if _trauma <= 0.0 and _shake_offset.is_zero_approx():
+		return
+	_trauma = maxf(_trauma - shake_decay * delta, 0.0)
+	_shake_time += delta * shake_frequency
+	var strength := _trauma * _trauma
+	if strength <= 0.0001:
+		_shake_offset = Vector3.ZERO
+	else:
+		_shake_offset = Vector3(
+			deg_to_rad(shake_max_degrees.x) * _shake_noise.get_noise_2d(_shake_time, 0.0),
+			deg_to_rad(shake_max_degrees.y) * _shake_noise.get_noise_2d(_shake_time, 57.0),
+			deg_to_rad(shake_max_degrees.z) * _shake_noise.get_noise_2d(_shake_time, 113.0)
+		) * strength
+	apply_view_rotation()
 
 ## Empuja la vista hacia arriba y hacia un lado. Los angulos llegan en grados.
 func add_recoil(pitch_degrees: float, yaw_degrees: float, profile: RecoilProfile = null) -> void:
@@ -214,6 +255,7 @@ func update_recoil(delta: float) -> void:
 
 func _process(_delta: float) -> void:
 	update_recoil(_delta)
+	update_shake(_delta)
 	if subviewport_camera:
 		subviewport_camera.global_transform = main_camera.global_transform
 

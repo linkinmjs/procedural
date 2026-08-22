@@ -4,6 +4,10 @@
 [ext_resource type="PackedScene" uid="uid://dc48o4niy1mok" path="res://scenes/projectiles/basic_hitscan_projectile.tscn" id="2_projectile"]
 [ext_resource type="Resource" uid="uid://cvog27a2ly5ct" path="res://resources/weapons/glock_recoil.tres" id="3_recoil"]
 [ext_resource type="AudioStream" uid="uid://bskgxwyr2wu6e" path="res://resources/audio/glock_shoot.tres" id="4_fire_sound"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/glock/glock_unload.wav" id="5_unload"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/glock/glock_load.wav" id="6_load"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/glock/glock_recharge.wav" id="7_recharge"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui/wood_block_3.ogg" id="8_empty"]
 
 [resource]
 script = ExtResource("1_script")
@@ -24,6 +28,10 @@ auto_fire = false
 fire_range = 120
 recoil = ExtResource("3_recoil")
 fire_sound = ExtResource("4_fire_sound")
+empty_sound = ExtResource("8_empty")
+unload_sound = ExtResource("5_unload")
+load_sound = ExtResource("6_load")
+recharge_sound = ExtResource("7_recharge")
 can_be_dropped = false
 projectile_to_load = ExtResource("2_projectile")
 incremental_reload = false

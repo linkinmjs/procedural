@@ -50,6 +50,12 @@ signal Zoom
 @export var fire_sound: AudioStream
 ## Sonido del gatillo en seco cuando se intenta disparar sin balas.
 @export var empty_sound: AudioStream
+## Sonidos de la recarga, disparados por method tracks de la animacion de
+## recarga en los momentos en que el cargador sale, entra y la corredera se
+## acciona. Van sin posicion: son del propio jugador.
+@export var unload_sound: AudioStream
+@export var load_sound: AudioStream
+@export var recharge_sound: AudioStream
 
 @export_group("Weapon Behaviour")
 ##If Checked the weapon drop scene MUST be provided

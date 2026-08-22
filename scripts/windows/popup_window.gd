@@ -40,6 +40,8 @@ var _skip_zone: WindowHitZone
 func _ready() -> void:
 	super()
 	window_label = "publicidad"
+	# La publicidad muere como un monitor al que le cortan la corriente.
+	close_style = CLOSE_STYLE_CRT
 	# El nodo es un Button con el script de zona: el compilador no deja pasar de
 	# uno al otro, pero desde Node se llega a los dos.
 	var skip_node := content.find_child("SkipZone", true, false) if content != null else null
@@ -60,6 +62,7 @@ func _process(delta: float) -> void:
 		return
 	_remaining = 0.0
 	_refresh_skip()
+	_announce_skip_ready()
 	# El contador llegó a cero: llama a una y se queda quieta esperando el SKIP.
 	_open_another()
 
@@ -89,6 +92,18 @@ func _refresh_skip() -> void:
 			body.closes_window = _remaining <= 0.0
 			body.scores = _remaining <= 0.0
 			body.rearm()
+
+
+## El SKIP paso de pedir espera a estar disponible: el boton pulsa un par de
+## veces para avisar sin que haga falta leerlo.
+func _announce_skip_ready() -> void:
+	Sfx.play_at("ad_skip_ready", global_position)
+	if _skip_button == null:
+		return
+	var tween := _skip_button.create_tween()
+	for _i in 2:
+		tween.tween_property(_skip_button, "modulate", Color(1.35, 1.35, 0.7), 0.12)
+		tween.tween_property(_skip_button, "modulate", Color.WHITE, 0.16)
 
 
 func _on_zone(zone_id: String, _window: WindowPanel3D) -> void:

@@ -54,8 +54,10 @@ func _run() -> void:
 	if hits != expected_hits or closed_count[0] != 1:
 		_fail("Shooting the close zone should report the hit and close the window.")
 		return
-	if is_instance_valid(window):
-		_fail("A closed window should free itself.")
+	# El cierre ahora despide a la ventana con una animacion corta: se libera
+	# sola, pero unos frames despues del disparo.
+	if not await _wait_until_freed(window):
+		_fail("A closed window should free itself once its close animation ends.")
 		return
 	var second_window := WINDOW_SCENE.instantiate() as WindowPanel3D
 	root.add_child(second_window)
@@ -63,8 +65,7 @@ func _run() -> void:
 	await process_frame
 	var second_finish := second_window.find_hit_body("finish")
 	second_finish.Hit_Successful(1.0)
-	await process_frame
-	if is_instance_valid(second_window):
+	if not await _wait_until_freed(second_window):
 		_fail("The finish button should close the window as well.")
 		return
 	var close_window := CLOSE_WINDOW_SCENE.instantiate() as WindowPanel3D
@@ -82,8 +83,7 @@ func _run() -> void:
 			_fail("Every close window zone should use the close id, got %s." % zone.zone_id)
 			return
 	close_zones.back().Hit_Successful(1.0)
-	await process_frame
-	if is_instance_valid(close_window):
+	if not await _wait_until_freed(close_window):
 		_fail("Shooting the Cerrar button should close the window.")
 		return
 	# La descarga no se cancela de un tiro: el primero abre la confirmacion y
@@ -109,8 +109,7 @@ func _run() -> void:
 		_fail("Cancelling should open a confirmation the player can shoot.")
 		return
 	confirm_body.Hit_Successful(1.0)
-	await process_frame
-	if is_instance_valid(download_window):
+	if not await _wait_until_freed(download_window):
 		_fail("Confirming the cancellation should close the download window.")
 		return
 	for template_path in TEMPLATE_SCENES:
@@ -122,12 +121,22 @@ func _run() -> void:
 			_fail("%s should ship a close and an accept zone." % template_path)
 			return
 		template.find_hit_body("accept").Hit_Successful(1.0)
-		await process_frame
-		if is_instance_valid(template):
+		if not await _wait_until_freed(template):
 			_fail("%s should close when its action zone is shot." % template_path)
 			return
 	print("Window panel smoke test passed.")
 	quit()
+
+
+## Espera a que el nodo se libere solo, con margen para la animacion de cierre.
+## El plazo es de tiempo real: los tweens corren con delta, no con frames.
+func _wait_until_freed(node: Node, seconds := 1.5) -> bool:
+	var deadline := Time.get_ticks_msec() + int(seconds * 1000.0)
+	while is_instance_valid(node):
+		if Time.get_ticks_msec() > deadline:
+			return false
+		await process_frame
+	return true
 
 
 func _fail(message: String) -> void:

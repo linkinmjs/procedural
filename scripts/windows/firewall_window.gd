@@ -16,6 +16,10 @@ var _shielded_windows: Array[WindowPanel3D] = []
 func _ready() -> void:
 	super()
 	window_label = "firewall"
+	# El firewall se apaga como un equipo al que le cortan la corriente; junto
+	# con el tinte de las hermanas fundiendose, es el anuncio de que la capa
+	# quedo abierta.
+	close_style = CLOSE_STYLE_CRT
 	# Un frame de espera: al nacer, las hermanas de la capa todavia se estan
 	# repartiendo y la lista quedaria corta.
 	await get_tree().process_frame

@@ -61,7 +61,20 @@ var shielded := false:
 	set(value):
 		shielded = value
 		_update_shield_tint()
+## Estilos de muerte: el cierre generico estilo escritorio y el apagado de
+## monitor viejo (colapsa a una linea y se apaga) para las que se sienten mas
+## "de maquina".
+const CLOSE_STYLE_MINIMIZE := "minimize"
+const CLOSE_STYLE_CRT := "crt"
+
+## Como muere la ventana. Las familias lo pisan en su _ready con una de las
+## constantes CLOSE_STYLE_*.
+var close_style := CLOSE_STYLE_MINIMIZE
 var _closed := false
+var _tint_tween: Tween
+var _screen_shake_tween: Tween
+var _open_tween: Tween
+var _screen_base_position := Vector3.ZERO
 
 
 func _ready() -> void:
@@ -71,12 +84,28 @@ func _ready() -> void:
 		return
 	_update_screen_size()
 	_update_shield_tint()
+	_screen_base_position = screen.position
+	_play_open_animation()
 	await get_tree().process_frame
 	rebuild_hit_zones()
 
 
+## Aparicion estilo XP: la ventana crece desde chica en un parpadeo. Es solo
+## escala visual; los cuerpos disparables nacen un frame despues, ya casi al
+## tamanio final.
+func _play_open_animation() -> void:
+	scale = Vector3(0.1, 0.1, 1.0)
+	_open_tween = create_tween()
+	_open_tween.tween_property(self, "scale", Vector3.ONE, 0.14) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
 ## Vuelve a generar los cuerpos disparables a partir del layout actual.
 func rebuild_hit_zones() -> void:
+	# Una ventana muriendo no regenera zonas: reviviria los cuerpos que el
+	# cierre acaba de apagar.
+	if _closed:
+		return
 	for child in hit_zone_root.get_children():
 		child.queue_free()
 	var zones := _collect_zones(content)
@@ -106,8 +135,57 @@ func close() -> void:
 	if _closed:
 		return
 	_closed = true
+	# La logica se entera ya (puertas, firewall, conteo del bloque); solo la
+	# despedida visual es diferida.
 	closed.emit(self)
-	queue_free()
+	_disable_hit_bodies()
+	Sfx.play_at("window_close", global_position)
+	_play_close_animation()
+
+
+## Una ventana muriendo no puede seguir comiendo tiros ni trayendose al frente.
+func _disable_hit_bodies() -> void:
+	for body in get_hit_bodies():
+		body.queue_free()
+
+
+func _play_close_animation() -> void:
+	if _screen_shake_tween != null:
+		_screen_shake_tween.kill()
+	# Una ventana cerrada recien nacida todavia tiene el tween de apertura
+	# empujando la escala: sin matarlo, los dos pelean por la misma propiedad.
+	if _open_tween != null:
+		_open_tween.kill()
+	match close_style:
+		CLOSE_STYLE_CRT:
+			_animate_crt_off()
+		_:
+			_animate_minimize()
+
+
+## Cierre estilo escritorio: la ventana se encoge y cae, como minimizada hacia
+## una barra de tareas que no existe. Corto y seco: en medio del combate una
+## despedida lenta se siente como lag.
+func _animate_minimize() -> void:
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(self, "scale", Vector3(0.04, 0.04, 1.0), 0.1) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(self, "position:y", position.y - 0.45, 0.1) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.set_parallel(false)
+	tween.tween_callback(queue_free)
+
+
+## Apagado CRT: colapsa a una linea horizontal y la linea se apaga hacia el
+## centro, como un monitor viejo al que le cortan la corriente.
+func _animate_crt_off() -> void:
+	var tween := create_tween()
+	tween.tween_property(self, "scale:y", 0.02, 0.1) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(self, "scale:x", 0.01, 0.09) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_callback(queue_free)
 
 
 ## Cuerpos disparables generados, en el orden en que aparecen en el layout.
@@ -176,6 +254,9 @@ func _add_hit_body(zone: WindowHitZone, order: int) -> void:
 	box.size = Vector3(rect.size.x / pixels_per_meter, rect.size.y / pixels_per_meter, HIT_ZONE_DEPTH)
 	collision.shape = box
 	body.add_child(collision)
+	# El cuerpo recuerda a su Control para que el impacto pueda "presionar" el
+	# boton de verdad, como un click en el escritorio.
+	body.set_meta("zone_control", zone)
 	hit_zone_root.add_child(body)
 	body.hit.connect(_on_zone_hit)
 
@@ -197,13 +278,77 @@ func _viewport_to_local(point: Vector2, order := 0) -> Vector3:
 
 
 ## La ventana protegida se tiñe para que se lea de un vistazo cual no vale la
-## pena atacar todavia.
+## pena atacar todavia. La transicion es animada: al caer el firewall, ver el
+## tinte fundirse es lo que anuncia que la ventana quedo disponible.
 func _update_shield_tint() -> void:
 	if not is_node_ready() or screen == null:
 		return
-	var material := (screen.mesh as QuadMesh).material as StandardMaterial3D
-	if material != null:
-		material.albedo_color = SHIELD_TINT if shielded else Color.WHITE
+	var material := _screen_material()
+	if material == null:
+		return
+	var target := SHIELD_TINT if shielded else Color.WHITE
+	if _tint_tween != null:
+		_tint_tween.kill()
+	_tint_tween = create_tween()
+	_tint_tween.tween_property(material, "albedo_color", target, 0.35)
+
+
+func _screen_material() -> StandardMaterial3D:
+	if screen == null:
+		return null
+	var quad := screen.mesh as QuadMesh
+	if quad == null:
+		return null
+	return quad.material as StandardMaterial3D
+
+
+## Destello del escudo: el tinte azul sube un instante y vuelve. Es la version
+## visible del "rebote" que hasta ahora solo contaba el log.
+func _flash_shield() -> void:
+	var material := _screen_material()
+	if material == null:
+		return
+	if _tint_tween != null:
+		_tint_tween.kill()
+	material.albedo_color = SHIELD_TINT.lightened(0.4)
+	_tint_tween = create_tween()
+	_tint_tween.tween_property(material, "albedo_color", SHIELD_TINT, 0.25)
+
+
+## Sacudida corta de la pantalla al recibir un tiro. Mueve solo el quad de la
+## pantalla y no el nodo raiz: la posicion del raiz es estado del raise y del
+## bloque, y el shake no puede ensuciarla.
+func _shake_screen() -> void:
+	if screen == null or _closed:
+		return
+	if _screen_shake_tween != null:
+		_screen_shake_tween.kill()
+	screen.position = _screen_base_position
+	_screen_shake_tween = create_tween()
+	for _i in 3:
+		var offset := Vector3(randf_range(-0.025, 0.025), randf_range(-0.02, 0.02), 0.0)
+		_screen_shake_tween.tween_property(screen, "position", _screen_base_position + offset, 0.035)
+	_screen_shake_tween.tween_property(screen, "position", _screen_base_position, 0.05)
+
+
+## Presiona el Control de la zona un instante, como el boton hundido de
+## Windows: se desplaza un pixel y se oscurece, y despues vuelve. Es aditivo
+## para convivir con zonas que se reacomodan (el error critico baraja offsets).
+func _press_zone_control(body: WindowHitBody3D) -> void:
+	if not body.has_meta("zone_control"):
+		return
+	var control := body.get_meta("zone_control") as Control
+	if control == null or not is_instance_valid(control):
+		return
+	control.position += Vector2(1.0, 1.0)
+	control.modulate = Color(0.8, 0.8, 0.8)
+	var tween := control.create_tween()
+	tween.tween_interval(0.08)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(control):
+			control.position -= Vector2(1.0, 1.0)
+			control.modulate = Color.WHITE
+	)
 
 
 func _update_screen_size() -> void:
@@ -216,6 +361,7 @@ func _update_screen_size() -> void:
 func _on_zone_hit(body: WindowHitBody3D) -> void:
 	if _closed:
 		return
+	_shake_screen()
 	# Protegida no es invulnerable a la vista: el disparo se ve rebotar y se
 	# informa, para que el jugador entienda que le falta desactivar algo.
 	if shielded:
@@ -224,10 +370,14 @@ func _on_zone_hit(body: WindowHitBody3D) -> void:
 			# Se avisa en el registro y no como impacto: el tiro no resolvio
 			# nada, asi que no puede sumar al pozo ni a la cadena.
 			shield_controller.add_log(tr("LOG_WINDOW_SHIELDED").format({"window": window_label.to_upper()}), "miss")
+		_flash_shield()
+		Sfx.play_at("shield_blocked", global_position)
 		blocked.emit(self)
 		# El tiro reboto: la zona sigue disponible para cuando caiga el firewall.
 		body.rearm()
 		return
+	_press_zone_control(body)
+	Sfx.play_at("window_button", global_position)
 	if body.zone_id == RAISE_ZONE:
 		bring_to_front()
 		# La barra sigue disponible: traer al frente se puede repetir.

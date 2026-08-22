@@ -133,8 +133,8 @@ func _check_popup_multiplies() -> bool:
 		holder.queue_free()
 		return false
 	cross.Hit_Successful(1.0)
-	await _wait_frames(2)
-	if is_instance_valid(trapped):
+	# El cierre tiene animacion: la ventana se libera sola unos frames despues.
+	if not await _wait_until_freed(trapped):
 		_fail("The close button should close the ad even while it is counting down.")
 		holder.queue_free()
 		return false
@@ -149,8 +149,7 @@ func _check_popup_multiplies() -> bool:
 		holder.queue_free()
 		return false
 	ready_skip.Hit_Successful(1.0)
-	await _wait_frames(2)
-	if is_instance_valid(ad):
+	if not await _wait_until_freed(ad):
 		_fail("The skip button should close the ad once it is available.")
 		holder.queue_free()
 		return false
@@ -315,8 +314,7 @@ func _check_firewall_shields() -> bool:
 		holder.queue_free()
 		return false
 	victim.find_hit_body("close").Hit_Successful(1.0)
-	await _wait_frames(2)
-	if is_instance_valid(victim):
+	if not await _wait_until_freed(victim):
 		_fail("An unshielded window should close when shot.")
 		holder.queue_free()
 		return false
@@ -349,8 +347,7 @@ func _check_critical_error_traps() -> bool:
 		_fail("Hitting a trap should punish the player, not solve the window.")
 		return false
 	window.find_hit_body("close").Hit_Successful(1.0)
-	await _wait_frames(2)
-	if is_instance_valid(window):
+	if not await _wait_until_freed(window):
 		_fail("The right control should close the critical error.")
 		return false
 	return true
@@ -370,8 +367,7 @@ func _check_download_takes_two_shots() -> bool:
 		return false
 	# La confirmacion cierra por la via rapida, que es la que mas paga.
 	window.find_hit_body(DownloadWindow.CONFIRM_ZONE).Hit_Successful(1.0)
-	await _wait_frames(2)
-	if is_instance_valid(window):
+	if not await _wait_until_freed(window):
 		_fail("The second shot should close the download.")
 		return false
 
@@ -395,8 +391,7 @@ func _check_download_takes_two_shots() -> bool:
 		ignored.queue_free()
 		return false
 	finish.Hit_Successful(1.0)
-	await _wait_frames(2)
-	if is_instance_valid(ignored):
+	if not await _wait_until_freed(ignored):
 		_fail("Finishing should close the download.")
 		return false
 	return true
@@ -494,6 +489,17 @@ func _wait_frames(count: int) -> void:
 	for _frame in count:
 		await physics_frame
 		await process_frame
+
+
+## Espera a que el nodo se libere solo, con margen para la animacion de cierre.
+## El plazo es de tiempo real: los tweens corren con delta, no con frames.
+func _wait_until_freed(node: Node, seconds := 1.5) -> bool:
+	var deadline := Time.get_ticks_msec() + int(seconds * 1000.0)
+	while is_instance_valid(node):
+		if Time.get_ticks_msec() > deadline:
+			return false
+		await process_frame
+	return true
 
 
 func _wait_seconds(seconds: float) -> void:

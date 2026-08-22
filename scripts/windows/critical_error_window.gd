@@ -25,6 +25,8 @@ var _slots: Array[Vector2] = []
 func _ready() -> void:
 	super()
 	window_label = "error critico"
+	# El error critico muere como se apaga un monitor colgado.
+	close_style = CLOSE_STYLE_CRT
 	_collect_buttons()
 	_shuffle()
 	zone_hit.connect(_on_zone)
@@ -47,11 +49,26 @@ func _collect_buttons() -> void:
 func _on_zone(zone_id: String, _window: WindowPanel3D) -> void:
 	if zone_id != TRAP_ZONE:
 		return
+	_flash_error()
+	Sfx.play_at("window_error", global_position)
 	_shuffle()
 
 
+## Destello rojo de la ventana entera: el castigo del trap se ve, no solo se
+## descuenta en el puntaje.
+func _flash_error() -> void:
+	var material := _screen_material()
+	if material == null or shielded:
+		return
+	material.albedo_color = Color(1.0, 0.45, 0.45)
+	var tween := create_tween()
+	tween.tween_property(material, "albedo_color", Color.WHITE, 0.3)
+
+
 ## Reparte los lugares entre los controles y vuelve a generar los cuerpos, que
-## es lo que hace que el disparo siga la posicion nueva y no la vieja.
+## es lo que hace que el disparo siga la posicion nueva y no la vieja. Los
+## botones se deslizan a su lugar en vez de teletransportarse: sin la
+## transicion, el reordenamiento parecia un glitch y no un castigo.
 func _shuffle() -> void:
 	if _buttons.size() < 2:
 		return
@@ -59,9 +76,13 @@ func _shuffle() -> void:
 	for index in _slots.size():
 		order.append(index)
 	order.shuffle()
+	var tween := create_tween()
+	tween.set_parallel(true)
 	for index in _buttons.size():
 		var slot := _slots[order[index]]
-		_buttons[index].offset_left = slot.x
-		_buttons[index].offset_right = slot.y
-	await get_tree().process_frame
+		tween.tween_property(_buttons[index], "offset_left", slot.x, 0.16) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(_buttons[index], "offset_right", slot.y, 0.16) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	await tween.finished
 	rebuild_hit_zones()

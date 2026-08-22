@@ -97,3 +97,32 @@ Al corregir algo, borrar su entrada de este archivo.
 - [ ] Los JSON de nivel siguen con guiones (`nivel-1.json`, `level-sequence.json`)
   porque el nombre de archivo hace de ID de contenido. Renombrarlos a snake_case
   implica tocar los `id` del catalogo.
+
+
+## Audio (review de la integración de Sfx / packs / SpatialAudio3D)
+
+Mejoras señaladas en el code review y dejadas como deuda a propósito:
+
+- `scripts/player/player_character.gd` — `land` suena en todo aterrizaje,
+  incluido cada rebote del auto-bhop y bajar un escalón. Gatear por
+  `fall_speed > landing_dip_min_speed * 0.5` y/o escalar el volumen con la
+  caída, como hace `apply_landing_dip()`.
+- `scripts/autoloads/menu_stack.gd` — `Sfx.wire_ui()` solo cablea los botones
+  que existen al abrir el menú; los agregados después (listas en diferido)
+  quedan mudos. Conectar `child_entered_tree` o que esos menús llamen a
+  `Sfx.wire_ui` tras poblarse, y documentarlo en `MenuScreen`.
+- `scripts/audio/sfx.gd` — documentar en `wire_ui()` que usa
+  `find_children(..., owned=false)` porque los menús construidos por código no
+  tienen `owner`.
+- `scripts/weapons/weapon_state_machine.gd` — `_play_weapon_sound()` detecta el
+  plugin por `has_method("do_play")` + `call()`; si el plugin cambia, cae a
+  `play()` sin reverb en silencio. Resolver `fire_audio is SpatialAudio3D` una
+  vez en `_ready()` y usar llamadas tipadas.
+- `addons/spatial_audio_3d/spatial_audio_3d.gd` — el parche `output_bus` cae a
+  `Master` sin aviso si el bus no existe; agregar `push_warning`.
+- `resources/audio/sfx_library.tres` — `land` y `footstep` comparten el mismo
+  randomizer; darle a `land` uno propio (`stairs`/`stone` a pitch bajo) cuando
+  se escuchen en juego.
+- `tests/sfx_library_smoke_test.gd` — para `AudioStreamRandomizer`, iterar
+  `get_stream(i)` y exigir no-null; hoy un slot vacío dentro del randomizer no
+  se detecta.

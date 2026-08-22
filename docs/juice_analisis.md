@@ -16,25 +16,77 @@ La arquitectura ya estaba lista para engancharlo: `RoundController` emite
 `room_cleared`, y `ScoreController` emite `chain_changed` / `chain_banked`
 con motivo diferenciado — pero solo alimentaban labels de texto.
 
-## Decisión transversal: audio diferido con ganchos listos
+## Audio: ganchos `Sfx` + biblioteca de sonidos ✅ integrado
 
-El sonido se integra en una instancia final. Para no retrabajar, existe la
-clase estática **`Sfx`** (`scripts/audio/sfx.gd`): cada efecto llama
-`Sfx.play("evento")` o `Sfx.play_at("evento", posicion)` con un nombre
-estable. Los streams viven en `resources/audio/sfx_library.tres`; un evento
-sin stream **no suena y no falla**. Integrar el audio del juego = llenar ese
-recurso. La lista de eventos vive en `scripts/audio/sfx_library.gd`.
+Cada efecto llama `Sfx.play("evento")` (sin posición) o
+`Sfx.play_at("evento", posicion)` (3D) — `scripts/audio/sfx.gd`. Los streams y
+un ajuste de volumen por evento viven en `resources/audio/sfx_library.tres`;
+un evento sin stream no suena y no falla. `tests/sfx_library_smoke_test.gd`
+verifica que todos los eventos del juego tengan sonido.
 
-Nota: `Sfx` es una clase con métodos estáticos y no un autoload a propósito —
-los smoke tests corren con `-s` y compilan los scripts antes de que los
-autoloads existan, así que un identificador de autoload no compila ahí. El
-host con los reproductores (pools de `AudioStreamPlayer`/`3D`, bus `SFX`) se
-cuelga solo del árbol la primera vez que algo suena.
+`Sfx` es una clase estática y no un autoload a propósito: los smoke tests
+corren con `-s` y compilan los scripts antes de que los autoloads existan.
 
-Fuentes sugeridas para ese momento: híbrido temático — packs CC0 de Kenney
-(Impact / Interface / Digital Audio) para lo físico, sonidos estilo
-retro/Windows para ventanas y UI. Inventario priorizado en
-`docs/gdd_atractivo_y_progresion_ANEXO_sonido.md`.
+### Espacial vs. no espacial (criterio)
+
+- **3D (`play_at`, atenuado por distancia y posicionado):** lo que ocurre *en
+  el mundo* y el jugador tiene que ubicar — impacto de bala, bola destruida,
+  botón/cierre/error de ventana, rebote de escudo, SKIP disponible.
+- **2D (`play`, sin posición ni atenuación):** lo que es *del jugador o del
+  HUD* — hitmarker, daño recibido, pasos y aterrizaje propios, combos/cobros,
+  botones de menú. Posicionarlos no aporta información y la sala los
+  colorearía sin sentido.
+- **Disparo del arma:** caso intermedio. Es del jugador, pero es el sonido
+  que más gana con la sala: va por **SpatialAudio3D** (ver abajo), que le
+  pone reverb y oclusión medidas desde la geometría.
+
+### Packs integrados
+
+- `assets/audio/sfx/ui/` — *Universal UI Soundpack* de Nathan Gibson, CC BY
+  4.0 (ver `LICENSE.txt`; **hay que acreditarlo en los créditos del juego**).
+  Usado para UI, HUD, combos, ventanas y destrucción de bolas.
+- `assets/audio/sfx/footsteps/<superficie>/` — *40 Free PSX Footsteps* (8
+  superficies). Hoy se usa `concrete` para pasos/aterrizaje y `stone`
+  agudizado (x1.45–1.75) como impacto de bala. Licencia: verificar en la
+  página de origen del pack.
+
+Las asignaciones se hicieron por análisis de señal (duración, brillo,
+tendencia del tono, cantidad de golpes) y no de oído: conviene escucharlas en
+juego y cambiar las que no convenzan editando el `.tres` (mapa
+evento→stream y `volumes_db`).
+
+### SpatialAudio3D (addon 3444, MIT) — `addons/spatial_audio_3d/`
+
+Extiende `AudioStreamPlayer3D` con delay por distancia, reverb por raycasts
+contra la geometría (tamaño de sala medido) y oclusión tras paredes. **Es caro
+por nodo** (cada fuente crea ~10 buses con efectos, 9 reverbs y ~45 rayos a
+10 ticks/s): sirve para fuentes persistentes, no para el pool de one-shots.
+Hoy lo usa solo el `FireAudio` del arma (`player_character.tscn`), llamado vía
+`do_play()`/`do_set_stream()` desde `weapon_state_machine.gd`.
+
+Parche local: el original enviaba sus buses generados directo a `Master`,
+salteando el volumen de SFX de las opciones; se agregó el export `output_bus`
+(seteado a `SFX` en el arma). Si se actualiza el addon, reaplicar.
+
+Candidatos futuros para el plugin: música/ambiente por sala, zumbido de
+servidores, pantalla azul del bloque. Nunca los impactos.
+
+### Arma (grabaciones propias) ✅ integrado
+`assets/audio/sfx/glock/`: cuatro disparos aleatorios (`glock_shoot.tres`,
+randomizer con pitch ±5 %) y tres sonidos de manipulación que la animación de
+recarga dispara por method track hacia `play_handling_sound()` del
+`Weapons_Manager`, sincronizados por el pico de cada sample: `unload` a 0.30 s
+(sale el cargador), `load` a 0.86 s (encastra a 1.02 s), `recharge` a 1.04 s
+(la corredera vuelve a 1.36 s). Van por un `AudioStreamPlayer` común
+(`ReloadAudio`), sin posición ni reverb: son del propio jugador. El disparo
+sigue por el `SpatialAudio3D`. `tests/glock_sounds_smoke_test.gd` verifica el
+cableado y que una recarga real reproduzca los tres en orden.
+- `empty_sound` (click en seco) usa de momento `wood_block_3` del pack de UI
+  como **placeholder**: conviene grabar uno propio.
+
+### Pendiente de audio
+- Puertas de sala, pickup de munición, spawn de bloques/oleadas.
+- Música y ambiente.
 
 ## Mapa de oportunidades
 
@@ -135,9 +187,8 @@ Era un flicker de 0.05 s. Ahora: entra a 1.6x, asienta con ease y se funde
 9. **Variantes de muerte de ventana con shader**: glitch/corrupción y
    disolución en píxeles (requieren pasar el material del quad a
    `ShaderMaterial` conservando la ViewportTexture; ojo con el alpha scissor).
-10. **Integración de audio**: llenar `resources/audio/sfx_library.tres` con
-    los eventos listados en `scripts/audio/sfx_library.gd` + los sonidos de
-    arma que van por `AnimationPlayer` (recarga, click en seco).
+10. **Audio restante**: arma por `AnimationPlayer` (recarga, click en seco),
+    puertas, pickups, oleadas, música y ambiente (ver sección de audio).
 
 ## Deuda técnica relacionada
 

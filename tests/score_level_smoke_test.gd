@@ -26,7 +26,7 @@ func _run() -> void:
 		return
 	if not await _check_room_run():
 		return
-	if not _check_hud():
+	if not await _check_hud():
 		return
 	if not await _check_exit_room_waits_for_targets():
 		return
@@ -139,6 +139,10 @@ func _check_hud() -> bool:
 	var hud := _level.get_node_or_null("RoundHUD/ScoreHUD") as ScoreHUD
 	if hud == null:
 		return _fail("The round HUD should carry the score HUD.")
+	# El marcador y el cobro ruedan hasta su valor final en vez de saltar: hay
+	# que dejar que las cuentas asienten antes de leerlas. La espera es de
+	# tiempo real porque los tweens corren con delta, no con frames.
+	await create_timer(1.2).timeout
 	if hud.score_value.text.replace(" ", "") != str(_score.total_score):
 		return _fail("The HUD should show the score the controller holds.")
 	# El cobro queda a la vista un rato: si desapareciera con el ultimo objetivo,
@@ -146,7 +150,7 @@ func _check_hud() -> bool:
 	if not hud.combo_box.visible:
 		return _fail("The combo counter should hold the banked result after the chain closes.")
 	if not hud.pending_value.text.ends_with(ScoreBreakdown.thousands(_score._best_bank)):
-		return _fail("The held counter should show what the chain actually paid.")
+		return _fail("The held counter should show what the chain actually paid (got '%s', want suffix '%s')." % [hud.pending_value.text, ScoreBreakdown.thousands(_score._best_bank)])
 	return true
 
 

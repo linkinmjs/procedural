@@ -1,0 +1,42 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/props/radio_prop.gd" id="1_radio"]
+[ext_resource type="Mesh" path="res://assets/models/props/radio/radio.obj" id="2_mesh"]
+[ext_resource type="Script" path="res://addons/spatial_audio_3d/spatial_audio_3d.gd" id="3_spatial"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/human_tetris_fade.mp3" id="4_song"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_body"]
+size = Vector3(0.34, 0.5, 0.14)
+
+[node name="Radio" type="Node3D"]
+script = ExtResource("1_radio")
+
+[node name="Model" type="MeshInstance3D" parent="."]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 0, 0, 0)
+mesh = ExtResource("2_mesh")
+
+[node name="Body" type="StaticBody3D" parent="."]
+collision_layer = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+shape = SubResource("BoxShape3D_body")
+
+[node name="Speaker" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+stream = ExtResource("4_song")
+volume_db = -4.0
+unit_size = 3.0
+max_db = 0.0
+autoplay = true
+bus = &"Music"
+script = ExtResource("3_spatial")
+reverb_volume_db = -10.0
+reverb_fadeintime = 0.5
+reverb_fadeouttime = 1.0
+occlusion_lp_cutoff = 500
+bass_proximity = 3
+max_raycast_distance = 30
+collision_mask = 1
+roomsize_multiplicator = 4.0
+output_bus = &"Music"

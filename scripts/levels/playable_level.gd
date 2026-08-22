@@ -7,6 +7,7 @@ const ROOM_LIGHT_SCENE := preload("res://scenes/environment/room_light.tscn")
 const WALL_HEIGHT := 6.0
 const CEILING_THICKNESS := 0.3
 const AMMO_PICKUP_SCENE := preload("res://scenes/weapons/glock_ammo_pickup.tscn")
+const RADIO_SCENE := preload("res://scenes/props/radio.tscn")
 const WALL_THICKNESS := 0.35
 ## Alto del vano. Deja dintel sobre la puerta en vez de abrir la pared entera,
 ## para que despues entre una hoja de puerta.
@@ -24,6 +25,9 @@ const GENERIC_NAME_FILLER := " -_.0123456789"
 ## Segundos entre el cierre del nivel y la pantalla de resultados. El cobro de
 ## la ultima cadena sigue a la vista durante ese rato.
 @export_range(0.0, 30.0, 0.1) var results_delay := 3.0
+## Experimental: una radio con musica en loop en la sala de salida, para
+## escuchar como se comporta el audio 3D con una fuente continua.
+@export var spawn_exit_radio := true
 
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 @onready var sun: DirectionalLight3D = $DirectionalLight3D
@@ -132,6 +136,7 @@ func load_and_build_level() -> void:
 	score_controller.level_scored.connect(_on_level_scored)
 	round_controller.arm_round()
 	_wire_round_triggers()
+	_spawn_exit_radio()
 	status_label.text = tr("HUD_LEVEL_STATUS").format({
 		"rooms": level_data.rooms.size(),
 		"connections": level_data.connections.size(),
@@ -555,6 +560,24 @@ func _warn_unused_ammo_reward(room_id: String) -> void:
 	var reward := LevelDefinitionLoader.get_room_ammo_reward(room)
 	if bool(reward.enabled) and int(reward.amount) > 0:
 		push_warning("La sala '%s' declara ammoReward pero no tiene bloques: la recompensa no se entrega." % str(room.name))
+
+
+## La radio va contra la pared norte de la sala de salida, mirando al centro,
+## para que el jugador la encuentre al entrar y tenga paredes cerca que la
+## reflejen.
+func _spawn_exit_radio() -> void:
+	if not spawn_exit_radio:
+		return
+	var exit_room := LevelDefinitionLoader.get_exit_room(level_data)
+	if exit_room.is_empty():
+		return
+	var radio := RADIO_SCENE.instantiate() as Node3D
+	radio.name = "ExitRadio"
+	var wall := _wall_point(exit_room, "north")
+	radio.position = Vector3(wall.x, 0.0, wall.y + 0.6)
+	# El modelo mira hacia +Z; la pared norte esta en -Z, asi que de frente al
+	# centro de la sala es la orientacion por defecto.
+	add_child(radio)
 
 
 ## Limpiar una sala configurada como recompensa deja un cargador en su centro.

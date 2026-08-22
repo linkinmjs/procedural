@@ -28,6 +28,12 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | `POOL_2D_SIZE` / `POOL_3D_SIZE` | `scripts/audio/sfx.gd` | 6 / 12 | Sonidos simultáneos antes de robar el más viejo. |
 | `step_distance` | `player_character.gd` → `Footsteps` | 2.1 m | Metros entre paso y paso corriendo (se acorta con la velocidad). |
 | Pitch de `land` | `player_character.gd` → `_physics_process` | 0.7–0.8 | Grave del aterrizaje respecto del paso. |
+| `spawn_exit_radio` | `scripts/levels/playable_level.gd` | on | Experimental: radio con música en loop en la sala de salida de cada nivel. |
+| Posición de la radio | `playable_level.gd` → `_spawn_exit_radio` | pared norte, 0.6 m adentro | Dónde aparece la radio dentro de la sala de salida. |
+| `volume_db` / `unit_size` / `max_db` | `scenes/props/radio.tscn` → nodo `Speaker` | -4 / 3 m / 0 | Volumen de la radio y qué tan rápido se atenúa con la distancia. |
+| `reverb_volume_db` / `roomsize_multiplicator` / `occlusion_lp_cutoff` | ídem | -10 / 4.0 / 500 Hz | Reverb de sala y cuánto se apaga la música tras una pared. |
+| `output_bus` | ídem | `Music` | La radio responde al volumen de música de las opciones aunque sea 3D. |
+| `loop` | `assets/audio/music/human_tetris_fade.mp3.import` | on | Repetición de la canción (opción de importación del mp3). |
 | Buses `Master` / `Music` / `SFX` | `resources/audio/default_bus_layout.tres` | — | Volúmenes base; los del usuario los maneja `Settings`. |
 
 ## Cámara y feedback del jugador

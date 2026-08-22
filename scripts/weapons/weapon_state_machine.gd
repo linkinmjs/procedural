@@ -19,6 +19,10 @@ signal spread_changed(spread_pixels: float)
 @export var enable_weapon_spread := true
 ## Reproductor del sonido de disparo del arma activa.
 @export var fire_audio: AudioStreamPlayer3D
+## Reproductor de los sonidos de manipulacion (cargador, corredera). Es un
+## AudioStreamPlayer comun, sin posicion ni reverb: esos ruidos son del propio
+## jugador y tienen que sonar pegados y secos.
+@export var reload_audio: AudioStreamPlayer
 @onready var bullet_point = get_node("%BulletPoint")
 @onready var debug_bullet = preload("res://scenes/projectiles/hit_debug.tscn")
 
@@ -205,12 +209,45 @@ func _apply_shot_recoil() -> void:
 	
 	owner.add_recoil(pitch, yaw * randf_range(-1.0, 1.0), profile)
 
+## El reproductor del arma puede ser un SpatialAudio3D (reverb y oclusion
+## calculados desde la sala): ese expone do_play()/do_set_stream() y no hay
+## que llamar a play() directo, que saltearia sus reflejos.
 func _play_weapon_sound(stream: AudioStream) -> void:
 	if stream == null or fire_audio == null:
 		return
+	var spatial := fire_audio.has_method("do_play")
 	if fire_audio.stream != stream:
 		fire_audio.stream = stream
-	fire_audio.play()
+		if spatial:
+			fire_audio.call("do_set_stream", stream)
+	# Via call(): la variable esta tipada como AudioStreamPlayer3D y el analizador
+	# no conoce los metodos del plugin.
+	if spatial:
+		fire_audio.call("do_play")
+	else:
+		fire_audio.play()
+
+## Lo llama la animacion de recarga por method track, con el nombre de la
+## etapa: "unload" (sale el cargador), "load" (entra el nuevo) o "recharge"
+## (la corredera carga la recamara). El arma decide que stream corresponde.
+func play_handling_sound(stage: String) -> void:
+	if reload_audio == null or current_weapon_slot == null or current_weapon_slot.weapon == null:
+		return
+	var weapon := current_weapon_slot.weapon
+	var stream: AudioStream = null
+	match stage:
+		"unload":
+			stream = weapon.unload_sound
+		"load":
+			stream = weapon.load_sound
+		"recharge":
+			stream = weapon.recharge_sound
+	if stream == null:
+		return
+	reload_audio.stream = stream
+	reload_audio.pitch_scale = randf_range(0.97, 1.03)
+	reload_audio.play()
+
 
 func _recoil_profile() -> RecoilProfile:
 	if current_weapon_slot and current_weapon_slot.weapon:

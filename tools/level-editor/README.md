@@ -97,10 +97,18 @@ Las familias salen de los comportamientos que enumera `docs/gdd_atractivo_y_prog
 - Rueda del mouse para acercar, arrastre del fondo para desplazar, **Encuadrar** para ver todo el nivel.
 - Cada pasillo se dibuja como una sola figura cerrada, con su ancho real y sus codos resueltos, igual que la geometría que arma el juego. Si las puertas quedan desalineadas menos que el ancho, el pasillo se ensancha en lugar de quebrarse.
 - **Puntos intermedios**: doble click sobre un pasillo agrega un punto por el que el recorrido tiene que pasar; el punto se arrastra, y con click derecho se quita. El pasillo une los puntos en ángulo recto, saliendo y llegando perpendicular a las puertas. Un desvío que vuelve sobre su propia línea se descarta en vez de degenerar el trazado. Ojo con acercar dos tramos paralelos a menos del ancho del pasillo: las paredes de uno invaden al otro (el smoke test de pasillos lo detecta).
-- **Mover la puerta**: el primer punto (o el último, del lado destino) también decide dónde está la puerta. Colocado frente a la pared, la puerta se desliza hasta quedar enfrentada al punto —con tope antes de la esquina— y el pasillo sale derecho desde ahí. Un punto fuera del frente de la pared no la mueve: el recorrido lo alcanza con codos, como siempre.
+- **Mover la puerta**: el primer punto (o el último, del lado destino) también decide dónde está la puerta. La puerta se pone en la pared que mira hacia ese punto —rodear la sala con el recorrido la cambia de pared, y la entrada de la sala se actualiza sola— y, dentro de esa pared, se desliza hasta quedar enfrentada al punto, con tope antes de la esquina, para que el pasillo salga derecho desde ahí. Un punto fuera del frente de la pared no la desliza: el recorrido la alcanza con codos, como siempre.
 - Las salas muestran su altura, si están a cielo abierto y cuántas balas entregan; cada bloque, el total de ventanas de cada oleada.
 - La sala de inicio muestra una flecha con la orientación del jugador.
 - Atajos: `Enter` abre la sala seleccionada, `Supr` la elimina, `F` encuadra, `Ctrl+S` guarda.
+
+## Plantillas de sala
+
+Una sala que costó armar se puede guardar para reutilizarla en cualquier nivel:
+
+- **Guardar plantilla**, al pie de la ventana de la sala, pide un nombre y guarda todo lo que define el contenido: tamaño, altura, techo, recompensa, radio, texturas y las oleadas con sus bloques y capas. No guarda lo que depende del nivel (posición, rol ni pared de entrada). Repetir un nombre ofrece reemplazar la plantilla anterior.
+- El bloque **Plantillas** de la barra lateral las lista con su tamaño y total de ventanas: un click agrega al nivel una sala nueva con ese contenido, con rol de transición y el nombre de la plantilla; la × la borra.
+- Con el servidor del Workshop viven en `level_designs/room-templates.json`, versionado junto a los niveles, así se comparten entre máquinas. Sin el servidor quedan en el almacenamiento local del navegador.
 
 ## Archivo
 
@@ -119,7 +127,7 @@ El editor conserva automáticamente un borrador en el almacenamiento local del n
 
 - `level-format.js` define el modelo de datos: límites, normalización, roles, familias de ventana e inferencia de entradas. Lo comparten el editor, el migrador y los smoke tests, así que la lógica del formato tiene una sola implementación.
 - `app.js` es la interfaz: dibujo del plano, ventanas de configuración y eventos.
-- `serve.js` es el servidor local: archivos estáticos del repositorio más la API de niveles y secuencia (`/api/levels`, `/api/sequence`).
+- `serve.js` es el servidor local: archivos estáticos del repositorio más la API de niveles, secuencia y plantillas de sala (`/api/levels`, `/api/sequence`, `/api/room-templates`).
 - `migrate-level.js` actualiza archivos versionados al formato actual.
 
 ## Migrar diseños viejos

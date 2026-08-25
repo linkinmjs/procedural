@@ -5,11 +5,14 @@
     ROOM_PRESETS, ROLE_LABELS, SKY_LABELS, SLOT_LABELS, WINDOW_TYPES, TEXTURE_SLOTS, WALL_LABELS,
     RELATIVE_WALLS, LIMITS, clamp, clampInt, newId, createEmptyLevel, createRoom, createConnection,
     chooseConnectionWalls, degreesToWall, assignRole, normalizeRoles, resolveEntryWalls, normalizeLevel,
-    corridorPlan, corridorOutline, doorPoint, blankLayer, blankRoomWave, layerTotal
+    corridorPlan, corridorOutline, doorPoint, blankLayer, blankRoomWave, layerTotal,
+    roomTemplateFrom, roomFromTemplate, normalizeRoomTemplates
   } = window.LevelFormat;
 
   const STORAGE_KEY = "procedural-map.level-workshop.draft.v3";
   const FILE_KEY = "procedural-map.level-workshop.file.v1";
+  // Respaldo de las plantillas cuando no hay servidor del Workshop.
+  const TEMPLATES_KEY = "procedural-map.level-workshop.room-templates.v1";
   const SLOT_SHORT = { left: "IZQ", front: "FRENTE", right: "DER" };
   const WALL_NAMES = { north: "norte", east: "este", south: "sur", west: "oeste" };
 
@@ -46,6 +49,9 @@
   let workshopApi = false;
   let currentFile = localStorage.getItem(FILE_KEY) || "";
   let dirty = false;
+  // Salas guardadas para reutilizar. Con el servidor viven en
+  // level_designs/room-templates.json; sin el, en localStorage.
+  let roomTemplates = { schemaVersion: 1, templates: [] };
 
   function exampleLevel() {
     const result = createEmptyLevel();
@@ -384,9 +390,9 @@
     const to = roomById(connection?.toRoomId);
     if (!connection || !from || !to) return;
     const anchors = [
-      wallPoint(from, connection.fromWall),
+      doorPoint(from, connection.fromWall, connection, true),
       ...connection.waypoints.map((waypoint) => ({ x: waypoint.x, y: waypoint.z })),
-      wallPoint(to, connection.toWall)
+      doorPoint(to, connection.toWall, connection, false)
     ];
     let best = 0;
     let bestDistance = Infinity;
@@ -398,6 +404,7 @@
       }
     }
     connection.waypoints.splice(best, 0, { x: snapHalf(point.x), z: snapHalf(point.y) });
+    refreshConnectionWalls(connection);
     commit("Punto agregado al pasillo");
   }
 
@@ -569,6 +576,106 @@
       item.append(button, configure);
       list.append(item);
     }
+  }
+
+  // --- Plantillas de sala ----------------------------------------------------
+
+  const templateSummary = (template) => {
+    const room = template.room;
+    const windows = room.waves.reduce((total, wave) =>
+      total + Object.values(wave.blocks).filter((block) => block.enabled)
+        .reduce((sum, block) => sum + blockTotal(block), 0), 0);
+    return `${room.size.width}×${room.size.depth} · ${windows} vent.`;
+  };
+
+  function renderTemplateList() {
+    const list = $("#template-list");
+    list.replaceChildren();
+    const templates = roomTemplates.templates;
+    $("#template-count").textContent = templates.length ? String(templates.length) : "";
+    $("#template-help").textContent = templates.length
+      ? "Click agrega una sala con ese contenido."
+      : "Guardá una sala desde su ventana (“Guardar plantilla”) para reutilizarla acá.";
+    for (const template of templates) {
+      const item = document.createElement("li");
+      item.className = "room-item";
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "room-item-button";
+      button.title = `Agregar “${template.name}” al nivel`;
+      const name = document.createElement("span");
+      name.className = "room-item-name";
+      name.textContent = template.name;
+      const meta = document.createElement("span");
+      meta.className = "template-item-meta";
+      meta.textContent = templateSummary(template);
+      button.append(name, meta);
+      button.addEventListener("click", () => insertTemplate(template));
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "icon-button template-item-delete";
+      remove.textContent = "×";
+      remove.title = `Borrar la plantilla ${template.name}`;
+      remove.addEventListener("click", () => deleteTemplate(template.id));
+      item.append(button, remove);
+      list.append(item);
+    }
+  }
+
+  function insertTemplate(template) {
+    const room = roomFromTemplate(template, level.rooms.length + 1);
+    level.rooms.push(room);
+    selectedRoomId = room.id;
+    commit(`Sala “${template.name}” agregada desde la plantilla`);
+  }
+
+  async function saveTemplateFromRoom(room) {
+    const answer = window.prompt("Nombre de la plantilla:", room.name);
+    if (answer === null) return;
+    const template = roomTemplateFrom(room, answer);
+    const existing = roomTemplates.templates.findIndex((entry) => entry.name === template.name);
+    if (existing >= 0) {
+      if (!window.confirm(`Ya hay una plantilla “${template.name}”. ¿Reemplazarla?`)) return;
+      template.id = roomTemplates.templates[existing].id;
+      roomTemplates.templates[existing] = template;
+    } else {
+      roomTemplates.templates.push(template);
+    }
+    await persistTemplates(`Plantilla guardada: ${template.name}`);
+  }
+
+  async function deleteTemplate(id) {
+    const template = roomTemplates.templates.find((entry) => entry.id === id);
+    if (!template || !window.confirm(`¿Borrar la plantilla “${template.name}”?`)) return;
+    roomTemplates.templates = roomTemplates.templates.filter((entry) => entry.id !== id);
+    await persistTemplates("Plantilla borrada");
+  }
+
+  async function persistTemplates(message) {
+    try {
+      if (workshopApi) {
+        await apiJson("/api/room-templates", { method: "PUT", body: JSON.stringify(roomTemplates) });
+      } else {
+        localStorage.setItem(TEMPLATES_KEY, JSON.stringify(roomTemplates));
+      }
+      showToast(message);
+    } catch (error) {
+      showToast(`No se pudieron guardar las plantillas: ${error.message}`);
+    }
+    renderTemplateList();
+  }
+
+  async function loadRoomTemplates() {
+    let raw = null;
+    try {
+      raw = workshopApi
+        ? await apiJson("/api/room-templates")
+        : JSON.parse(localStorage.getItem(TEMPLATES_KEY) || "null");
+    } catch (error) {
+      console.warn("No se pudieron leer las plantillas", error);
+    }
+    roomTemplates = normalizeRoomTemplates(raw);
+    renderTemplateList();
   }
 
   function renderConnectionList() {
@@ -1340,12 +1447,22 @@
   }
 
   function refreshConnectionsForRoom(roomId) {
-    for (const connection of connectionsFor(roomId)) {
-      const from = roomById(connection.fromRoomId);
-      const to = roomById(connection.toRoomId);
-      if (!from || !to) continue;
-      Object.assign(connection, chooseConnectionWalls(from, to));
-    }
+    for (const connection of connectionsFor(roomId)) refreshConnectionWalls(connection);
+  }
+
+  /**
+   * Re-deriva las paredes que perfora el pasillo; con puntos intermedios, la
+   * puerta de cada extremo mira al punto vecino. Devuelve si algo cambió, para
+   * que el arrastre en vivo sepa cuándo redibujar también las salas.
+   */
+  function refreshConnectionWalls(connection) {
+    const from = roomById(connection.fromRoomId);
+    const to = roomById(connection.toRoomId);
+    if (!from || !to) return false;
+    const walls = chooseConnectionWalls(from, to, connection.waypoints);
+    const changed = walls.fromWall !== connection.fromWall || walls.toWall !== connection.toWall;
+    Object.assign(connection, walls);
+    return changed;
   }
 
   function connectModeActive() {
@@ -1475,6 +1592,7 @@
     $("#open-file").hidden = !workshopApi;
     $("#open-sequence").hidden = !workshopApi;
     renderCurrentFile();
+    await loadRoomTemplates();
   }
 
   async function apiJson(url, options = {}) {
@@ -1844,6 +1962,7 @@
       const connection = level.connections.find((item) => item.id === handle.dataset.connectionId);
       if (!connection) return;
       connection.waypoints.splice(Number(handle.dataset.waypointIndex), 1);
+      refreshConnectionWalls(connection);
       commit("Punto del pasillo quitado");
     });
 
@@ -1855,6 +1974,12 @@
           const point = clientToSvg(event);
           waypoint.x = snapHalf(point.x);
           waypoint.z = snapHalf(point.y);
+          // Arrastrar el punto vecino a una sala puede cambiar de pared la
+          // puerta: las salas también se redibujan para mover su marca.
+          if (refreshConnectionWalls(connection)) {
+            resolveEntryWalls(level);
+            renderRooms();
+          }
           renderCorridors();
         }
         return;
@@ -2035,6 +2160,11 @@
         event.preventDefault();
         openSlot(event);
       }
+    });
+
+    $("#save-template").addEventListener("click", () => {
+      const room = dialogRoom();
+      if (room) saveTemplateFromRoom(room);
     });
 
     $("#duplicate-room").addEventListener("click", () => {

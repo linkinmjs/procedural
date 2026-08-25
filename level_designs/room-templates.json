@@ -1,0 +1,2741 @@
+{
+  "schemaVersion": 1,
+  "templates": [
+    {
+      "id": "a478fda1-44a1-4f19-826d-281ab8c8b80c",
+      "name": "01 Galería",
+      "room": {
+        "name": "01 Galería",
+        "type": "custom",
+        "size": {
+          "width": 12,
+          "depth": 26
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 10
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "dddf50c2-6734-44a0-9710-521fe3f29d2c",
+      "name": "02 Barrido horizontal",
+      "room": {
+        "name": "02 Barrido horizontal",
+        "type": "custom",
+        "size": {
+          "width": 26,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 7
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 7
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 7
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "14b4fde8-554c-4ccd-9087-f0e7a36c6be7",
+      "name": "03 Ping Pong",
+      "room": {
+        "name": "03 Ping Pong",
+        "type": "custom",
+        "size": {
+          "width": 18,
+          "depth": 16
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 8
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "3cb68395-97bb-43c5-bbab-7f3582fc5f72",
+      "name": "04 Tridente",
+      "room": {
+        "name": "04 Tridente",
+        "type": "custom",
+        "size": {
+          "width": 18,
+          "depth": 18
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "86c85873-f2fd-46dc-a0f7-bbff449b4c6e",
+      "name": "05 Capas de cebolla",
+      "room": {
+        "name": "05 Capas de cebolla",
+        "type": "custom",
+        "size": {
+          "width": 14,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 4
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 6
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 8
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 10
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "f0e22657-f3ee-4035-8143-a5f62abe5285",
+      "name": "06 Embudo",
+      "room": {
+        "name": "06 Embudo",
+        "type": "custom",
+        "size": {
+          "width": 16,
+          "depth": 16
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 0.65,
+                "color": "#f4a259",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 10
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 0.65,
+                "color": "#f4a259",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 10
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "f75b436d-a476-45a2-84f5-f1f391c05313",
+      "name": "07 Trituradora",
+      "room": {
+        "name": "07 Trituradora",
+        "type": "custom",
+        "size": {
+          "width": 12,
+          "depth": 18
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": true,
+          "amount": 20,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 0.55,
+                "color": "#f4a259",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 6
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 6
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 0.55,
+                "color": "#f4a259",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 6
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 6
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "f510079d-00c9-4497-ae79-175e7acfc23a",
+      "name": "08 Muro frontal",
+      "room": {
+        "name": "08 Muro frontal",
+        "type": "custom",
+        "size": {
+          "width": 12,
+          "depth": 26
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 1,
+                "color": "#f4a259",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 14
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "97dfb588-c3c3-4f7e-adf5-371de5fa83f5",
+      "name": "09 Firewall 101",
+      "room": {
+        "name": "09 Firewall 101",
+        "type": "custom",
+        "size": {
+          "width": 14,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#5a8de0",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 6,
+                      "firewall": 1
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "2fc75ca9-d84f-4347-802f-277fbd82aa3f",
+      "name": "10 Doble Firewall",
+      "room": {
+        "name": "10 Doble Firewall",
+        "type": "custom",
+        "size": {
+          "width": 18,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#5a8de0",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 6,
+                      "firewall": 1
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#5a8de0",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 6,
+                      "firewall": 1
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "de3206df-fb40-4e23-88d8-2182eccb3e68",
+      "name": "11 Firewall en profundidad",
+      "room": {
+        "name": "11 Firewall en profundidad",
+        "type": "custom",
+        "size": {
+          "width": 14,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": true,
+          "amount": 20,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#5a8de0",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5,
+                      "firewall": 1
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 7,
+                      "firewall": 1
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 9,
+                      "firewall": 1
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "0ab12f67-895e-49d3-bf81-d9bacf776b48",
+      "name": "12 Publicidad molesta",
+      "room": {
+        "name": "12 Publicidad molesta",
+        "type": "custom",
+        "size": {
+          "width": 14,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 5
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "bfe9eb65-52a9-4094-9163-2e1508f94972",
+      "name": "13 Adware",
+      "room": {
+        "name": "13 Adware",
+        "type": "custom",
+        "size": {
+          "width": 16,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 3
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 3
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "c244781f-4bfa-4e14-80a1-86c7e5de3650",
+      "name": "14 Popocalypse",
+      "room": {
+        "name": "14 Popocalypse",
+        "type": "custom",
+        "size": {
+          "width": 16,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 2
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 3
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 2
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "a8322e96-1358-418b-92b5-5e54254069dc",
+      "name": "15 Centro de descargas",
+      "room": {
+        "name": "15 Centro de descargas",
+        "type": "custom",
+        "size": {
+          "width": 14,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "download": 3
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "6865371f-7b69-4219-8f95-eab0ec73959b",
+      "name": "16 Factura impaga",
+      "room": {
+        "name": "16 Factura impaga",
+        "type": "custom",
+        "size": {
+          "width": 14,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#e05252",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 6,
+                      "infected-download": 1
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "b51e1659-c58a-4acf-b754-c6cfa25dd66c",
+      "name": "17 ¿Cuál era?",
+      "room": {
+        "name": "17 ¿Cuál era?",
+        "type": "custom",
+        "size": {
+          "width": 14,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#e05252",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 4,
+                      "download": 2,
+                      "infected-download": 1
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "92dd3bc4-c822-4be6-905a-370c75b0a7fc",
+      "name": "18 Firewall infectado",
+      "room": {
+        "name": "18 Firewall infectado",
+        "type": "custom",
+        "size": {
+          "width": 14,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#e05252",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5,
+                      "infected-download": 1,
+                      "firewall": 1
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "f3f6b181-5516-45b5-b893-399470ac3d9e",
+      "name": "19 Error crítico",
+      "room": {
+        "name": "19 Error crítico",
+        "type": "custom",
+        "size": {
+          "width": 14,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#9a6ae0",
+                "layers": [
+                  {
+                    "windows": {
+                      "critical-error": 4
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "3ce0d218-b3c1-45bb-a470-138c07b37171",
+      "name": "20 No dispares todavía",
+      "room": {
+        "name": "20 No dispares todavía",
+        "type": "custom",
+        "size": {
+          "width": 14,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#9a6ae0",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 6,
+                      "critical-error": 3
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "96e91b07-55f0-4e36-8e42-b53b9cfb87e3",
+      "name": "21 Izquierda o derecha",
+      "room": {
+        "name": "21 Izquierda o derecha",
+        "type": "custom",
+        "size": {
+          "width": 18,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#e05252",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 4,
+                      "infected-download": 1
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 3
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "adf19d92-110d-4644-b1c5-7420e534147b",
+      "name": "22 Reloj cruzado",
+      "room": {
+        "name": "22 Reloj cruzado",
+        "type": "custom",
+        "size": {
+          "width": 18,
+          "depth": 16
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": true,
+          "amount": 20,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#e05252",
+                "layers": [
+                  {
+                    "windows": {
+                      "download": 1,
+                      "infected-download": 1
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 4
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 4
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "ed9dc1df-8e91-4a74-991f-0a1bcd29edd2",
+      "name": "23 Compresión asimétrica",
+      "room": {
+        "name": "23 Compresión asimétrica",
+        "type": "custom",
+        "size": {
+          "width": 18,
+          "depth": 16
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 0.65,
+                "color": "#f4a259",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 8
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 4
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "afb4bbd4-a8f1-4a68-a972-eb148f23df82",
+      "name": "24 Salida de emergencia",
+      "room": {
+        "name": "24 Salida de emergencia",
+        "type": "custom",
+        "size": {
+          "width": 20,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": true,
+          "amount": 20,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 0.9,
+                "color": "#f4a259",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 12
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 0.9,
+                "color": "#9a6ae0",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 2,
+                      "critical-error": 2
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "645e8117-8f39-460b-a238-b3691c9aec8d",
+      "name": "25 Falsa calma",
+      "room": {
+        "name": "25 Falsa calma",
+        "type": "custom",
+        "size": {
+          "width": 18,
+          "depth": 18
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": true,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 4
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 4
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 0.7,
+                "color": "#f4a259",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 3,
+                      "popup": 1
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 0.7,
+                "color": "#f4a259",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 3,
+                      "popup": 1
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "a297705c-5d52-4b50-9843-6c7457b46957",
+      "name": "26 Escalada",
+      "room": {
+        "name": "26 Escalada",
+        "type": "custom",
+        "size": {
+          "width": 20,
+          "depth": 18
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": true,
+          "amount": 40,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 4,
+                      "popup": 2
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#5a8de0",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5,
+                      "firewall": 1
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 4,
+                      "download": 2
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#e05252",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5,
+                      "infected-download": 1
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#9a6ae0",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 2,
+                      "popup": 2,
+                      "firewall": 1,
+                      "critical-error": 1
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "f9624d16-720b-4c41-beb5-57f897e40cf0",
+      "name": "27 Maratón de combo",
+      "room": {
+        "name": "27 Maratón de combo",
+        "type": "custom",
+        "size": {
+          "width": 14,
+          "depth": 14
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": true,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  },
+                  {
+                    "windows": {
+                      "normal": 5
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "179861e3-200f-44d4-ac67-e5b293398ea1",
+      "name": "28 Cirugía",
+      "room": {
+        "name": "28 Cirugía",
+        "type": "custom",
+        "size": {
+          "width": 22,
+          "depth": 18
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": false,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#9a6ae0",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 3,
+                      "infected-download": 1,
+                      "critical-error": 2
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "3184352d-93eb-494c-a470-89483c6d79cb",
+      "name": "29 Sobrecarga",
+      "room": {
+        "name": "29 Sobrecarga",
+        "type": "custom",
+        "size": {
+          "width": 20,
+          "depth": 18
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": true,
+          "amount": 30,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 3
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#e05252",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 3,
+                      "infected-download": 1,
+                      "firewall": 1
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#9a6ae0",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 3,
+                      "critical-error": 2
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d15f6b44-c86e-4666-b01b-19e2360f7e06",
+      "name": "30 Kernel",
+      "room": {
+        "name": "30 Kernel",
+        "type": "custom",
+        "size": {
+          "width": 24,
+          "depth": 20
+        },
+        "facing": 0,
+        "wallHeight": null,
+        "hasCeiling": null,
+        "ammoReward": {
+          "enabled": true,
+          "amount": 50,
+          "color": "#f4bc59"
+        },
+        "radio": {
+          "enabled": false,
+          "corner": "ne"
+        },
+        "textures": {
+          "walls": "",
+          "floor": "",
+          "ceiling": "",
+          "door": "",
+          "block": ""
+        },
+        "waves": [
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 10
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 3
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 3
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#e05252",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 5,
+                      "infected-download": 1,
+                      "firewall": 1
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#9a6ae0",
+                "layers": [
+                  {
+                    "windows": {
+                      "critical-error": 2
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#9a6ae0",
+                "layers": [
+                  {
+                    "windows": {
+                      "critical-error": 2
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 0.8,
+                "color": "#f4a259",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 6
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": false,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#2ed5c5",
+                "layers": []
+              },
+              "right": {
+                "enabled": true,
+                "movement": "opposite",
+                "movementSpeed": 0.8,
+                "color": "#f4a259",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 6
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "blocks": {
+              "left": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#f4bc59",
+                "layers": [
+                  {
+                    "windows": {
+                      "popup": 2
+                    }
+                  }
+                ]
+              },
+              "front": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#e05252",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 4,
+                      "infected-download": 1,
+                      "firewall": 1
+                    }
+                  }
+                ]
+              },
+              "right": {
+                "enabled": true,
+                "movement": "static",
+                "movementSpeed": 0.65,
+                "color": "#9a6ae0",
+                "layers": [
+                  {
+                    "windows": {
+                      "normal": 3,
+                      "download": 1,
+                      "critical-error": 1
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

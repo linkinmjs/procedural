@@ -16,6 +16,8 @@ const path = require("node:path");
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const LEVELS_DIR = path.join(REPO_ROOT, "level_designs", "levels");
 const SEQUENCE_PATH = path.join(REPO_ROOT, "level_designs", "level-sequence.json");
+// Plantillas de sala compartidas entre niveles, versionadas junto a ellos.
+const ROOM_TEMPLATES_PATH = path.join(REPO_ROOT, "level_designs", "room-templates.json");
 // Un nombre de nivel es un archivo suelto: nada de rutas, ni ocultos.
 const LEVEL_FILE = /^[A-Za-z0-9][A-Za-z0-9._ -]*\.json$/;
 
@@ -78,6 +80,19 @@ function listLevels() {
 function readSequence() {
   if (!fs.existsSync(SEQUENCE_PATH)) return { schemaVersion: 1, levels: [] };
   return JSON.parse(fs.readFileSync(SEQUENCE_PATH, "utf8"));
+}
+
+function readRoomTemplates() {
+  if (!fs.existsSync(ROOM_TEMPLATES_PATH)) return { schemaVersion: 1, templates: [] };
+  return JSON.parse(fs.readFileSync(ROOM_TEMPLATES_PATH, "utf8"));
+}
+
+function validRoomTemplates(value) {
+  return value && typeof value === "object" && Array.isArray(value.templates) &&
+    value.templates.every((entry) => entry && typeof entry === "object" &&
+      typeof entry.id === "string" && entry.id.length > 0 &&
+      typeof entry.name === "string" && entry.name.length > 0 &&
+      entry.room && typeof entry.room === "object" && !Array.isArray(entry.room));
 }
 
 function validSequence(value) {
@@ -145,6 +160,32 @@ async function handleApi(request, response, pathname) {
       }
       writeJsonFile(SEQUENCE_PATH, parsed);
       sendJson(response, 200, { saved: "level-sequence.json" });
+      return true;
+    }
+  }
+  if (pathname === "/api/room-templates") {
+    if (request.method === "GET") {
+      try {
+        sendJson(response, 200, readRoomTemplates());
+      } catch (error) {
+        sendJson(response, 500, { error: `room-templates.json inválido: ${error.message}` });
+      }
+      return true;
+    }
+    if (request.method === "PUT") {
+      let parsed;
+      try {
+        parsed = JSON.parse(await readBody(request));
+      } catch (error) {
+        sendJson(response, 400, { error: `JSON inválido: ${error.message}` });
+        return true;
+      }
+      if (!validRoomTemplates(parsed)) {
+        sendJson(response, 400, { error: "Las plantillas necesitan entradas {id, name, room}" });
+        return true;
+      }
+      writeJsonFile(ROOM_TEMPLATES_PATH, parsed);
+      sendJson(response, 200, { saved: "room-templates.json" });
       return true;
     }
   }

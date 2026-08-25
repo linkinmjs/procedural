@@ -68,6 +68,15 @@
 
       <div class="sidebar-block">
         <div class="sidebar-heading">
+          <span>Plantillas</span>
+          <span id="template-count" class="counter"></span>
+        </div>
+        <ul id="template-list" class="room-list template-list"></ul>
+        <p id="template-help" class="hint"></p>
+      </div>
+
+      <div class="sidebar-block">
+        <div class="sidebar-heading">
           <span>Conexiones</span>
           <button id="connect-mode" class="subtle" type="button" aria-pressed="false" title="Unir dos salas con un pasillo">Unir</button>
         </div>
@@ -306,6 +315,7 @@
 
     <footer class="dialog-footer">
       <button id="duplicate-room" class="subtle" type="button">Duplicar</button>
+      <button id="save-template" class="subtle" type="button" title="Guardar esta sala para reutilizarla en otros niveles">Guardar plantilla</button>
       <button id="delete-room" class="danger subtle" type="button">Eliminar</button>
       <span class="spacer"></span>
       <button class="primary" type="button" data-close-dialog>Listo</button>

@@ -206,14 +206,28 @@
     };
   }
 
-  /** La pared de cada extremo sale de la posición relativa de las dos salas. */
-  function chooseConnectionWalls(from, to) {
-    const dx = to.position.x - from.position.x;
-    const dz = to.position.z - from.position.z;
-    const fromWall = Math.abs(dx) >= Math.abs(dz)
+  /**
+   * La pared de cada extremo sale de lo que el pasillo tiene enfrente: sin
+   * puntos intermedios, la otra sala; con puntos, el punto vecino a ese
+   * extremo. Si no, un recorrido personalizado que rodea la sala terminaría
+   * atravesándola para alcanzar una puerta que quedó mirando a otro lado.
+   */
+  function chooseConnectionWalls(from, to, waypoints) {
+    const list = Array.isArray(waypoints) ? waypoints : [];
+    const first = list[0];
+    const last = list[list.length - 1];
+    const fromWall = wallTowards(from, first ? { x: first.x, z: first.z } : to.position);
+    const toWall = last ? wallTowards(to, { x: last.x, z: last.z }) : OPPOSITE_WALL[fromWall];
+    return { fromWall, toWall };
+  }
+
+  /** La pared de la sala que mira hacia un punto del plano. */
+  function wallTowards(room, point) {
+    const dx = point.x - room.position.x;
+    const dz = point.z - room.position.z;
+    return Math.abs(dx) >= Math.abs(dz)
       ? (dx >= 0 ? "east" : "west")
       : (dz >= 0 ? "south" : "north");
-    return { fromWall, toWall: OPPOSITE_WALL[fromWall] };
   }
 
   /** Punto medio de una pared, en el plano visto desde arriba. */
@@ -599,8 +613,61 @@
     return ordered(level, LEVEL_KEYS);
   }
 
+  // --- Plantillas de sala ---------------------------------------------------
+  // Una plantilla es una sala guardada sin lo que depende del nivel que la
+  // contiene: id, posicion, rol y pared de entrada. Lo que si viaja es todo lo
+  // que cuesta volver a armar: tamaño, altura, techo, recompensa, radio,
+  // texturas y las oleadas con sus bloques.
+
+  const ROOM_TEMPLATES_VERSION = 1;
+  const TEMPLATE_ROOM_KEYS = ROOM_KEYS.filter((key) => !["id", "position", "role", "entry"].includes(key));
+
+  /** Normaliza una sala suelta pasandola por el mismo camino que un nivel. */
+  function normalizeRoom(candidate) {
+    const probe = createEmptyLevel();
+    probe.rooms.push({ id: "probe", position: { x: 0, z: 0 }, ...candidate });
+    return normalizeLevel(probe).rooms[0];
+  }
+
+  function roomTemplateFrom(room, name) {
+    const clean = normalizeRoom(JSON.parse(JSON.stringify(room)));
+    const template = {};
+    for (const key of TEMPLATE_ROOM_KEYS) template[key] = clean[key];
+    return { id: newId(), name: String(name || room.name || "Plantilla").trim() || "Plantilla", room: template };
+  }
+
+  /** Sala nueva a partir de la plantilla, lista para entrar al nivel. */
+  function roomFromTemplate(template, index) {
+    const base = createRoom(template.room?.type, index);
+    const room = normalizeRoom({ ...base, ...JSON.parse(JSON.stringify(template.room || {})) });
+    room.id = newId();
+    room.name = template.name;
+    room.role = "transition";
+    room.position = base.position;
+    room.entry = base.entry;
+    return room;
+  }
+
+  function normalizeRoomTemplates(candidate) {
+    const entries = Array.isArray(candidate?.templates) ? candidate.templates : [];
+    const templates = [];
+    for (const entry of entries) {
+      if (!entry || typeof entry !== "object" || !entry.room || typeof entry.room !== "object") continue;
+      const clean = roomTemplateFrom(entry.room, entry.name);
+      clean.id = typeof entry.id === "string" && entry.id ? entry.id : clean.id;
+      templates.push(clean);
+    }
+    return { schemaVersion: ROOM_TEMPLATES_VERSION, templates };
+  }
+
   const LevelFormat = {
     SCHEMA_VERSION,
+    ROOM_TEMPLATES_VERSION,
+    TEMPLATE_ROOM_KEYS,
+    normalizeRoom,
+    roomTemplateFrom,
+    roomFromTemplate,
+    normalizeRoomTemplates,
     ROOM_PRESETS,
     ROLE_LABELS,
     SKY_LABELS,

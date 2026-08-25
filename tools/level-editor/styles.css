@@ -243,6 +243,9 @@ p.alert { margin: 8px 0 0; }
 .room-item.role-start .room-item-role { color: var(--start); }
 .room-item.role-exit .room-item-role { color: var(--exit); }
 .room-item.selected .room-item-button { border-color: var(--accent); color: var(--accent); }
+.template-item-meta { flex: none; color: var(--muted); font-size: 11px; }
+.template-item-delete { opacity: 0; }
+.room-item:hover .template-item-delete { opacity: 1; }
 .room-item-config { opacity: 0; }
 .room-item:hover .room-item-config, .room-item.selected .room-item-config { opacity: 1; }
 

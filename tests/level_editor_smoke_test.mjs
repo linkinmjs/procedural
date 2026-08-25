@@ -23,7 +23,7 @@ for (const id of [
   "texture-fields", "room-list", "connection-list", "level-time-minutes", "level-time-seconds",
   "level-ammo-magazine", "level-ammo-reserve", "level-wall-height", "level-corridor-width",
   "level-has-ceiling", "room-wall-height", "room-wall-height-mode", "room-ceiling",
-  "room-ammo-enabled", "room-ammo-amount", "room-radio-enabled", "room-radio-corner", "facing-compass", "entry-summary",
+  "room-ammo-enabled", "room-ammo-amount", "room-radio-enabled", "room-radio-corner", "template-list", "save-template", "facing-compass", "entry-summary",
   "duplicate-room", "zoom-fit", "import-file", "download-file"
 ]) {
   assert.match(html, new RegExp(`id=["']${id}["']`), `Falta el control #${id}`);
@@ -325,6 +325,26 @@ const corner = waypointLevel([{ x: -11, z: -6.9 }]);
 const cornerPlan = LevelFormat.corridorPlan(corner.rooms[0], corner.rooms[1], corner.connections[0]);
 assert.ok(Math.abs(cornerPlan.points[0].y) <= 7 - 3.5 / 2 - 0.35 + 1e-9, "La puerta no se mete en la esquina");
 
+// La puerta sigue al recorrido: con el punto vecino rodeando la sala, la
+// conexión cambia de pared en vez de atravesar la sala hasta la puerta vieja.
+const rerouted = waypointLevel([{ x: -6, z: 10 }]);
+Object.assign(rerouted.connections[0],
+  LevelFormat.chooseConnectionWalls(rerouted.rooms[0], rerouted.rooms[1], rerouted.connections[0].waypoints));
+assert.equal(rerouted.connections[0].fromWall, "east", "El origen sigue mirando al punto por el este");
+assert.equal(rerouted.connections[0].toWall, "south", "El destino pasa a entrar por el sur, que es lo que mira al punto");
+const reroutedPlan = LevelFormat.corridorPlan(rerouted.rooms[0], rerouted.rooms[1], rerouted.connections[0]);
+const reroutedEnd = reroutedPlan.points.at(-1);
+const reroutedPrevious = reroutedPlan.points.at(-2);
+assert.equal(reroutedEnd.y, 7, "La puerta queda sobre la pared sur");
+assert.equal(reroutedPrevious.x, reroutedEnd.x, "El último tramo entra perpendicular a la pared sur");
+assert.ok(reroutedPrevious.y > reroutedEnd.y, "El pasillo llega desde afuera de la sala, no por adentro");
+assert.deepEqual(
+  LevelFormat.chooseConnectionWalls(rerouted.rooms[0], rerouted.rooms[1], []),
+  { fromWall: "east", toWall: "west" },
+  "Sin puntos las paredes salen de la posición relativa de las salas, como siempre"
+);
+assert.match(script, /refreshConnectionWalls/, "El editor re-deriva las paredes al editar los puntos");
+
 // Una ida y vuelta sobre la misma línea se descarta en lugar de degenerar el
 // contorno del pasillo.
 const spur = waypointLevel([{ x: -10, z: -9 }, { x: -10, z: 0 }]);
@@ -458,6 +478,39 @@ for (const entry of sequenceFile.levels) {
 // selectores de archivo de siempre.
 assert.match(script, /\/api\/levels/, "El editor debe hablar con la API del Workshop");
 assert.match(script, /\/api\/sequence/, "El editor debe poder mantener la secuencia");
+assert.match(script, /\/api\/room-templates/, "El editor debe poder guardar plantillas de sala");
+
+// --- Plantillas de sala ------------------------------------------------------
+
+{
+  const source = LevelFormat.createRoom("large", 1);
+  source.name = "Arena";
+  source.role = "exit";
+  source.radio = { enabled: true, corner: "sw" };
+  source.waves[0].blocks.front.enabled = true;
+  source.waves[0].blocks.front.layers = [LevelFormat.blankLayer(6)];
+  const template = LevelFormat.roomTemplateFrom(source, "Arena doble");
+  assert.equal(template.name, "Arena doble");
+  for (const key of ["id", "position", "role", "entry"]) {
+    assert.ok(!(key in template.room), `La plantilla no guarda ${key}`);
+  }
+  assert.deepEqual(template.room.radio, { enabled: true, corner: "sw" }, "La plantilla conserva la radio");
+  assert.equal(template.room.waves[0].blocks.front.layers[0].windows.normal, 6, "La plantilla conserva las oleadas");
+
+  const inserted = LevelFormat.roomFromTemplate(template, 3);
+  assert.notEqual(inserted.id, source.id, "La sala insertada recibe un id nuevo");
+  assert.equal(inserted.role, "transition", "La sala insertada nunca trae rol");
+  assert.equal(inserted.name, "Arena doble");
+  assert.deepEqual(inserted.size, source.size);
+  assert.equal(inserted.waves[0].blocks.front.layers[0].windows.normal, 6);
+
+  const normalized = LevelFormat.normalizeRoomTemplates({ templates: [template, { name: "rota" }, null] });
+  assert.equal(normalized.templates.length, 1, "Las entradas sin sala se descartan");
+  assert.equal(normalized.schemaVersion, LevelFormat.ROOM_TEMPLATES_VERSION);
+  const templatesFile = JSON.parse(fs.readFileSync("level_designs/room-templates.json", "utf8"));
+  assert.equal(templatesFile.schemaVersion, LevelFormat.ROOM_TEMPLATES_VERSION, "room-templates.json debe estar en la versión actual");
+  assert.ok(Array.isArray(templatesFile.templates));
+}
 for (const id of ["open-file", "open-sequence", "sequence-add-current", "open-dialog", "sequence-dialog", "save-as-file", "current-file"]) {
   assert.match(html, new RegExp(`id=["']${id}["']`), `Falta el control #${id}`);
 }
@@ -492,6 +545,19 @@ try {
   assert.deepEqual(JSON.parse(fs.readFileSync("level_designs/level-sequence.json", "utf8")), sequenceFile,
     "El PUT de la secuencia conserva el contenido");
   fs.writeFileSync("level_designs/level-sequence.json", sequenceRaw);
+
+  // Las plantillas van y vuelven, y el servidor rechaza entradas rotas.
+  const templatesRaw = fs.readFileSync("level_designs/room-templates.json", "utf8");
+  const templatesOverWire = await (await fetch(`${base}/api/room-templates`)).json();
+  assert.deepEqual(templatesOverWire, JSON.parse(templatesRaw), "GET /api/room-templates devuelve el archivo versionado");
+  const putTemplates = await fetch(`${base}/api/room-templates`, { method: "PUT", body: JSON.stringify(templatesOverWire) });
+  assert.equal(putTemplates.status, 200);
+  fs.writeFileSync("level_designs/room-templates.json", templatesRaw);
+  const badTemplates = await fetch(`${base}/api/room-templates`, {
+    method: "PUT",
+    body: JSON.stringify({ schemaVersion: 1, templates: [{ id: "x", name: "" }] })
+  });
+  assert.equal(badTemplates.status, 400, "Las plantillas necesitan id, nombre y sala");
 
   const badSequence = await fetch(`${base}/api/sequence`, {
     method: "PUT",

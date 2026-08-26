@@ -90,6 +90,9 @@ func _fake_summary() -> Dictionary:
 		"best_multiplier": 6.0,
 		"best_chain": 18,
 		"best_bank": 6400,
+		"hits": 52,
+		"attacks": 61,
+		"accuracy_percent": 85.2,
 		"no_damage": true,
 		"record": {"previous": 15240, "delta": 2650, "is_new": true, "had_previous": true},
 	}

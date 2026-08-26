@@ -2,46 +2,30 @@ class_name ScoreHUD
 extends CanvasLayer
 
 ## Lectura del puntaje durante la partida: contador de combo arriba al centro
-## y marcador.
+## y marcador arriba a la derecha.
 ##
 ## El contador dice literalmente pozo x multiplicador para que se lea el trato
 ## que el jugador esta haciendo, y ademas lo celebra: punch al subir de
-## escalon, sacudida al caer, rotura con el costo a la vista cuando la cadena
-## se cierra forzada, y cobro dorado con el numero rodando al limpiar la sala.
+## escalon (con un micro retroceso de anticipacion), sacudida al caer, rotura
+## con el costo a la vista cuando la cadena se cierra forzada, y cobro dorado
+## con el numero rodando al limpiar la sala. Es el focal point del HUD: lo
+## unico grande y en movimiento cerca del centro.
 ##
 ## El desglose del nivel no vive aca: es la pantalla de resultados, que llega
 ## unos segundos despues y ademas deja elegir que hacer con el intento. Tenerlo
 ## en los dos lados contaba dos veces lo mismo.
+##
+## La paleta y los tiempos de animacion salen de HudStyle, la fuente de verdad
+## del lenguaje visual del HUD.
 
-## Color por escalon de la cadena. El ultimo se repite si hay mas escalones.
-const STEP_COLORS: Array[Color] = [
-	Color(0.66, 0.76, 0.84),
-	Color(0.42, 0.90, 1.00),
-	Color(0.36, 1.00, 0.78),
-	Color(0.72, 1.00, 0.38),
-	Color(1.00, 0.90, 0.30),
-	Color(1.00, 0.58, 0.24),
-	Color(1.00, 0.30, 0.42),
-]
 ## Segundos que el cobro queda a la vista despues de cerrar la cadena. Sin esta
 ## pausa el contador desaparece junto con el ultimo objetivo y el jugador nunca
 ## llega a ver cuanto acumulo, que es justo el momento de pago del sistema.
 const BANK_HOLD_SECONDS := 2.5
-const BANK_COLOR := Color(1.00, 0.82, 0.28)
-## Colores del cierre forzado, por motivo: el danio y la trampa duelen en
-## rojo/naranja, el timeout se apaga en gris sin violencia (no fue un golpe).
-const LOST_COLORS := {
-	"damage": Color(1.0, 0.32, 0.32),
-	"trap": Color(1.0, 0.52, 0.2),
-	"timeout": Color(0.55, 0.6, 0.65),
-	"round_ended": Color(0.55, 0.6, 0.65),
-}
 ## Debajo de esta fraccion del timer, la barra entra en modo urgencia.
 const TIMER_DANGER_RATIO := 0.25
 ## Un acierto con el timer por debajo de esto es una "salvada" y se celebra.
 const SAVE_RATIO := 0.15
-const TIMER_BASE_COLOR := Color(0.36, 0.92, 1.0)
-const TIMER_DANGER_COLOR := Color(1.0, 0.32, 0.28)
 
 @onready var combo_box: Control = %ComboBox
 @onready var hits_value: Label = %HitsValue
@@ -49,6 +33,7 @@ const TIMER_DANGER_COLOR := Color(1.0, 0.32, 0.28)
 @onready var chain_timer: ProgressBar = %ChainTimer
 @onready var pending_value: Label = %PendingValue
 @onready var score_value: Label = %ScoreValue
+@onready var score_panel: Control = %ScorePanel
 
 var _controller: ScoreController
 var _bank_hold_remaining := 0.0
@@ -61,18 +46,16 @@ var _punch_tween: Tween
 var _shake_tween: Tween
 var _shake_base_x := 0.0
 var _score_tween: Tween
+var _score_punch_tween: Tween
 var _pending_tween: Tween
 var _color_tween: Tween
+var _fade_tween: Tween
 var _timer_fill: StyleBoxFlat
 
 
 func _ready() -> void:
 	set_process(false)
 	combo_box.visible = false
-	# LabelSettings pisa a modulate y a los overrides de theme, asi que el color
-	# del contador se escribe ahi. Se duplica para no tocar el recurso compartido.
-	hits_value.label_settings = hits_value.label_settings.duplicate()
-	multiplier_value.label_settings = multiplier_value.label_settings.duplicate()
 	_timer_fill = chain_timer.get("theme_override_styles/fill") as StyleBoxFlat
 	_bind_available_controller.call_deferred()
 
@@ -85,7 +68,7 @@ func _process(delta: float) -> void:
 		return
 	set_process(false)
 	if _controller == null or (_controller.chain_hits <= 0 and _controller.pot <= 0):
-		combo_box.visible = false
+		_hide_combo()
 
 
 func bind(controller: ScoreController) -> void:
@@ -100,6 +83,7 @@ func bind(controller: ScoreController) -> void:
 	_shown_score = float(controller.total_score)
 	score_value.text = ScoreBreakdown.thousands(controller.total_score)
 	_on_chain_changed(controller.chain_hits, controller.get_multiplier(), controller.pot)
+	_play_entrance()
 
 
 ## Solo busca controlador si nadie lo asigno antes: un bind explicito manda
@@ -113,14 +97,47 @@ func _bind_available_controller() -> void:
 			return
 
 
-## El total nunca salta: rueda hasta el valor nuevo, para que se vea que el
-## marcador esta cobrando.
+## El marcador entra desde su borde, en la misma cascada que el resto de los
+## paneles del HUD (el stagger lo pone en segundo lugar).
+func _play_entrance() -> void:
+	await get_tree().process_frame
+	# Un reinicio del nivel puede liberar el HUD entre el bind y este frame; la
+	# continuacion del await no debe tocar nodos muertos.
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	var base := score_panel.position
+	score_panel.modulate.a = 0.0
+	var tween := create_tween()
+	tween.tween_interval(HudStyle.STAGGER)
+	tween.tween_callback(func() -> void: score_panel.position = base + Vector2(HudStyle.SLIDE_DISTANCE, 0.0))
+	tween.set_parallel(true)
+	tween.tween_property(score_panel, "modulate:a", 1.0, HudStyle.DUR_SLIDE_IN)
+	tween.tween_property(score_panel, "position", base, HudStyle.DUR_SLIDE_IN) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+## El total nunca salta: rueda hasta el valor nuevo con un punch corto, para
+## que se vea y se sienta que el marcador esta cobrando.
 func _on_score_changed(total: int) -> void:
 	if _score_tween != null:
 		_score_tween.kill()
 	_score_tween = create_tween()
-	_score_tween.tween_method(_set_shown_score, _shown_score, float(total), 0.4) \
+	_score_tween.tween_method(_set_shown_score, _shown_score, float(total), HudStyle.DUR_ROLL) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if float(total) > _shown_score:
+		_punch_score()
+
+
+func _punch_score() -> void:
+	if _score_punch_tween != null:
+		_score_punch_tween.kill()
+	# El numero esta alineado a la derecha: el pivote va al borde derecho para
+	# que el punch no lo despegue de su columna.
+	score_value.pivot_offset = Vector2(score_value.size.x, score_value.size.y * 0.5)
+	score_value.scale = Vector2.ONE * 1.12
+	_score_punch_tween = create_tween()
+	_score_punch_tween.tween_property(score_value, "scale", Vector2.ONE, HudStyle.DUR_PUNCH) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _set_shown_score(value: float) -> void:
@@ -138,11 +155,12 @@ func _on_chain_changed(hits: int, multiplier: float, pot: int) -> void:
 		return
 	_bank_hold_remaining = 0.0
 	set_process(false)
-	combo_box.visible = is_live
 	if not is_live:
+		_hide_combo()
 		_last_step = 0
 		_last_hits = 0
 		return
+	_show_combo()
 	hits_value.text = tr("HUD_HITS").format({"hits": hits})
 	multiplier_value.text = "x%.1f" % multiplier
 	pending_value.text = "%s x %.1f = %s" % [ScoreBreakdown.thousands(pot), multiplier, ScoreBreakdown.thousands(roundi(pot * multiplier))]
@@ -160,8 +178,8 @@ func _on_chain_changed(hits: int, multiplier: float, pot: int) -> void:
 	_last_hits = hits
 
 
-## Subir de escalon: punch de escala y destello de blanco al color nuevo, con
-## el pitch del sonido subiendo escalon a escalon.
+## Subir de escalon: punch de escala con anticipacion y destello de blanco al
+## color nuevo, con el pitch del sonido subiendo escalon a escalon.
 func _celebrate_step_up(step: int, color: Color) -> void:
 	Sfx.play("combo_step_up", 1.0 + step * 0.12)
 	_paint_counter(Color.WHITE)
@@ -169,7 +187,7 @@ func _celebrate_step_up(step: int, color: Color) -> void:
 		_color_tween.kill()
 	_color_tween = create_tween()
 	_color_tween.tween_method(_paint_counter_lerp.bind(Color.WHITE, color), 0.0, 1.0, 0.3)
-	_punch(1.28)
+	_punch(1.28, true)
 
 
 ## Caer de escalon: sacudida horizontal y destello rojo. Tiene que doler un
@@ -206,7 +224,7 @@ func _on_chain_timer_changed(remaining: float, window: float) -> void:
 func _update_timer_urgency(remaining: float) -> void:
 	if _timer_fill != null:
 		var danger := 1.0 - clampf(_last_timer_ratio / 0.5, 0.0, 1.0)
-		_timer_fill.bg_color = TIMER_BASE_COLOR.lerp(TIMER_DANGER_COLOR, danger)
+		_timer_fill.bg_color = HudStyle.TIMER_BASE_COLOR.lerp(HudStyle.TIMER_DANGER_COLOR, danger)
 	if _last_timer_ratio < TIMER_DANGER_RATIO and remaining > 0.0:
 		var pulse := 0.65 + 0.35 * absf(sin(Time.get_ticks_msec() * 0.012))
 		chain_timer.modulate = Color(1.0, 1.0, 1.0, pulse)
@@ -225,7 +243,7 @@ func _update_timer_urgency(remaining: float) -> void:
 ## cuanto costo cobrarse a x1.
 func _on_chain_banked(hits: int, pot: int, multiplier: float, awarded: int, reason: String) -> void:
 	if pot == 0 and hits == 0:
-		combo_box.visible = false
+		_hide_combo()
 		return
 	# Un roll de un cobro anterior todavia corriendo pisaria el texto de este
 	# cierre: se corta antes de escribir nada.
@@ -234,7 +252,7 @@ func _on_chain_banked(hits: int, pot: int, multiplier: float, awarded: int, reas
 	# El fundido de color de un escalon tampoco puede pisar el color del cierre.
 	if _color_tween != null:
 		_color_tween.kill()
-	combo_box.visible = true
+	_show_combo()
 	hits_value.text = tr("HUD_HITS").format({"hits": hits})
 	multiplier_value.text = "x%.1f" % multiplier
 	chain_timer.value = 0.0
@@ -245,14 +263,14 @@ func _on_chain_banked(hits: int, pot: int, multiplier: float, awarded: int, reas
 	_last_hits = 0
 	if reason == ScoreController.REASON_ROOM_CLEARED:
 		Sfx.play("bank")
-		_paint_counter(BANK_COLOR)
+		_paint_counter(HudStyle.ACCENT_GOLD)
 		_punch(1.35)
 		_roll_pending(pot, multiplier, awarded)
 		return
 	# Cierre forzado: se pago a x1. El costo de oportunidad se muestra, porque
 	# es el motivador real para cuidar la racha.
 	Sfx.play("chain_lost")
-	var color: Color = LOST_COLORS.get(reason, LOST_COLORS["timeout"])
+	var color: Color = HudStyle.LOST_COLORS.get(reason, HudStyle.LOST_COLORS["timeout"])
 	_paint_counter(color)
 	var lost := 0
 	if _controller != null and _controller.settings != null:
@@ -281,16 +299,48 @@ func _roll_pending(pot: int, multiplier: float, awarded: int) -> void:
 ## cadena a la vista. El desglose llega despues, en la pantalla de resultados.
 func _on_level_scored(_summary: Dictionary) -> void:
 	if _bank_hold_remaining <= 0.0:
+		_hide_combo()
+
+
+## El contador aparece de una: cuando arranca una cadena tiene que estar ya,
+## no llegando.
+func _show_combo() -> void:
+	if _fade_tween != null:
+		_fade_tween.kill()
+		_fade_tween = null
+	combo_box.visible = true
+	combo_box.modulate.a = 1.0
+
+
+## Retirarse si es con un fade corto: desaparecer seco en el centro de la
+## pantalla se lee como un glitch.
+func _hide_combo() -> void:
+	if not combo_box.visible:
+		return
+	if _fade_tween != null:
+		return
+	_fade_tween = create_tween()
+	_fade_tween.tween_property(combo_box, "modulate:a", 0.0, HudStyle.DUR_HIDE)
+	_fade_tween.tween_callback(func() -> void:
 		combo_box.visible = false
+		combo_box.modulate.a = 1.0
+		_fade_tween = null)
 
 
-func _punch(peak: float) -> void:
+## Punch de escala del contador. Con anticipacion, retrocede un instante antes
+## de golpear: el "wind up" hace que el golpe se lea mas grande.
+func _punch(peak: float, anticipate := false) -> void:
 	if _punch_tween != null:
 		_punch_tween.kill()
 	combo_box.pivot_offset = combo_box.size * 0.5
-	combo_box.scale = Vector2.ONE * peak
 	_punch_tween = create_tween()
-	_punch_tween.tween_property(combo_box, "scale", Vector2.ONE, 0.22) \
+	if anticipate:
+		combo_box.scale = Vector2.ONE * 0.96
+		_punch_tween.tween_interval(HudStyle.DUR_ANTICIPATION)
+		_punch_tween.tween_callback(func() -> void: combo_box.scale = Vector2.ONE * peak)
+	else:
+		combo_box.scale = Vector2.ONE * peak
+	_punch_tween.tween_property(combo_box, "scale", Vector2.ONE, HudStyle.DUR_PUNCH) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
@@ -308,9 +358,11 @@ func _shake() -> void:
 	_shake_tween.tween_property(combo_box, "position:x", _shake_base_x, 0.04)
 
 
+## El color del contador es estado de juego (escalon de la cadena), asi que se
+## pinta por override de theme y no en el recurso compartido.
 func _paint_counter(color: Color) -> void:
-	hits_value.label_settings.font_color = color
-	multiplier_value.label_settings.font_color = color
+	hits_value.add_theme_color_override("font_color", color)
+	multiplier_value.add_theme_color_override("font_color", color)
 
 
 func _paint_counter_lerp(weight: float, from: Color, to: Color) -> void:
@@ -324,4 +376,4 @@ func _step_for_hits(hits: int) -> int:
 
 
 func _color_for_step(hits: int) -> Color:
-	return STEP_COLORS[clampi(_step_for_hits(hits), 0, STEP_COLORS.size() - 1)]
+	return HudStyle.STEP_COLORS[clampi(_step_for_hits(hits), 0, HudStyle.STEP_COLORS.size() - 1)]

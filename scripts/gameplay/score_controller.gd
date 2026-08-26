@@ -305,6 +305,11 @@ func _on_round_ended(reason: String) -> void:
 		"rooms_clean": _rooms_clean,
 		"rooms_perfect": _rooms_perfect,
 		"no_damage": _level_damage <= 0.0,
+		# La precision vive solo aca: el HUD en vivo no la muestra y la pantalla
+		# de resultados la lee de este resumen.
+		"hits": _controller.hits,
+		"attacks": _controller.attacks,
+		"accuracy_percent": _controller.get_accuracy_percent(),
 	}
 	summary["record"] = _store_record(summary)
 	_log(tr("LOG_SCORE").format({"score": total_score, "rank": str(rank.letter)}), "system")

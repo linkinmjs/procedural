@@ -16,9 +16,11 @@ extends CyberPanel
 signal close_requested
 
 const THEME := preload("res://resources/themes/game_theme.tres")
-const HEADER_COLOR := Color(0.18, 0.9, 1, 1)
+## Colores desde HudStyle: el marco de la pausa y los resultados es la misma
+## interfaz que el HUD del nivel.
+const HEADER_COLOR := HudStyle.ACCENT
 const HEADER_FONT_SIZE := 11
-const CLOSE_COLOR := Color(0.42, 0.9, 1, 1)
+const CLOSE_COLOR := HudStyle.ACCENT
 const CLOSE_HOVER_COLOR := Color(1, 0.3, 0.36, 1)
 const CONTENT_SEPARATION := 8
 ## El _draw de CyberPanel apoya su marca sobre el borde superior, asi que el

@@ -2158,42 +2158,6 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="debug_hud" type="VBoxContainer" parent="CanvasLayer" unique_id=1273329344]
-visible = false
-anchors_preset = 9
-anchor_bottom = 1.0
-grow_vertical = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/debug_hud" unique_id=1270679337]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CanvasLayer/debug_hud/HBoxContainer" unique_id=511066385]
-layout_mode = 2
-text = "Current Weapon: "
-
-[node name="CurrentWeapon" type="Label" parent="CanvasLayer/debug_hud/HBoxContainer" unique_id=1914307984]
-layout_mode = 2
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/debug_hud" unique_id=719618350]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CanvasLayer/debug_hud/HBoxContainer2" unique_id=2111135313]
-layout_mode = 2
-text = "Ammo:"
-
-[node name="CurrentAmmo" type="Label" parent="CanvasLayer/debug_hud/HBoxContainer2" unique_id=1310381806]
-layout_mode = 2
-
-[node name="HBoxContainer3" type="HBoxContainer" parent="CanvasLayer/debug_hud" unique_id=26783440]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CanvasLayer/debug_hud/HBoxContainer3" unique_id=720441406]
-layout_mode = 2
-text = "Weapon Stack:"
-
-[node name="WeaponStack" type="Label" parent="CanvasLayer/debug_hud/HBoxContainer3" unique_id=146785852]
-layout_mode = 2
-
 [node name="MainSight" type="TextureRect" parent="CanvasLayer" unique_id=1237019041]
 anchors_preset = 8
 anchor_left = 0.5
@@ -2235,10 +2199,6 @@ grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("4_l32wb")
 stretch_mode = 3
-
-[node name="HitSightTimer" type="Timer" parent="CanvasLayer/HitSight" unique_id=651597527]
-wait_time = 0.05
-one_shot = true
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="CanvasLayer" unique_id=79080726]
 visible = false
@@ -2432,13 +2392,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
 shape = SubResource("SphereShape3D_cx3sy")
 target_position = Vector3(0, 0.4, 0)
 
-[connection signal="timeout" from="CanvasLayer/HitSight/HitSightTimer" to="CanvasLayer" method="_on_hit_sight_timer_timeout"]
 [connection signal="add_signal_to_hud" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_add_signal_to_hud"]
 [connection signal="connect_weapon_to_hud" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_connect_weapon_to_hud"]
 [connection signal="hit_successfull" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_hit_successfull"]
-[connection signal="update_ammo" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_update_ammo"]
 [connection signal="spread_changed" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_spread_changed"]
 [connection signal="aim_changed" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_aim_changed"]
-[connection signal="update_weapon_stack" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_update_weapon_stack"]
-[connection signal="weapon_changed" from="Camera/LeanPivot/MainCamera/Weapons_Manager" to="CanvasLayer" method="_on_weapons_manager_weapon_changed"]
 [connection signal="body_entered" from="PickUpDetection" to="Camera/LeanPivot/MainCamera/Weapons_Manager" method="_on_pick_up_detection_body_entered"]

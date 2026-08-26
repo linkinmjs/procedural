@@ -217,12 +217,11 @@ Jolt, capas segmentadas, audio pooleado en `Sfx`, materiales cacheados en
   **Fix:** `if not enable_lean: return`, paths como
   `const LEFT_BLEND := &"parameters/left_collision_blend/blend_amount"`, y
   saltear cuando ambos blends ya están en 0 sin colisión.
-- [ ] Señales emitidas cada frame que terminan formateando strings:
-  `scripts/gameplay/round_controller.gd:47` emite `time_changed` y
-  `scripts/ui/game_hud.gd:68` responde con `"%02d:%02d" % [...]` + `Label.text`
-  (re-shape) 60 veces por segundo para un valor que cambia una vez por
-  segundo. Ídem `chain_timer_changed` en `score_controller.gd:77`.
-  **Fix:** `_last_seconds := -1` en el HUD y salir temprano si no cambió.
+- [x] Señales emitidas cada frame que terminan formateando strings:
+  `time_changed` + formato `"%02d:%02d"` 60 veces por segundo.
+  **Resuelto (rediseño HUD):** `game_hud.gd` guarda `_last_seconds` y sale
+  temprano si el segundo no cambió. Pendiente el gemelo `chain_timer_changed`
+  en `score_controller.gd:77` (la barra sí consume el valor continuo).
 - [ ] `scripts/targets/target_ball.gd:58-93` y `:114-125` — cada bola
   destruida construye `GPUParticles3D` + `ParticleProcessMaterial` +
   `BoxMesh` + `StandardMaterial3D` desde cero, y cada bola viva duplica mesh y
@@ -251,10 +250,10 @@ Jolt, capas segmentadas, audio pooleado en `Sfx`, materiales cacheados en
   recalcula una raíz por frame sobre un vector constante.
   **Fix:** `set_physics_process(moves_to_opposite_side)` en `_ready()` (como
   hace `room_door_3d.gd:49`) y normalizar una vez.
-- [ ] `scripts/ui/game_hud.gd:86-92` — cada línea de log reconstruye el
-  `RichTextLabel.text` completo (`Color.to_html` + timestamp + format + join),
-  forzando el reparseo total del BBCode; se dispara por impacto.
-  **Fix:** `append_text()` + `remove_paragraph(0)`.
+- [x] `game_hud.gd` — cada línea de log reconstruía el `RichTextLabel.text`
+  completo con reparseo total del BBCode.
+  **Resuelto (rediseño HUD):** el log ahora es un `VBoxContainer` de Labels
+  individuales; cada línea entra, vive y muere sola sin tocar a las demás.
 - [ ] `scripts/sandbox/block_lab.gd:333` — `use_collision = true` por caja (6
   trimeshes en 6 StaticBody) donde alcanza un `StaticBody3D` con 6
   `BoxShape3D`. Es sandbox, pero es la escena donde se miden los bloques.
@@ -290,8 +289,9 @@ Jolt, capas segmentadas, audio pooleado en `Sfx`, materiales cacheados en
   salto vía `lean(CENTRE)`), `weapon_state_machine.gd:146` (uno por suelta de
   gatillo), `window_panel_3d.gd:327,345` (dos por impacto en ventana).
   **Fix:** reutilizar un tween cacheado o `lerp` manual donde sea continuo.
-- [ ] `scripts/player/hud.gd:33-36` — `current_weapon_stack.text += ...` en
-  bucle: N re-shapes del Label. **Fix:** `PackedStringArray` + un solo `join`.
+- [x] `scripts/player/hud.gd` — `current_weapon_stack.text += ...` en bucle.
+  **Resuelto (rediseño HUD):** el `debug_hud` completo se eliminó junto con sus
+  conexiones y handlers; la munición real ya viajaba por `RoundController`.
 - [ ] `String` donde va `StringName` en hot paths: `is_in_group("Target")` en
   `projectile.gd` y `weapon_state_machine.gd:350`, `const TARGET_GROUP :=
   "Target"` en `window_panel_3d.gd:30`, `Input.get_vector("left",...)` /

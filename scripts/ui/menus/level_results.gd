@@ -14,8 +14,8 @@ const ROW_INTERVAL := 0.12
 ## nivel: la pantalla de resultados es la ultima pagina de la partida, no una
 ## ventana del sistema.
 const VALUE_COLORS := {
-	ScoreBreakdown.Kind.TOTAL: Color(1, 0.82, 0.28),
-	ScoreBreakdown.Kind.RECORD: Color(0.46, 1, 0.56),
+	ScoreBreakdown.Kind.TOTAL: HudStyle.ACCENT_GOLD,
+	ScoreBreakdown.Kind.RECORD: HudStyle.SUCCESS,
 }
 
 var _summary: Dictionary = {}

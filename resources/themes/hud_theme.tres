@@ -1,0 +1,62 @@
+[gd_resource type="Theme" load_steps=6 format=3]
+
+[ext_resource type="FontFile" uid="uid://rw321d7g8env" path="res://assets/fonts/hud/Charge Vector.otf" id="1_regular"]
+[ext_resource type="FontFile" uid="uid://6o4q4pdd0qhi" path="res://assets/fonts/hud/Charge Vector Bold.otf" id="2_bold"]
+[ext_resource type="FontFile" uid="uid://dg4c2l241n1qt" path="res://assets/fonts/hud/Charge Vector Black.otf" id="3_black"]
+[ext_resource type="FontFile" uid="uid://h28opnvgb25q" path="res://assets/fonts/hud/CQ Mono.otf" id="4_mono"]
+
+[sub_resource type="StyleBoxFlat" id="PanelDark"]
+bg_color = Color(0.015, 0.025, 0.045, 0.93)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.08, 0.46, 0.58, 0.85)
+
+[resource]
+default_font = ExtResource("1_regular")
+default_font_size = 13
+HudComboHits/base_type = &"Label"
+HudComboHits/colors/font_color = Color(0.42, 0.9, 1, 1)
+HudComboHits/colors/font_outline_color = Color(0, 0, 0, 0.75)
+HudComboHits/constants/outline_size = 6
+HudComboHits/font_sizes/font_size = 44
+HudComboHits/fonts/font = ExtResource("3_black")
+HudComboMult/base_type = &"Label"
+HudComboMult/colors/font_color = Color(0.42, 0.9, 1, 1)
+HudComboMult/colors/font_outline_color = Color(0, 0, 0, 0.75)
+HudComboMult/constants/outline_size = 5
+HudComboMult/font_sizes/font_size = 30
+HudComboMult/fonts/font = ExtResource("3_black")
+HudHeader/base_type = &"Label"
+HudHeader/colors/font_color = Color(0.42, 0.9, 1, 1)
+HudHeader/font_sizes/font_size = 11
+HudLog/base_type = &"Label"
+HudLog/colors/font_color = Color(0.66, 0.82, 0.88, 1)
+HudLog/font_sizes/font_size = 12
+HudLog/fonts/font = ExtResource("4_mono")
+HudPending/base_type = &"Label"
+HudPending/colors/font_color = Color(0.78, 0.88, 0.96, 1)
+HudPending/colors/font_outline_color = Color(0, 0, 0, 0.75)
+HudPending/constants/outline_size = 4
+HudPending/font_sizes/font_size = 14
+HudPending/fonts/font = ExtResource("4_mono")
+HudRowLabel/base_type = &"Label"
+HudRowLabel/colors/font_color = Color(0.42, 0.9, 1, 1)
+HudRowLabel/font_sizes/font_size = 12
+HudScore/base_type = &"Label"
+HudScore/colors/font_color = Color(0.86, 0.96, 1, 1)
+HudScore/font_sizes/font_size = 26
+HudScore/fonts/font = ExtResource("2_bold")
+HudTitle/base_type = &"Label"
+HudTitle/colors/font_color = Color(0.42, 0.9, 1, 1)
+HudTitle/font_sizes/font_size = 20
+HudTitle/fonts/font = ExtResource("2_bold")
+HudStatus/base_type = &"Label"
+HudStatus/colors/font_color = Color(0.46, 1, 0.56, 1)
+HudStatus/font_sizes/font_size = 10
+HudValue/base_type = &"Label"
+HudValue/colors/font_color = Color(0.86, 0.96, 1, 1)
+HudValue/font_sizes/font_size = 18
+HudValue/fonts/font = ExtResource("2_bold")
+PanelContainer/styles/panel = SubResource("PanelDark")

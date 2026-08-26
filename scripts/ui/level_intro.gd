@@ -21,9 +21,11 @@ const LAYER := 64
 const FADE_IN := 0.5
 const HOLD := 1.15
 const FADE_OUT := 0.55
-const VEIL_COLOR := Color(0.01, 0.02, 0.04, 1.0)
-const TITLE_COLOR := Color(0.42, 0.9, 1, 1)
-const SUBTITLE_COLOR := Color(0.55, 0.68, 0.78, 1)
+## Los colores salen de HudStyle: la presentacion habla el mismo idioma visual
+## que el HUD que va a quedar en pantalla cuando ella se retire.
+const VEIL_COLOR := Color(HudStyle.VEIL, 1.0)
+const TITLE_COLOR := HudStyle.ACCENT
+const SUBTITLE_COLOR := HudStyle.TEXT_FAINT
 const TITLE_FONT_SIZE := 52
 const SUBTITLE_FONT_SIZE := 15
 const RULE_SIZE := Vector2(160.0, 2.0)

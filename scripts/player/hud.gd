@@ -2,11 +2,7 @@ extends CanvasLayer
 
 @onready var spread_sight: DynamicCrosshair = $SpreadSight
 @onready var main_sight: TextureRect = $MainSight
-@onready var current_weapon_label = $debug_hud/HBoxContainer/CurrentWeapon
-@onready var current_ammo_label = $debug_hud/HBoxContainer2/CurrentAmmo
-@onready var current_weapon_stack = $debug_hud/HBoxContainer3/WeaponStack
 @onready var hit_sight = $HitSight
-@onready var hit_sight_timer = $HitSight/HitSightTimer
 @onready var overLay = $Overlay
 
 var _hit_tween: Tween
@@ -38,20 +34,6 @@ func _on_weapons_manager_aim_changed(blend: float) -> void:
 	main_sight.modulate.a = alpha
 	spread_sight.modulate.a = alpha
 
-
-func _on_weapons_manager_update_weapon_stack(WeaponStack):
-	current_weapon_stack.text = ""
-	for i in WeaponStack:
-		current_weapon_stack.text += "\n"+i.weapon.weapon_name
-
-func _on_weapons_manager_update_ammo(Ammo):
-	current_ammo_label.set_text(str(Ammo[0])+" / "+str(Ammo[1]))
-
-func _on_weapons_manager_weapon_changed(WeaponName):
-	current_weapon_label.set_text(WeaponName)
-
-func _on_hit_sight_timer_timeout():
-	hit_sight.set_visible(false)
 
 func _on_weapons_manager_add_signal_to_hud(_projectile):
 	_projectile.Hit_Successfull.connect(_on_weapons_manager_hit_successfull)

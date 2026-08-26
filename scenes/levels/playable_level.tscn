@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://d0jhqxnwibyw6" path="res://scripts/levels/playable_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://scenes/ui/round_hud.tscn" id="2_hud"]
+[ext_resource type="Script" path="res://scripts/ui/level_info_panel.gd" id="3_info"]
+[ext_resource type="Theme" path="res://resources/themes/hud_theme.tres" id="4_theme"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.025, 0.045, 0.08, 1)
@@ -19,22 +21,6 @@ ambient_light_source = 3
 ambient_light_color = Color(0.48, 0.65, 0.78, 1)
 ambient_light_energy = 0.9
 tonemap_mode = 2
-
-[sub_resource type="StyleBoxFlat" id="InfoPanelStyle"]
-bg_color = Color(0.012, 0.025, 0.045, 0.9)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0.82, 1, 0.8)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-
-[sub_resource type="LabelSettings" id="TitleSettings"]
-font_size = 20
-font_color = Color(0.12, 0.9, 1, 1)
 
 [node name="PlayableLevel" type="Node3D" unique_id=1746679366 groups=["World"]]
 script = ExtResource("1_level")
@@ -61,32 +47,60 @@ unique_name_in_owner = true
 [node name="LevelInterface" type="CanvasLayer" parent="." unique_id=2000195708]
 layer = 10
 
-[node name="Panel" type="PanelContainer" parent="LevelInterface" unique_id=1704019753]
-offset_left = 18.0
-offset_top = 18.0
-offset_right = 455.0
-offset_bottom = 94.0
-theme_override_styles/panel = SubResource("InfoPanelStyle")
+[node name="HudRoot" type="Control" parent="LevelInterface"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("4_theme")
 
-[node name="Margin" type="MarginContainer" parent="LevelInterface/Panel" unique_id=798263445]
+[node name="SafeArea" type="MarginContainer" parent="LevelInterface/HudRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="Layout" type="Control" parent="LevelInterface/HudRoot/SafeArea"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="LevelInterface/HudRoot/SafeArea/Layout" unique_id=1704019753]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 1
+offset_right = 260.0
+offset_bottom = 58.0
+mouse_filter = 2
+script = ExtResource("3_info")
+accent_color = Color(0, 0.88, 1, 1)
+
+[node name="Margin" type="MarginContainer" parent="LevelInterface/HudRoot/SafeArea/Layout/Panel" unique_id=798263445]
 layout_mode = 2
 theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 9
+theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 9
+theme_override_constants/margin_bottom = 10
 
-[node name="VBox" type="VBoxContainer" parent="LevelInterface/Panel/Margin" unique_id=574967680]
+[node name="VBox" type="VBoxContainer" parent="LevelInterface/HudRoot/SafeArea/Layout/Panel/Margin" unique_id=574967680]
 layout_mode = 2
 
-[node name="LevelNameLabel" type="Label" parent="LevelInterface/Panel/Margin/VBox" unique_id=2008276500]
+[node name="LevelNameLabel" type="Label" parent="LevelInterface/HudRoot/SafeArea/Layout/Panel/Margin/VBox" unique_id=2008276500]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"HudTitle"
 text = "LOADING LEVEL"
-label_settings = SubResource("TitleSettings")
 
-[node name="StatusLabel" type="Label" parent="LevelInterface/Panel/Margin/VBox" unique_id=1511874363]
+[node name="StatusLabel" type="Label" parent="LevelInterface/HudRoot/SafeArea/Layout/Panel/Margin/VBox" unique_id=1511874363]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.76, 0.84, 1)
-theme_override_font_sizes/font_size = 11
+theme_type_variation = &"HudStatus"
 text = "READING JSON DEFINITION..."

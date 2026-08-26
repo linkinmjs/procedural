@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/round_controller.gd" id="1_round"]
 [ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="2_hud"]
@@ -6,14 +6,7 @@
 [ext_resource type="Script" path="res://scripts/gameplay/score_controller.gd" id="4_score"]
 [ext_resource type="Resource" path="res://resources/gameplay/score_settings.tres" id="5_score_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/score_hud.tscn" id="6_score_hud"]
-
-[sub_resource type="StyleBoxFlat" id="PanelDark"]
-bg_color = Color(0.015, 0.025, 0.045, 0.93)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.08, 0.46, 0.58, 0.85)
+[ext_resource type="Theme" path="res://resources/themes/hud_theme.tres" id="7_theme"]
 
 [sub_resource type="StyleBoxFlat" id="HealthBackground"]
 bg_color = Color(0.025, 0.08, 0.12, 1)
@@ -24,19 +17,8 @@ border_width_bottom = 1
 border_color = Color(0.05, 0.35, 0.45, 1)
 
 [sub_resource type="StyleBoxFlat" id="HealthFill"]
-bg_color = Color(0.0, 0.82, 1, 1)
-
-[sub_resource type="LabelSettings" id="HeaderSettings"]
-font_size = 11
-font_color = Color(0.18, 0.9, 1, 1)
-
-[sub_resource type="LabelSettings" id="AccuracySettings"]
-font_size = 31
-font_color = Color(1, 0.24, 0.2, 1)
-
-[sub_resource type="LabelSettings" id="ValueSettings"]
-font_size = 18
-font_color = Color(0.86, 0.96, 1, 1)
+resource_local_to_scene = true
+bg_color = Color(0, 0.82, 1, 1)
 
 [node name="RoundHUD" type="Node"]
 
@@ -56,183 +38,151 @@ settings = ExtResource("5_score_settings")
 layer = 20
 script = ExtResource("2_hud")
 
-[node name="BottomBar" type="MarginContainer" parent="GameHUD"]
-anchors_preset = 12
-anchor_top = 1.0
+[node name="HudRoot" type="Control" parent="GameHUD"]
+layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -205.0
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 22
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 22
-theme_override_constants/margin_bottom = 20
+theme = ExtResource("7_theme")
 
-[node name="Panels" type="HBoxContainer" parent="GameHUD/BottomBar"]
-layout_mode = 2
-theme_override_constants/separation = 12
+[node name="SafeArea" type="MarginContainer" parent="GameHUD/HudRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
 
-[node name="LogPanel" type="PanelContainer" parent="GameHUD/BottomBar/Panels"]
-custom_minimum_size = Vector2(345, 0)
+[node name="Layout" type="Control" parent="GameHUD/HudRoot/SafeArea"]
 layout_mode = 2
+mouse_filter = 2
+
+[node name="VitalsSlot" type="VBoxContainer" parent="GameHUD/HudRoot/SafeArea/Layout"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 250.0
+grow_vertical = 2
+mouse_filter = 2
+alignment = 2
+
+[node name="VitalsPanel" type="PanelContainer" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
 script = ExtResource("3_panel")
-accent_color = Color(0.0, 0.88, 1, 1)
-theme_override_styles/panel = SubResource("PanelDark")
+accent_color = Color(0, 0.88, 1, 1)
 
-[node name="Margin" type="MarginContainer" parent="GameHUD/BottomBar/Panels/LogPanel"]
+[node name="Margin" type="MarginContainer" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 14
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 14
 theme_override_constants/margin_bottom = 10
 
-[node name="VBox" type="VBoxContainer" parent="GameHUD/BottomBar/Panels/LogPanel/Margin"]
+[node name="VBox" type="VBoxContainer" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Header" type="Label" parent="GameHUD/BottomBar/Panels/LogPanel/Margin/VBox"]
-layout_mode = 2
-text = "HUD_EVENT_LOG"
-label_settings = SubResource("HeaderSettings")
-
-[node name="Divider" type="HSeparator" parent="GameHUD/BottomBar/Panels/LogPanel/Margin/VBox"]
+[node name="HealthRow" type="HBoxContainer" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel/Margin/VBox"]
 layout_mode = 2
 
-[node name="LogFeed" type="RichTextLabel" parent="GameHUD/BottomBar/Panels/LogPanel/Margin/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-bbcode_enabled = true
-fit_content = true
-scroll_active = false
-text = "HUD_SYSTEM_ONLINE"
-theme_override_colors/default_color = Color(0.66, 0.82, 0.88, 1)
-theme_override_font_sizes/normal_font_size = 12
-
-[node name="AccuracyPanel" type="PanelContainer" parent="GameHUD/BottomBar/Panels"]
-custom_minimum_size = Vector2(160, 0)
-layout_mode = 2
-script = ExtResource("3_panel")
-accent_color = Color(1, 0.22, 0.28, 1)
-theme_override_styles/panel = SubResource("PanelDark")
-
-[node name="Margin" type="MarginContainer" parent="GameHUD/BottomBar/Panels/AccuracyPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 10
-
-[node name="VBox" type="VBoxContainer" parent="GameHUD/BottomBar/Panels/AccuracyPanel/Margin"]
-layout_mode = 2
-alignment = 1
-
-[node name="Header" type="Label" parent="GameHUD/BottomBar/Panels/AccuracyPanel/Margin/VBox"]
-layout_mode = 2
-text = "HUD_PRECISION"
-label_settings = SubResource("HeaderSettings")
-
-[node name="AccuracyValue" type="Label" parent="GameHUD/BottomBar/Panels/AccuracyPanel/Margin/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "0.0%"
-label_settings = SubResource("AccuracySettings")
-horizontal_alignment = 1
-
-[node name="AccuracyDetail" type="Label" parent="GameHUD/BottomBar/Panels/AccuracyPanel/Margin/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "HUD_HIT_SHOT"
-horizontal_alignment = 1
-theme_override_colors/font_color = Color(0.65, 0.72, 0.8, 1)
-theme_override_font_sizes/font_size = 10
-
-[node name="Spacer" type="Control" parent="GameHUD/BottomBar/Panels"]
+[node name="HealthLabel" type="Label" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel/Margin/VBox/HealthRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-mouse_filter = 2
-
-[node name="VitalsPanel" type="PanelContainer" parent="GameHUD/BottomBar/Panels"]
-custom_minimum_size = Vector2(290, 0)
-layout_mode = 2
-script = ExtResource("3_panel")
-accent_color = Color(0.0, 0.88, 1, 1)
-theme_override_styles/panel = SubResource("PanelDark")
-
-[node name="Margin" type="MarginContainer" parent="GameHUD/BottomBar/Panels/VitalsPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 10
-
-[node name="VBox" type="VBoxContainer" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="Header" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox"]
-layout_mode = 2
-text = "HUD_VITALS"
-label_settings = SubResource("HeaderSettings")
-
-[node name="HealthRow" type="HBoxContainer" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox"]
-layout_mode = 2
-
-[node name="HealthLabel" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/HealthRow"]
-layout_mode = 2
-size_flags_horizontal = 3
+theme_type_variation = &"HudRowLabel"
 text = "HUD_HP"
-theme_override_colors/font_color = Color(0.1, 0.88, 1, 1)
 
-[node name="HealthValue" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/HealthRow"]
+[node name="HealthValue" type="Label" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel/Margin/VBox/HealthRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "100 / 100"
 
-[node name="HealthBar" type="ProgressBar" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox"]
+[node name="HealthBar" type="ProgressBar" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel/Margin/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 10)
+custom_minimum_size = Vector2(0, 9)
 layout_mode = 2
 value = 100.0
 show_percentage = false
 theme_override_styles/background = SubResource("HealthBackground")
 theme_override_styles/fill = SubResource("HealthFill")
 
-[node name="AmmoRow" type="HBoxContainer" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox"]
+[node name="AmmoRow" type="HBoxContainer" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel/Margin/VBox"]
 layout_mode = 2
 
-[node name="AmmoLabel" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/AmmoRow"]
+[node name="AmmoLabel" type="Label" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel/Margin/VBox/AmmoRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"HudRowLabel"
 text = "HUD_AMMO"
-theme_override_colors/font_color = Color(0.1, 0.88, 1, 1)
 
-[node name="AmmoValue" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/AmmoRow"]
+[node name="AmmoValue" type="Label" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel/Margin/VBox/AmmoRow"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"HudValue"
 text = "00 / 00"
-label_settings = SubResource("ValueSettings")
 
-[node name="TimeRow" type="HBoxContainer" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox"]
+[node name="TimeRow" type="HBoxContainer" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel/Margin/VBox"]
 layout_mode = 2
 
-[node name="TimeLabel" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/TimeRow"]
+[node name="TimeLabel" type="Label" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel/Margin/VBox/TimeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"HudRowLabel"
 text = "HUD_TIME"
-theme_override_colors/font_color = Color(0.1, 0.88, 1, 1)
 
-[node name="TimeValue" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox/TimeRow"]
+[node name="TimeValue" type="Label" parent="GameHUD/HudRoot/SafeArea/Layout/VitalsSlot/VitalsPanel/Margin/VBox/TimeRow"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"HudValue"
 text = "01:30"
-label_settings = SubResource("ValueSettings")
 
-[node name="StatusValue" type="Label" parent="GameHUD/BottomBar/Panels/VitalsPanel/Margin/VBox"]
+[node name="LogSlot" type="VBoxContainer" parent="GameHUD/HudRoot/SafeArea/Layout"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -320.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+alignment = 2
+
+[node name="LogPanel" type="PanelContainer" parent="GameHUD/HudRoot/SafeArea/Layout/LogSlot"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "HUD_ROUND_ACTIVE"
-theme_override_colors/font_color = Color(0.46, 1, 0.56, 1)
-theme_override_font_sizes/font_size = 10
+mouse_filter = 2
+script = ExtResource("3_panel")
+accent_color = Color(0, 0.88, 1, 1)
+
+[node name="Margin" type="MarginContainer" parent="GameHUD/HudRoot/SafeArea/Layout/LogSlot/LogPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="GameHUD/HudRoot/SafeArea/Layout/LogSlot/LogPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Header" type="Label" parent="GameHUD/HudRoot/SafeArea/Layout/LogSlot/LogPanel/Margin/VBox"]
+layout_mode = 2
+theme_type_variation = &"HudHeader"
+text = "HUD_EVENT_LOG"
+
+[node name="LogLines" type="VBoxContainer" parent="GameHUD/HudRoot/SafeArea/Layout/LogSlot/LogPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 1

@@ -24,6 +24,12 @@ static func rows_for(summary: Dictionary) -> Array[Dictionary]:
 			"ceiling": thousands(ceiling),
 			"percent": roundi(float(summary.ratio) * 100.0),
 		})))
+	if int(summary.get("attacks", 0)) > 0:
+		rows.append(_row(_t("SCORE_ACCURACY"), _t("SCORE_ACCURACY_VALUE").format({
+			"percent": "%.1f" % float(summary.get("accuracy_percent", 0.0)),
+			"hits": int(summary.get("hits", 0)),
+			"shots": int(summary.get("attacks", 0)),
+		})))
 	rows.append(_row(_t("SCORE_BEST_CHAIN"), _t("SCORE_CHAIN_VALUE").format({
 		"hits": int(summary.best_chain),
 		"multiplier": "%.1f" % float(summary.best_multiplier),

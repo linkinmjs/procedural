@@ -150,10 +150,13 @@ func load_and_build_level() -> void:
 	round_controller.arm_round()
 	_wire_round_triggers()
 	_spawn_radios()
-	status_label.text = tr("HUD_LEVEL_STATUS").format({
+	# El conteo de salas/conexiones es informacion de construccion, no de juego:
+	# va al log de eventos y no al panel del nivel, que ahora muestra el estado
+	# de la ronda.
+	round_controller.add_log(tr("HUD_LEVEL_STATUS").format({
 		"rooms": level_data.rooms.size(),
 		"connections": level_data.connections.size(),
-	})
+	}), "info")
 	_announce_level(sequence)
 
 

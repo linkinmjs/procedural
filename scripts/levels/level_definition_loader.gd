@@ -18,7 +18,8 @@ const DEFAULT_RADIO_CORNER := "ne"
 ## Familias de ventana que puede declarar una capa. Tienen que coincidir con
 ## WINDOW_TYPES en tools/level-editor/level-format.js, que es lo que escribe los
 ## archivos. Las que todavia no tienen escena propia se spawnean como una
-## ventana normal; WindowCatalog es el que sabe cual es cual.
+## ventana normal; WindowCatalog es el que sabe cual es cual. Ademas una capa
+## puede nombrar un diseño del Window Workshop como `custom:<slug>`.
 const VALID_WINDOW_TYPES := [
 	"normal", "popup", "download", "infected-download", "firewall",
 	"critical-error", "confirm", "ad", "fake-close", "task-manager",
@@ -434,7 +435,7 @@ static func _validate_layer(layer_variant: Variant, room_id: String) -> bool:
 	var total := 0
 	for type_variant in (windows_variant as Dictionary):
 		var window_type := str(type_variant)
-		if not VALID_WINDOW_TYPES.has(window_type):
+		if not VALID_WINDOW_TYPES.has(window_type) and not _is_valid_custom_type(window_type):
 			push_error("Room %s declares the unknown window type %s." % [room_id, window_type])
 			return false
 		var count := int((windows_variant as Dictionary)[type_variant])
@@ -445,6 +446,21 @@ static func _validate_layer(layer_variant: Variant, room_id: String) -> bool:
 	if total < 1 or total > MAX_WAVE_TARGETS:
 		push_error("Room %s has an invalid layer target count." % room_id)
 		return false
+	return true
+
+
+## Un diseño del Window Workshop: `custom:` mas un slug en minusculas. No se
+## valida que el diseño exista — si falta, WindowCatalog lo spawnea como una
+## ventana normal — para que borrar un diseño nunca invalide un nivel guardado.
+static func _is_valid_custom_type(window_type: String) -> bool:
+	if not window_type.begins_with("custom:"):
+		return false
+	var slug := window_type.trim_prefix("custom:")
+	if slug.is_empty() or slug.begins_with("-"):
+		return false
+	for character in slug:
+		if not "abcdefghijklmnopqrstuvwxyz0123456789-".contains(character):
+			return false
 	return true
 
 

@@ -139,6 +139,9 @@ p { line-height: 1.45; }
   display: grid;
   grid-template-columns: 252px minmax(0, 1fr);
 }
+/* El display de arriba pisa al [hidden] del navegador: sin esto, cambiar de
+   pestaña no esconde nada. */
+.workspace[hidden] { display: none; }
 
 .sidebar {
   min-width: 0;
@@ -774,3 +777,204 @@ p.alert { margin: 8px 0 0; }
 .ghost-add.wide { width: 100%; }
 .icon-button.tiny { padding: 0 6px; font-size: 13px; line-height: 1.4; }
 .icon-button.danger:not(:disabled):hover { border-color: #ff6577; color: #ff6577; }
+
+/* --- Window Workshop ---------------------------------------------------------
+
+   Pestaña "Ventanas": diseños custom con variantes estéticas. Cada tarjeta de
+   variante lleva sus campos y una maqueta CSS de la ventana que se actualiza
+   mientras se tipea. */
+
+.main-tabs { flex: none; display: flex; gap: 4px; }
+.main-tab {
+  min-width: 84px;
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  font-size: 13px;
+}
+.main-tab[aria-selected="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 650;
+}
+
+/* En la pestaña Ventanas los controles del nivel no aplican: se esconden. */
+body.windows-mode .level-chip,
+body.windows-mode .file-actions { display: none; }
+
+.new-design { margin-bottom: 10px; }
+
+.window-workshop .design-column {
+  min-width: 0;
+  min-height: 0;
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+.design-empty { margin: 24px 0 0; text-align: center; }
+
+.design-editor { display: grid; gap: 12px; max-width: 980px; }
+.design-header { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
+.design-identity { flex: 1; min-width: 220px; display: grid; gap: 5px; }
+#design-name {
+  padding: 2px 0;
+  border: 0;
+  border-bottom: 1px dashed transparent;
+  border-radius: 0;
+  background: transparent;
+  font-size: 17px;
+  font-weight: 650;
+}
+#design-name:hover { border-bottom-color: var(--line-strong); }
+#design-name:focus { outline: 0; border-bottom-color: var(--accent); }
+.design-key {
+  justify-self: start;
+  min-height: 22px;
+  padding: 1px 8px;
+  border: 1px solid color-mix(in srgb, #c9a6ff 55%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, #c9a6ff 14%, transparent);
+  color: #c9a6ff;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 11px;
+}
+.design-family { width: 220px; margin: 0; }
+#design-family-hint { margin: -4px 0 0; }
+
+.variant-list { display: grid; gap: 12px; }
+.variant-card {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 8px 20px;
+  align-items: start;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.variant-fields { display: grid; gap: 8px; min-width: 0; }
+.variant-fields label { margin: 0; }
+.variant-head { display: flex; align-items: center; gap: 8px; }
+.variant-head strong { font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: .1em; }
+.variant-base { width: auto; padding: 4px 8px; font-size: 12px; }
+.variant-size { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.variant-size input { width: 74px; padding: 4px 6px; }
+.variant-size-label { flex: none; }
+
+/* Maqueta estilo XP. Aproximada a propósito: el preview fiel es el juego. */
+.win-preview {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #0a246a;
+  border-radius: 6px 6px 3px 3px;
+  overflow: hidden;
+  background: #ece9d8;
+  color: #1c1c1c;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .5);
+  font-family: Tahoma, "Segoe UI", sans-serif;
+}
+.win-preview-titlebar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 4px 9px;
+  background: linear-gradient(180deg, #2964d6 0%, #1c50c8 46%, #1341a8 100%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, .5);
+}
+.win-preview-titlebar span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.win-preview-titlebar i {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 17px;
+  border: 1px solid #fff;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #f0a086 0%, #d75833 50%, #bb3d12 100%);
+  font-style: normal;
+  font-size: 12px;
+  line-height: 1;
+}
+.win-preview-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 11.5px;
+}
+.win-preview-body.ad { background: #fcd93a; }
+.win-preview-message { margin: 0; overflow: hidden; }
+.win-preview-body.ad .win-preview-message { font-weight: 700; font-size: 13px; text-align: center; }
+.win-preview-subtitle { margin: 0; overflow: hidden; font-size: 10.5px; opacity: .8; }
+.win-preview-body.ad .win-preview-subtitle { text-align: center; }
+.win-preview-progress {
+  height: 13px;
+  border: 1px solid #8a8a8a;
+  border-radius: 2px;
+  background: #fff;
+  padding: 1px;
+}
+.win-preview-progress i {
+  display: block;
+  width: 55%;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, #37b54a 0 6px, #7ad98a 6px 8px);
+}
+.win-preview-buttons { margin-top: auto; display: flex; justify-content: center; gap: 8px; }
+.win-preview-buttons span {
+  padding: 2px 12px;
+  border: 1px solid #003c74;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #fff 0%, #ece9d8 100%);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Skin Retro 97: barra azul plana, marco gris y X cuadrada, como el pack retro. */
+.win-preview.retro {
+  border: 2px solid #808080;
+  border-top-color: #dfdfdf;
+  border-left-color: #dfdfdf;
+  border-radius: 0;
+  background: #c0c0c0;
+}
+.win-preview.retro .win-preview-titlebar {
+  padding: 3px 4px 3px 7px;
+  background: linear-gradient(90deg, #000080 0%, #1084d0 100%);
+  text-shadow: none;
+}
+.win-preview.retro .win-preview-titlebar i {
+  width: 16px;
+  height: 14px;
+  border: 1px solid;
+  border-color: #dfdfdf #404040 #404040 #dfdfdf;
+  border-radius: 0;
+  background: #c0c0c0;
+  color: #000;
+  font-size: 11px;
+}
+.win-preview.retro .win-preview-buttons span {
+  border: 1px solid;
+  border-color: #dfdfdf #404040 #404040 #dfdfdf;
+  border-radius: 0;
+  background: #c0c0c0;
+}
+.win-preview.retro .win-preview-progress i {
+  background: repeating-linear-gradient(90deg, #000080 0 8px, #c0c0c0 8px 10px);
+}
+
+/* Un diseño borrado que un nivel todavía nombra: se marca, no se rompe. */
+.family-chip.missing { border-style: dashed; border-color: var(--danger); }
+.family-chip.missing b { color: var(--danger); }
+
+@media (max-width: 900px) {
+  .variant-card { grid-template-columns: 1fr; }
+  .win-preview { max-width: 100%; }
+}

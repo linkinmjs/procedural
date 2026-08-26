@@ -54,7 +54,16 @@ const RAISE_STEP := 0.02
 @onready var screen: MeshInstance3D = $Screen
 @onready var hit_zone_root: Node3D = $HitZones
 
+## Tope del tamaño que puede pedir una variante, en pixeles del SubViewport.
+## Coincide con SIZE_LIMITS en tools/level-editor/window-format.js.
+const VARIANT_MIN_SIZE := Vector2i(200, 110)
+const VARIANT_MAX_SIZE := Vector2i(560, 320)
+
 var content: Control
+## Variante estetica de un diseño del Window Workshop (titulo, mensaje,
+## tamaño). La carga quien instancia, antes de add_child; vacia, la ventana se
+## ve como su escena. Solo pisa lo declarado: la familia decide como se juega.
+var variant_config: Dictionary = {}
 ## Mientras esta protegida los disparos rebotan: no la cierran ni suman. Es lo
 ## que hace el firewall con las ventanas que cubre.
 var shielded := false:
@@ -82,6 +91,10 @@ func _ready() -> void:
 	if content == null:
 		push_error("WindowPanel3D requires a Control as the first SubViewport child.")
 		return
+	# Antes de medir nada: el tamaño de la variante tiene que estar aplicado
+	# cuando el volumen recorte la ventana contra el bloque y cuando las zonas
+	# generen sus cuerpos, un frame despues.
+	_apply_variant()
 	_update_screen_size()
 	_update_shield_tint()
 	_screen_base_position = screen.position
@@ -215,6 +228,41 @@ func _find_content() -> Control:
 		if child is Control:
 			return child
 	return null
+
+
+## Pisa lo que la variante declare y nada mas. Cada texto busca su Label por
+## nombre y tolera que no exista: no todas las escenas tienen mensaje, y una
+## variante de una familia con layout propio no puede romperlo.
+func _apply_variant() -> void:
+	if variant_config.is_empty():
+		return
+	# La skin re-viste el chrome (tema, marco, barra, X) sin tocar el layout.
+	var skin := str(variant_config.get("skin", ""))
+	if not skin.is_empty():
+		WindowSkin.apply(content, skin)
+	var size_variant: Variant = variant_config.get("size", null)
+	if size_variant is Dictionary:
+		var requested := Vector2i(
+			int((size_variant as Dictionary).get("width", sub_viewport.size.x)),
+			int((size_variant as Dictionary).get("height", sub_viewport.size.y))
+		)
+		sub_viewport.size = requested.clamp(VARIANT_MIN_SIZE, VARIANT_MAX_SIZE)
+	# En las escenas sin nodo Message el mensaje cae en el titular del anuncio,
+	# que es el texto grande de los popups.
+	_apply_variant_text("title", ["Title"])
+	_apply_variant_text("message", ["Message", "Headline"])
+	_apply_variant_text("subtitle", ["Subline"])
+
+
+func _apply_variant_text(key: String, node_names: Array[String]) -> void:
+	var text := str(variant_config.get(key, ""))
+	if text.is_empty():
+		return
+	for node_name in node_names:
+		var label := content.find_child(node_name, true, false) as Label
+		if label != null:
+			label.text = text
+			return
 
 
 ## Solo las zonas a la vista generan cuerpo. Una ventana puede tener controles

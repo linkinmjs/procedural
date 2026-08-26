@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const LevelFormat = require("../tools/level-editor/level-format.js");
+const WindowFormat = require("../tools/level-editor/window-format.js");
 
 const html = fs.readFileSync("tools/level-editor/index.html", "utf8");
 const script = fs.readFileSync("tools/level-editor/app.js", "utf8");
@@ -515,6 +516,154 @@ for (const id of ["open-file", "open-sequence", "sequence-add-current", "open-di
   assert.match(html, new RegExp(`id=["']${id}["']`), `Falta el control #${id}`);
 }
 
+// --- Window Workshop ---------------------------------------------------------
+
+// La pestaña Ventanas edita los diseños custom: nombre, familia base y una
+// tarjeta por variante con su preview.
+for (const id of [
+  "tab-levels", "tab-windows", "level-workspace", "window-workshop", "design-list", "new-design",
+  "design-name", "design-key", "design-family", "design-family-hint", "variant-list", "add-variant",
+  "delete-design", "save-window-designs"
+]) {
+  assert.match(html, new RegExp(`id=["']${id}["']`), `Falta el control #${id}`);
+}
+assert.match(html, /window-format\.js/, "El editor debe cargar el modelo de diseños de ventana");
+assert.match(script, /window\.WindowFormat/, "El editor debe usar el modelo compartido de diseños");
+assert.match(script, /\/api\/window-designs/, "El editor debe hablar con la API de diseños");
+assert.match(script, /function windowTypeMeta/, "Los chips de capa deben tolerar tipos custom y diseños borrados");
+assert.doesNotMatch(script, /WINDOW_TYPES\[type\]\./, "Ningún acceso directo a WINDOW_TYPES[type]: un tipo custom lo rompería");
+assert.match(styles, /\.win-preview/, "El preview de la variante necesita estilos");
+assert.match(styles, /\.workspace\[hidden\]/, "El display de .workspace pisa al [hidden] del navegador: sin esta regla las pestañas no cambian nada");
+assert.match(styles, /\.family-chip\.missing/, "Un diseño borrado se marca en los chips");
+
+// El formato de diseños: slugs congelados, familias conocidas y variantes
+// siempre usables.
+{
+  assert.equal(WindowFormat.slugify("Estafa Bancaria Ñoña"), "estafa-bancaria-nona");
+  assert.ok(WindowFormat.isCustomType("custom:estafa-bancaria"));
+  assert.ok(!WindowFormat.isCustomType("custom:"), "Un custom sin slug no es válido");
+  assert.ok(!WindowFormat.isCustomType("custom:-x"), "Un slug no puede arrancar con guión");
+  assert.ok(!WindowFormat.isCustomType("normal"), "Una familia de fábrica no es un custom");
+
+  const design = WindowFormat.blankDesign("  Estafa Bancaria  ");
+  assert.equal(design.slug, "estafa-bancaria", "El slug nace del nombre");
+  assert.equal(design.family, "normal");
+  assert.equal(design.variants.length, 1, "Un diseño nuevo arranca con una variante lista");
+
+  const normalized = WindowFormat.normalizeWindowDesigns({
+    designs: [
+      {
+        id: "d1", slug: "estafa", name: "Estafa", family: "normal",
+        variants: [
+          { base: "no-existe", title: `  ${"x".repeat(80)}  `, message: "Su cuenta fue bloqueada.", size: { width: 9999, height: 10 }, futuro: "se conserva" },
+          "rota"
+        ]
+      },
+      { id: "d2", slug: "estafa", name: "Slug repetido", family: "normal", variants: [] },
+      { id: "d3", slug: "x", name: "Familia desconocida", family: "nope", variants: [] },
+      { id: "d4", slug: "SIN slug válido!!", name: "", family: "normal", variants: [] },
+      null
+    ]
+  });
+  assert.equal(normalized.schemaVersion, WindowFormat.WINDOW_DESIGNS_VERSION);
+  assert.equal(normalized.designs.length, 1, "Las entradas rotas, sin nombre o repetidas se descartan");
+  const variant = normalized.designs[0].variants[0];
+  assert.equal(normalized.designs[0].variants.length, 1, "Una variante rota se descarta");
+  assert.equal(variant.base, WindowFormat.defaultBase("normal"), "Una base inválida cae en la primera de la familia");
+  assert.equal(variant.title.length, WindowFormat.TEXT_LIMITS.title, "El título se recorta");
+  assert.deepEqual(variant.size, { width: WindowFormat.SIZE_LIMITS.width.max, height: WindowFormat.SIZE_LIMITS.height.min }, "El tamaño se acota");
+  assert.equal(variant.futuro, "se conserva", "Los campos que este formato no conoce sobreviven");
+
+  const empty = WindowFormat.normalizeWindowDesigns({
+    designs: [{ id: "d5", slug: "vacio", name: "Vacío", family: "download", variants: [] }]
+  });
+  assert.equal(empty.designs[0].variants.length, 1, "Un diseño sin variantes recibe una en blanco");
+  assert.equal(empty.designs[0].variants[0].base, "download");
+
+  // La skin es un campo de la variante: vacía usa la de la base, y una
+  // desconocida cae en vacía en vez de viajar al juego.
+  assert.equal(WindowFormat.normalizeVariant({ skin: "retro" }, "normal").skin, "retro");
+  assert.equal(WindowFormat.normalizeVariant({ skin: "vista" }, "normal").skin, "");
+  assert.equal(WindowFormat.variantSkin({ base: "close", skin: "" }, "normal"), "xp", "Sin skin pedida, manda la nativa de la base");
+  assert.equal(WindowFormat.variantSkin({ base: "download", skin: "xp" }, "download"), "xp", "La skin pedida pisa a la nativa");
+  assert.equal(WindowFormat.BASES.download.download.skin, "retro", "La descarga es nativamente retro");
+}
+
+// El archivo versionado está normalizado y en la versión actual.
+{
+  const designsFile = JSON.parse(fs.readFileSync("level_designs/window-designs.json", "utf8"));
+  assert.equal(designsFile.schemaVersion, WindowFormat.WINDOW_DESIGNS_VERSION, "window-designs.json debe estar en la versión actual");
+  assert.ok(Array.isArray(designsFile.designs) && designsFile.designs.length > 0, "El catálogo arranca con al menos un diseño de ejemplo");
+  assert.deepEqual(WindowFormat.normalizeWindowDesigns(structuredClone(designsFile)).designs, designsFile.designs,
+    "window-designs.json debe estar normalizado");
+  for (const entry of designsFile.designs) {
+    assert.ok(WindowFormat.FAMILIES.includes(entry.family), `${entry.slug} usa una familia desconocida`);
+  }
+}
+
+// Las capas conservan los tipos custom (antes normalizeLayer los borraba en
+// silencio al guardar) y siguen descartando la basura.
+{
+  const layer = LevelFormat.normalizeLayer({ windows: { "custom:estafa-bancaria": 3, basura: 2, "custom:NoVale": 1, normal: 1 } });
+  assert.deepEqual(layer.windows, { normal: 1, "custom:estafa-bancaria": 3 });
+  const capped = LevelFormat.normalizeLayer({ windows: { normal: 60, "custom:extra": 60 } });
+  assert.equal(LevelFormat.layerTotal(capped), LevelFormat.LIMITS.wave.max, "El tope por capa también cuenta a los custom");
+  assert.ok(LevelFormat.isCustomType("custom:estafa-bancaria"));
+  const windowsSchema = schema.$defs.layer.properties.windows.propertyNames;
+  assert.ok(Array.isArray(windowsSchema.anyOf), "El schema acepta familias o customs");
+  const schemaPattern = windowsSchema.anyOf.find((option) => option.pattern)?.pattern;
+  assert.equal(schemaPattern, LevelFormat.CUSTOM_TYPE_PATTERN.source, "El schema y la tool aceptan el mismo patrón custom");
+  assert.ok(new RegExp(schemaPattern).test(`custom:${WindowFormat.blankDesign("Prueba").slug}`),
+    "Un slug generado por la tool siempre pasa el schema");
+}
+
+// Paridad con el juego: las familias y bases de la tool son exactamente las
+// escenas de WindowCatalog, y los tamaños nativos son los de las escenas.
+{
+  const catalogSource = fs.readFileSync("scripts/windows/window_catalog.gd", "utf8");
+  const baseStart = catalogSource.indexOf("const BASE_SCENES := {");
+  const baseBlock = catalogSource.slice(baseStart, catalogSource.indexOf("\n}", baseStart));
+  const runtimeFamilies = [...baseBlock.matchAll(/^\t"([a-z-]+)": \{/gm)].map((match) => match[1]);
+  assert.deepEqual(runtimeFamilies.sort(), [...WindowFormat.FAMILIES].sort(),
+    "BASES y BASE_SCENES deben declarar las mismas familias");
+  const runtimeBases = [...baseBlock.matchAll(/"([a-z-]+)": preload\("(res:\/\/scenes\/windows\/[a-z_]+\.tscn)"\)/g)]
+    .map((match) => ({ base: match[1], path: match[2] }));
+  const toolBases = WindowFormat.FAMILIES.flatMap((family) => Object.keys(WindowFormat.BASES[family]));
+  assert.deepEqual(runtimeBases.map((entry) => entry.base).sort(), toolBases.sort(),
+    "Cada base de la tool tiene su escena en el catálogo del juego, y viceversa");
+  for (const { base, path } of runtimeBases) {
+    const family = WindowFormat.FAMILIES.find((id) => WindowFormat.BASES[id][base]);
+    const sceneSource = fs.readFileSync(path.replace("res://", ""), "utf8");
+    const viewportSize = sceneSource.match(/size = Vector2i\((\d+), (\d+)\)/);
+    assert.ok(viewportSize, `${path} debe declarar el tamaño de su SubViewport`);
+    assert.deepEqual(
+      WindowFormat.BASES[family][base].size,
+      { width: Number(viewportSize[1]), height: Number(viewportSize[2]) },
+      `El tamaño nativo de ${base} en la tool debe ser el de su escena`
+    );
+    // La skin nativa que declara la tool es el theme real de la escena.
+    const nativeSkin = sceneSource.includes("retro_theme.tres") ? "retro" : "xp";
+    assert.equal(WindowFormat.BASES[family][base].skin, nativeSkin,
+      `La skin nativa de ${base} en la tool debe ser la de su escena`);
+  }
+  // Las skins que ofrece la tool son las que el juego sabe aplicar.
+  const skinSource = fs.readFileSync("scripts/windows/window_skin.gd", "utf8");
+  const skinStart = skinSource.indexOf("const SKINS := {");
+  const skinBlock = skinSource.slice(skinStart, skinSource.indexOf("\n}", skinStart));
+  const runtimeSkins = [...skinBlock.matchAll(/^\t"([a-z-]+)": \{$/gm)].map((match) => match[1]);
+  assert.deepEqual(runtimeSkins.sort(), Object.keys(WindowFormat.SKINS).sort(),
+    "SKINS de la tool y de window_skin.gd deben coincidir");
+  // Y el cargador del juego acepta los tipos custom que la tool escribe.
+  assert.match(loaderSource, /begins_with\("custom:"\)/, "El loader debe aceptar los tipos custom");
+  // El bloque spawnea por plan: escena + configuración de variante por ventana.
+  const blockSource = fs.readFileSync("scripts/targets/target_block_3d.gd", "utf8");
+  assert.match(blockSource, /spawn_plan_for/, "El bloque debe pedir el plan de spawn con variantes");
+  const volumeSource = fs.readFileSync("scripts/targets/target_spawn_volume_3d.gd", "utf8");
+  assert.match(volumeSource, /scripted_configs/, "El volumen debe aplicar la configuración por objetivo");
+  assert.match(fs.readFileSync("scripts/windows/window_panel_3d.gd", "utf8"), /variant_config/,
+    "La ventana debe aplicar su variante al nacer");
+}
+
 const { createLevelServer } = require("../tools/level-editor/serve.js");
 const server = createLevelServer();
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -558,6 +707,21 @@ try {
     body: JSON.stringify({ schemaVersion: 1, templates: [{ id: "x", name: "" }] })
   });
   assert.equal(badTemplates.status, 400, "Las plantillas necesitan id, nombre y sala");
+
+  // Los diseños de ventana van y vuelven, y el servidor rechaza entradas rotas.
+  const designsRaw = fs.readFileSync("level_designs/window-designs.json", "utf8");
+  const designsOverWire = await (await fetch(`${base}/api/window-designs`)).json();
+  assert.deepEqual(designsOverWire, JSON.parse(designsRaw), "GET /api/window-designs devuelve el archivo versionado");
+  const putDesigns = await fetch(`${base}/api/window-designs`, { method: "PUT", body: JSON.stringify(designsOverWire) });
+  assert.equal(putDesigns.status, 200);
+  assert.deepEqual(JSON.parse(fs.readFileSync("level_designs/window-designs.json", "utf8")), JSON.parse(designsRaw),
+    "El PUT de los diseños conserva el contenido");
+  fs.writeFileSync("level_designs/window-designs.json", designsRaw);
+  const badDesigns = await fetch(`${base}/api/window-designs`, {
+    method: "PUT",
+    body: JSON.stringify({ schemaVersion: 1, designs: [{ id: "x", slug: "NO VALE", name: "Rota", family: "normal", variants: [{}] }] })
+  });
+  assert.equal(badDesigns.status, 400, "Los diseños necesitan slug válido y familia conocida");
 
   const badSequence = await fetch(`${base}/api/sequence`, {
     method: "PUT",

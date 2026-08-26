@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "designs": [
+    {
+      "id": "seed-estafa-bancaria",
+      "slug": "estafa-bancaria",
+      "name": "Estafa bancaria",
+      "family": "normal",
+      "variants": [
+        {
+          "base": "shutdown",
+          "skin": "",
+          "title": "Alerta de seguridad",
+          "message": "Su cuenta fue bloqueada. Verifique sus datos ahora.",
+          "subtitle": "",
+          "size": {
+            "width": 340,
+            "height": 160
+          }
+        },
+        {
+          "base": "shutdown",
+          "skin": "retro",
+          "title": "Banco Central",
+          "message": "Tiene (1) transferencia retenida a su nombre.",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "close",
+          "skin": "",
+          "title": "Verificación pendiente",
+          "message": "",
+          "subtitle": "",
+          "size": null
+        }
+      ]
+    }
+  ]
+}

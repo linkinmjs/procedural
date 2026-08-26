@@ -1,6 +1,6 @@
 # Level Workshop
 
-Editor web local para diseñar niveles desde arriba. No necesita dependencias ni proceso de compilación.
+Editor web local para diseñar niveles desde arriba. No necesita dependencias ni proceso de compilación. El encabezado tiene dos pestañas: **Niveles** (el plano de siempre) y **Ventanas** (el Window Workshop, para crear diseños de ventana con variantes).
 
 ## Uso
 
@@ -88,7 +88,7 @@ Una oleada es un grupo de bloques que aparecen juntos; la siguiente no llega has
 
 Una capa no puede quedar vacía ni pasar de 64 ventanas.
 
-Las familias salen de los comportamientos que enumera `docs/gdd_atractivo_y_progresion.md`. Ya están construidas *Ventana normal*, *Publicidad*, *Firewall*, *Error crítico*, *Descarga* y *Descarga infectada*; el resto aparece con el borde punteado: se guarda en el archivo y el juego la spawnea como ventana normal hasta que exista su comportamiento. Cada bloque cubre su pared completa, de piso a techo, para que no se lo pueda esquivar mientras avanza. Sin ninguna capa, el bloque se cierra con su propio control.
+Las familias salen de los comportamientos que enumera `docs/gdd_atractivo_y_progresion.md`. Ya están construidas *Ventana normal*, *Publicidad*, *Firewall*, *Error crítico*, *Descarga* y *Descarga infectada*; el resto aparece con el borde punteado: se guarda en el archivo y el juego la spawnea como ventana normal hasta que exista su comportamiento. La paleta también ofrece, en violeta, los **diseños de la pestaña Ventanas**: en el archivo viajan como `custom:<slug>` y al spawnear alternan sus variantes al azar. Un diseño borrado queda marcado en rojo (`(falta)`) y el juego lo spawnea como normal. Cada bloque cubre su pared completa, de piso a techo, para que no se lo pueda esquivar mientras avanza. Sin ninguna capa, el bloque se cierra con su propio control.
 
 **Forma, volumen y texturas** viven plegados al pie de la ventana: se abren cuando hacen falta y no empujan las oleadas fuera de la pantalla.
 
@@ -101,6 +101,18 @@ Las familias salen de los comportamientos que enumera `docs/gdd_atractivo_y_prog
 - Las salas muestran su altura, si están a cielo abierto y cuántas balas entregan; cada bloque, el total de ventanas de cada oleada.
 - La sala de inicio muestra una flecha con la orientación del jugador.
 - Atajos: `Enter` abre la sala seleccionada, `Supr` la elimina, `F` encuadra, `Ctrl+S` guarda.
+
+## Ventanas (Window Workshop)
+
+La pestaña **Ventanas** crea diseños de ventana sin abrir Godot. Un diseño elige una **familia base** —que decide cómo se juega: normal se cierra con la X, la descarga tiene su barra, el firewall protege— y agrupa **variantes** puramente estéticas: título, mensaje y tamaño. Al spawnear el diseño en un bloque, cada ventana elige una variante al azar.
+
+- **+ Nuevo diseño** pide el nombre; el slug (`custom:<slug>`, la clave con la que los niveles lo referencian) nace de ese nombre y queda congelado, así renombrar el diseño después no rompe ningún nivel. La clave violeta bajo el nombre se copia con un click.
+- Cada **variante** es una tarjeta: la escena base (sólo si la familia tiene más de una), la **skin** del chrome — *Windows XP* o *Retro 97*, con la de la base como valor por defecto; cambia tema, marco, barra y X sin tocar el comportamiento —, los textos que esa escena puede mostrar —la tool no ofrece campos que la ventana no tiene— y el tamaño en píxeles, que vacío usa el nativo de la base y se acota a 200–560 × 110–320. Al lado, una maqueta estilo XP se actualiza mientras se tipea; el preview fiel es el juego (Block Lab, F4, que lista los diseños en su desplegable de familias). Un texto vacío deja el de la escena original.
+- **⧉ duplica** la variante (el flujo normal: cambiar un texto sobre la anterior) y **+ Variante** copia la última.
+- **Guardar** (o `Ctrl+S` con la pestaña abierta) escribe `level_designs/window-designs.json`, que es lo que lee el juego. El botón marca con `•` los cambios sin guardar, y si alguna entrada inválida queda afuera del archivo, el guardado lo avisa en vez de descartarla en silencio. Sin el servidor, los diseños quedan como borrador en el navegador.
+- **Eliminar** avisa cuántas ventanas del nivel abierto usan el diseño; esas pasan a spawnearse como normales.
+
+Los diseños aparecen en la paleta del editor de capas apenas se guardan. Para una familia nueva o un layout distinto el camino sigue siendo una escena en Godot (`docs/ventanas.md`).
 
 ## Plantillas de sala
 
@@ -126,8 +138,9 @@ El editor conserva automáticamente un borrador en el almacenamiento local del n
 ## Estructura
 
 - `level-format.js` define el modelo de datos: límites, normalización, roles, familias de ventana e inferencia de entradas. Lo comparten el editor, el migrador y los smoke tests, así que la lógica del formato tiene una sola implementación.
-- `app.js` es la interfaz: dibujo del plano, ventanas de configuración y eventos.
-- `serve.js` es el servidor local: archivos estáticos del repositorio más la API de niveles, secuencia y plantillas de sala (`/api/levels`, `/api/sequence`, `/api/room-templates`).
+- `window-format.js` define el modelo de los diseños de ventana: familias, bases con sus tamaños nativos y campos, slugs y normalización. Sus tablas están en paridad con `BASE_SCENES` de `scripts/windows/window_catalog.gd` (el smoke test lo verifica): una familia nueva es una entrada de datos en cada lado y el resto se deriva.
+- `app.js` es la interfaz: dibujo del plano, ventanas de configuración, el Window Workshop y eventos.
+- `serve.js` es el servidor local: archivos estáticos del repositorio más la API de niveles, secuencia, plantillas de sala y diseños de ventana (`/api/levels`, `/api/sequence`, `/api/room-templates`, `/api/window-designs`).
 - `migrate-level.js` actualiza archivos versionados al formato actual.
 
 ## Migrar diseños viejos
@@ -150,4 +163,4 @@ Para sumar texturas: extraer las que falten de `assets/_raw/textures/`, copiarla
 
 ## Alcance actual
 
-El runtime construye todo lo que declara el formato: alturas, techos, pasillos con su ancho y sus puntos intermedios, roles, orientación inicial, munición, recompensas, radios por esquina, cielo y las texturas de paredes, suelo y techo. Los slots `door` y `block` se guardan pero todavía no se aplican, y de una oleada sólo usa el total de ventanas: las familias distintas de `normal` esperan su comportamiento.
+El runtime construye todo lo que declara el formato: alturas, techos, pasillos con su ancho y sus puntos intermedios, roles, orientación inicial, munición, recompensas, radios por esquina, cielo, las texturas de paredes, suelo y techo, las familias de ventana con comportamiento propio y los diseños custom con sus variantes. Los slots de textura `door` y `block` se guardan pero todavía no se aplican, y las familias `planned` se spawnean como normales hasta que exista su escena.

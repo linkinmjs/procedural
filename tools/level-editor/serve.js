@@ -13,11 +13,15 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 
+const WindowFormat = require(path.join(__dirname, "window-format.js"));
+
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const LEVELS_DIR = path.join(REPO_ROOT, "level_designs", "levels");
 const SEQUENCE_PATH = path.join(REPO_ROOT, "level_designs", "level-sequence.json");
 // Plantillas de sala compartidas entre niveles, versionadas junto a ellos.
 const ROOM_TEMPLATES_PATH = path.join(REPO_ROOT, "level_designs", "room-templates.json");
+// Diseños de ventana del Window Workshop, que el juego lee al spawnear.
+const WINDOW_DESIGNS_PATH = path.join(REPO_ROOT, "level_designs", "window-designs.json");
 // Un nombre de nivel es un archivo suelto: nada de rutas, ni ocultos.
 const LEVEL_FILE = /^[A-Za-z0-9][A-Za-z0-9._ -]*\.json$/;
 
@@ -93,6 +97,22 @@ function validRoomTemplates(value) {
       typeof entry.id === "string" && entry.id.length > 0 &&
       typeof entry.name === "string" && entry.name.length > 0 &&
       entry.room && typeof entry.room === "object" && !Array.isArray(entry.room));
+}
+
+function readWindowDesigns() {
+  if (!fs.existsSync(WINDOW_DESIGNS_PATH)) return { schemaVersion: WindowFormat.WINDOW_DESIGNS_VERSION, designs: [] };
+  return JSON.parse(fs.readFileSync(WINDOW_DESIGNS_PATH, "utf8"));
+}
+
+function validWindowDesigns(value) {
+  return value && typeof value === "object" && Array.isArray(value.designs) &&
+    value.designs.every((entry) => entry && typeof entry === "object" &&
+      typeof entry.id === "string" && entry.id.length > 0 &&
+      typeof entry.name === "string" && entry.name.length > 0 &&
+      WindowFormat.SLUG_PATTERN.test(entry.slug) &&
+      WindowFormat.FAMILIES.includes(entry.family) &&
+      Array.isArray(entry.variants) && entry.variants.length > 0 &&
+      entry.variants.every((variant) => variant && typeof variant === "object" && !Array.isArray(variant)));
 }
 
 function validSequence(value) {
@@ -186,6 +206,32 @@ async function handleApi(request, response, pathname) {
       }
       writeJsonFile(ROOM_TEMPLATES_PATH, parsed);
       sendJson(response, 200, { saved: "room-templates.json" });
+      return true;
+    }
+  }
+  if (pathname === "/api/window-designs") {
+    if (request.method === "GET") {
+      try {
+        sendJson(response, 200, readWindowDesigns());
+      } catch (error) {
+        sendJson(response, 500, { error: `window-designs.json inválido: ${error.message}` });
+      }
+      return true;
+    }
+    if (request.method === "PUT") {
+      let parsed;
+      try {
+        parsed = JSON.parse(await readBody(request));
+      } catch (error) {
+        sendJson(response, 400, { error: `JSON inválido: ${error.message}` });
+        return true;
+      }
+      if (!validWindowDesigns(parsed)) {
+        sendJson(response, 400, { error: "Los diseños necesitan entradas {id, slug, name, family, variants} con familia conocida" });
+        return true;
+      }
+      writeJsonFile(WINDOW_DESIGNS_PATH, parsed);
+      sendJson(response, 200, { saved: "window-designs.json" });
       return true;
     }
   }

@@ -46,9 +46,9 @@ Cada elemento de `blocks.<slot>.waves` declara cuántas ventanas de cada familia
 { "windows": { "normal": 4, "firewall": 2 } }
 ```
 
-Las familias válidas son `normal`, `popup`, `download`, `firewall`, `critical-error`, `confirm`, `ad`, `fake-close`, `task-manager`, `corrupt-file` e `installer`, y salen de los comportamientos que enumera `docs/gdd_atractivo_y_progresion.md`. La lista vive en `WINDOW_TYPES` (`tools/level-editor/level-format.js`) y en `VALID_WINDOW_TYPES` (`scripts/levels/level_definition_loader.gd`), que tienen que coincidir.
+Las familias válidas son `normal`, `popup`, `download`, `firewall`, `critical-error`, `confirm`, `ad`, `fake-close`, `task-manager`, `corrupt-file` e `installer`, y salen de los comportamientos que enumera `docs/gdd_atractivo_y_progresion.md`. La lista vive en `WINDOW_TYPES` (`tools/level-editor/level-format.js`) y en `VALID_WINDOW_TYPES` (`scripts/levels/level_definition_loader.gd`), que tienen que coincidir. Una clave también puede ser `custom:<slug>`: un diseño de `window-designs.json` (ver abajo).
 
-Sólo se guardan las familias con al menos una ventana, y el total de una oleada va de 1 a 64. Hoy el runtime únicamente usa ese total: mientras una familia no tenga su comportamiento propio, el bloque la spawnea como una ventana normal. El editor las marca como *pronto* para que se vea qué está declarado y qué está construido.
+Sólo se guardan las familias con al menos una ventana, y el total de una oleada va de 1 a 64. Las familias sin comportamiento propio se spawnean como una ventana normal; el editor las marca como *pronto* para que se vea qué está declarado y qué está construido.
 
 El formato anterior escribía la oleada como un número suelto (`"waves": [5]`); al importar o migrar se convierte en `{ "windows": { "normal": 5 } }`.
 
@@ -59,6 +59,17 @@ El formato anterior escribía la oleada como un número suelto (`"waves": [5]`);
 - `waypoints`: puntos `{x, z}` por los que el recorrido pasa, en orden. Vacío, el trazado se resuelve solo entre las dos puertas. El primero (o el último, del lado destino) también desliza la puerta sobre la pared cuando queda enfrentado a ella.
 
 El pasillo sale perpendicular a la pared que perfora: una conexión norte / sur avanza primero en profundidad y una este / oeste, primero a lo ancho. Con las puertas alineadas queda recto; desalineadas menos que su ancho, va recto y se ensancha para cubrir ambas; y con más desfase describe un codo. Con `waypoints`, el pasillo une puerta, puntos y puerta con tramos en ángulo recto. Va cerrado con piso, paredes y techo, y su altura es la del vano, no la de las salas.
+
+## Diseños de ventana (`window-designs.json`)
+
+Los diseños custom que edita la pestaña **Ventanas** del Workshop, con `schemaVersion` propio (1), independiente del formato de niveles. Cada diseño: `{ id, slug, name, family, variants }`; cada variante: `{ base, skin, title, message, subtitle, size }`.
+
+- `slug` (`[a-z0-9-]`, único) es lo que los niveles referencian como `custom:<slug>`. Se congela al crear el diseño: renombrarlo no rompe los archivos que lo usan.
+- `family` es una de las familias con comportamiento propio; la variante sólo cambia lo estético. `base` elige cuál escena de la familia viste (`close`/`shutdown` para `normal`, `popup`/`popup-slow` para `popup`; el resto tiene una sola).
+- `skin` re-viste el chrome: `"xp"` (Windows XP) o `"retro"` (Retro 97, gris con barra azul plana). Vacía usa la skin con la que la escena base está construida. La aplica `scripts/windows/window_skin.gd` sin tocar el comportamiento de la familia.
+- Los textos vacíos dejan el de la escena; `size` en `null` usa el tamaño nativo de la base, y si se declara se acota a 200–560 × 110–320 px.
+
+Lo leen `scripts/windows/window_design_catalog.gd` (el juego) y `tools/level-editor/window-format.js` (la tool), y un diseño borrado degrada a ventana `normal` sin invalidar los niveles que lo nombraban.
 
 ## Migración
 

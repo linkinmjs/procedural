@@ -16,6 +16,10 @@ const RESOLVE_SIGNALS: Array[String] = ["destroyed", "left", "closed"]
 ## sobre target_scenes y target_count: es lo que usan los bloques de ventanas,
 ## donde cada capa declara que familia va en cada lugar y el azar no decide.
 @export var scripted_targets: Array[PackedScene] = []
+## Configuracion por objetivo, paralela a scripted_targets. Es la variante de un
+## diseño del Window Workshop (titulo, mensaje, tamaño); vacia, la escena se
+## spawnea tal cual. Se aplica antes de add_child para que _ready la vea.
+@export var scripted_configs: Array[Dictionary] = []
 @export var penalty_target_scene: PackedScene = preload("res://scenes/targets/blue_penalty_ball.tscn")
 @export_range(1, 64, 1) var target_count := 8
 @export_range(0, 64, 1) var penalty_target_count := 0
@@ -79,6 +83,8 @@ func spawn_targets() -> void:
 			var ball := target as TargetBall
 			ball.display_color = target_color
 			ball.use_custom_display_color = true
+		if not is_penalty and index < scripted_configs.size() and not scripted_configs[index].is_empty():
+			target.set("variant_config", scripted_configs[index])
 		targets_container.add_child(target)
 		target.position = _place_target(target, positions[index], index)
 		_connect_target(target)

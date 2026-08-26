@@ -43,6 +43,12 @@
     installer: { label: "Instalador", glyph: "I", color: "#5ad1a0", status: "planned", hint: "Necesita varias etapas antes de cerrarse." }
   };
   const DEFAULT_WINDOW_TYPE = "normal";
+  // Ademas de las familias del catalogo, una capa puede nombrar un diseño del
+  // Window Workshop como `custom:<slug>`. El formato no valida que el diseño
+  // exista — si falta, el juego lo spawnea como normal — para que un archivo no
+  // pierda datos por abrirse sin los diseños cargados.
+  const CUSTOM_TYPE_PATTERN = /^custom:[a-z0-9][a-z0-9-]*$/;
+  const isCustomType = (type) => CUSTOM_TYPE_PATTERN.test(String(type ?? ""));
   const TEXTURE_SLOTS = { walls: "Paredes", floor: "Suelo", ceiling: "Techo", door: "Puertas", block: "Bloques" };
   const WALLS = ["north", "east", "south", "west"];
   const WALL_LABELS = { north: "N", east: "E", south: "S", west: "O" };
@@ -134,8 +140,11 @@
       : (source?.windows || {});
     const windows = {};
     let total = 0;
-    for (const type of Object.keys(WINDOW_TYPES)) {
-      if (!(type in counts)) continue;
+    // Primero las familias del catalogo en su orden estable, despues los
+    // diseños custom en el orden en que el archivo los traiga.
+    const known = Object.keys(WINDOW_TYPES).filter((type) => type in counts);
+    const custom = Object.keys(counts).filter((type) => !(type in WINDOW_TYPES) && isCustomType(type));
+    for (const type of [...known, ...custom]) {
       const value = Math.min(clampInt(counts[type], LIMITS.windowCount), LIMITS.wave.max - total);
       if (value <= 0) continue;
       windows[type] = value;
@@ -675,6 +684,8 @@
     SLOT_LABELS,
     WINDOW_TYPES,
     DEFAULT_WINDOW_TYPE,
+    CUSTOM_TYPE_PATTERN,
+    isCustomType,
     TEXTURE_SLOTS,
     WALLS,
     WALL_LABELS,

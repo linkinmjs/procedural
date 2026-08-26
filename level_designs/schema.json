@@ -467,19 +467,27 @@
           "type": "object",
           "minProperties": 1,
           "propertyNames": {
-            "enum": [
-              "normal",
-              "popup",
-              "download",
-              "infected-download",
-              "firewall",
-              "critical-error",
-              "confirm",
-              "ad",
-              "fake-close",
-              "task-manager",
-              "corrupt-file",
-              "installer"
+            "anyOf": [
+              {
+                "enum": [
+                  "normal",
+                  "popup",
+                  "download",
+                  "infected-download",
+                  "firewall",
+                  "critical-error",
+                  "confirm",
+                  "ad",
+                  "fake-close",
+                  "task-manager",
+                  "corrupt-file",
+                  "installer"
+                ]
+              },
+              {
+                "pattern": "^custom:[a-z0-9][a-z0-9-]*$",
+                "description": "Diseño del Window Workshop (level_designs/window-designs.json). Si el diseño ya no existe, el juego lo spawnea como una ventana normal."
+              }
             ]
           },
           "additionalProperties": {

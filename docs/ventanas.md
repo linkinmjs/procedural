@@ -96,6 +96,23 @@ La barra de título de toda ventana es una zona: acertarle la adelanta sobre sus
 
 `WindowPanel3D.shielded` es lo que usa el firewall. Una ventana protegida se tiñe, informa el impacto como `shielded` y **rearma la zona**: el disparo que rebota no gasta el control, así que al caer el firewall se le puede volver a apuntar al mismo lugar.
 
+## Diseños custom (Window Workshop)
+
+Para crear una ventana nueva ya no hace falta abrir Godot: la pestaña **Ventanas** del Level Workshop (`tools/level-editor/`) edita **diseños**, que viven en [`level_designs/window-designs.json`](../level_designs/window-designs.json). Un diseño elige una familia base —que es la que decide cómo se juega— y agrupa **variantes** estéticas: título, mensaje y tamaño sobre una de las escenas de esa familia. Al spawnear el diseño, cada ventana elige una variante al azar.
+
+Las piezas del runtime:
+
+- [`window_design_catalog.gd`](../scripts/windows/window_design_catalog.gd) lee el JSON (mismo patrón que `texture_catalog.gd`: estático, con `reload()` para tests).
+- [`window_skin.gd`](../scripts/windows/window_skin.gd) re-viste el chrome cuando la variante declara `skin` (`xp` o `retro`): tema, marco, barra de título y botón de cerrar. Entiende las dos estructuras de chrome (XP: `Body`+`TitleBar`; retro: `Frame` con la barra horneada) y al cruzar estilos crea o recorta la barra según haga falta, así **cualquier familia puede verse Windows XP o Retro 97** sin duplicar su escena. Las skins viven en su tabla `SKINS`, en paridad con `window-format.js`.
+- `WindowCatalog.spawn_plan_for()` resuelve una capa a `{scene, config}` por ventana: las familias de fábrica van con config vacía y un tipo `custom:<slug>` trae la variante elegida.
+- `WindowPanel3D.variant_config` se carga antes de `add_child` (lo hace `TargetSpawnVolume3D` vía `scripted_configs`) y `_apply_variant()` la aplica en `_ready`, antes de medir el quad y las zonas. Sólo pisa lo declarado: busca los Labels `Title`, `Message`/`Headline` y `Subline` por nombre y tolera que no existan, así una variante nunca rompe el layout de su familia.
+
+En los niveles el diseño se referencia como `custom:<slug>` en el mapa `windows` de una capa. El slug se congela al crear el diseño (renombrarlo no rompe los niveles), y un diseño borrado degrada a una ventana `normal` con un aviso, igual que las familias `planned`. El tamaño se acota a 200–560 × 110–320 px (`VARIANT_MIN_SIZE`/`VARIANT_MAX_SIZE`, en paridad con `SIZE_LIMITS` de la tool).
+
+Para probarlos sin armar un nivel, el Block Lab (F4) suma los diseños del catálogo a su desplegable de familias. El contrato completo lo cubre `tests/window_designs_smoke_test.gd`, y la paridad tool ↔ juego (familias, bases y tamaños nativos), `tests/level_editor_smoke_test.mjs`.
+
+Una escena hecha a mano sigue siendo el camino para una **familia** nueva o un layout distinto; el Workshop cubre el caso común: la misma ventana con otro texto, otra forma, otro tamaño.
+
 ## Dentro de un bloque
 
 `TargetBlock3D` reparte las familias que declaran sus capas, resolviéndolas contra el catálogo. Para probar con esferas en vez de ventanas se apaga `uses_window_families`: ahí el bloque vuelve a repartir al azar lo que haya en `target_scenes`, respetando el tamaño de cada capa.
@@ -129,6 +146,10 @@ Vista previa renderizada en `.godot/window-preview.png`:
 Vista del nivel de pruebas con las ventanas dentro del bloque, en `.godot/window-level.png`:
 
 `Godot_v4.7-stable_win64_console.exe --path . res://tests/window_level_visual_smoke_test.tscn`
+
+Vista de las skins cruzadas (escenas XP vestidas de Retro 97 y viceversa), en `.godot/window-skins-preview.png` (más `.godot/window-skins-ui.png` con los píxeles nativos de la primera):
+
+`Godot_v4.7-stable_win64_console.exe --path . res://tests/window_skins_visual_smoke_test.tscn`
 
 La vista previa necesita ventana real: con `--headless` no se puede capturar la imagen. Al agregar una ventana nueva conviene sumarla a [`tests/window_visual_smoke_test.tscn`](../tests/window_visual_smoke_test.tscn) para revisarla junto al resto.
 

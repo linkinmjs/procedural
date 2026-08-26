@@ -13,6 +13,11 @@
       <h1>Level Workshop</h1>
     </div>
 
+    <nav class="main-tabs" role="tablist" aria-label="Secciones del Workshop">
+      <button id="tab-levels" class="main-tab" type="button" role="tab" aria-selected="true">Niveles</button>
+      <button id="tab-windows" class="main-tab" type="button" role="tab" aria-selected="false">Ventanas</button>
+    </nav>
+
     <button id="open-level-dialog" class="level-chip" type="button" title="Configurar el nivel">
       <span id="level-chip-name">Nivel</span>
       <span id="level-chip-meta"></span>
@@ -37,7 +42,7 @@
     </div>
   </header>
 
-  <main class="workspace">
+  <main id="level-workspace" class="workspace">
     <aside class="sidebar">
       <div class="sidebar-block">
         <div class="sidebar-heading">
@@ -124,6 +129,41 @@
           <span><i class="legend-sky"></i>Cielo abierto</span>
         </div>
         <p id="level-status" class="canvas-status"></p>
+      </div>
+    </section>
+  </main>
+
+  <main id="window-workshop" class="workspace window-workshop" hidden>
+    <aside class="sidebar">
+      <div class="sidebar-block">
+        <div class="sidebar-heading">
+          <span>Diseños</span>
+          <span id="design-count" class="counter"></span>
+        </div>
+        <button id="new-design" class="ghost-add new-design" type="button">+ Nuevo diseño</button>
+        <ul id="design-list" class="room-list"></ul>
+        <p id="design-help" class="hint"></p>
+      </div>
+    </aside>
+
+    <section class="design-column" aria-label="Editor del diseño de ventana">
+      <p id="design-empty" class="hint design-empty"></p>
+      <div id="design-editor" class="design-editor" hidden>
+        <header class="design-header">
+          <div class="design-identity">
+            <input id="design-name" type="text" maxlength="60" aria-label="Nombre del diseño">
+            <button id="design-key" class="design-key" type="button" title="Con esta clave se referencia el diseño en las capas de los niveles. Click la copia."></button>
+          </div>
+          <label class="design-family">Familia
+            <select id="design-family"></select>
+          </label>
+          <button id="delete-design" class="danger subtle" type="button">Eliminar</button>
+          <button id="save-window-designs" class="primary" type="button">Guardar</button>
+        </header>
+        <p id="design-family-hint" class="hint"></p>
+        <div id="variant-list" class="variant-list"></div>
+        <button id="add-variant" class="ghost-add" type="button">+ Variante</button>
+        <p class="hint">Al spawnear el diseño en un bloque, cada ventana elige una de sus variantes al azar. Los textos vacíos dejan el de la escena original; el tamaño vacío usa el de la base.</p>
       </div>
     </section>
   </main>
@@ -377,6 +417,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="level-format.js"></script>
+  <script src="window-format.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

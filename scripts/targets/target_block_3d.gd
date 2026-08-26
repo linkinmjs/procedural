@@ -191,9 +191,15 @@ func _spawn_current_layer() -> void:
 	var types := _layers[_current_layer_index]
 	# Sin familias el volumen vuelve a elegir al azar: solo le importa cuantas.
 	var scripted: Array[PackedScene] = []
+	var configs: Array[Dictionary] = []
 	if uses_window_families:
-		scripted = WindowCatalog.scenes_for(types)
+		# El plan trae escena y configuracion por ventana: las familias de
+		# fabrica llevan configuracion vacia y los diseños custom, su variante.
+		for entry in WindowCatalog.spawn_plan_for(types):
+			scripted.append(entry.scene as PackedScene)
+			configs.append(entry.config as Dictionary)
 	spawn_volume.scripted_targets = scripted
+	spawn_volume.scripted_configs = configs
 	spawn_volume.target_count = types.size()
 	spawn_volume.spawn_targets()
 	_listen_for_crashes()

@@ -124,6 +124,9 @@ var room_size := ROOM_DIMENSIONS[RoomShape.SMALL] as Vector2
 var _encounter_spawned := false
 var _configured_blocks: Dictionary = {}
 var _applying_preset := false
+## FAMILY_CHOICES mas los diseños del Window Workshop, que se leen del catalogo
+## al abrir el laboratorio: un diseño nuevo se prueba aca sin armar un nivel.
+var _family_choices: Array = []
 ## Oleada que se esta peleando, contando desde 1. Las siguientes esperan a que
 ## se limpie esta, igual que en una sala de la campania.
 var _current_wave := 0
@@ -176,10 +179,16 @@ func _setup_room_options() -> void:
 
 
 func _setup_family_options() -> void:
+	_family_choices = FAMILY_CHOICES.duplicate()
+	for slug in WindowDesignCatalog.get_slugs():
+		_family_choices.append({
+			"id": WindowCatalog.CUSTOM_PREFIX + slug,
+			"label": WindowDesignCatalog.design_name(slug),
+		})
 	for option in [%LeftFamily, %FrontFamily, %RightFamily]:
 		option.clear()
-		for index in FAMILY_CHOICES.size():
-			option.add_item(str(FAMILY_CHOICES[index].label), index)
+		for index in _family_choices.size():
+			option.add_item(str(_family_choices[index].label), index)
 		option.select(0)
 
 
@@ -225,8 +234,8 @@ func _apply_block_preset(slot: String, config: Dictionary) -> void:
 	var family := str(config.get("family", "normal"))
 	var option := _slot_option(slot)
 	option.select(0)
-	for index in FAMILY_CHOICES.size():
-		if str(FAMILY_CHOICES[index].id) == family:
+	for index in _family_choices.size():
+		if str(_family_choices[index].id) == family:
 			option.select(index)
 			return
 
@@ -276,7 +285,7 @@ func _read_block_config(slot: String) -> Dictionary:
 		"target_count": int(_slot_spin(slot, "Targets").value),
 		"layer_count": int(_slot_spin(slot, "Layers").value),
 		"wave": int(_slot_spin(slot, "Wave").value),
-		"family": str(FAMILY_CHOICES[family_index].id),
+		"family": str(_family_choices[family_index].id),
 		"moves": _slot_check(slot, "Moves").button_pressed,
 	}
 
@@ -464,7 +473,7 @@ func _spawn_block(wave: int, slot: String, block_position: Vector3, block_rotati
 
 ## Nombre legible de una familia, para el registro.
 func _family_label(family: String) -> String:
-	for choice in FAMILY_CHOICES:
+	for choice in _family_choices:
 		if str(choice.id) == family:
 			return str(choice.label)
 	return family

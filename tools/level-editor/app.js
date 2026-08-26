@@ -6,13 +6,22 @@
     RELATIVE_WALLS, LIMITS, clamp, clampInt, newId, createEmptyLevel, createRoom, createConnection,
     chooseConnectionWalls, degreesToWall, assignRole, normalizeRoles, resolveEntryWalls, normalizeLevel,
     corridorPlan, corridorOutline, doorPoint, blankLayer, blankRoomWave, layerTotal,
-    roomTemplateFrom, roomFromTemplate, normalizeRoomTemplates
+    roomTemplateFrom, roomFromTemplate, normalizeRoomTemplates, isCustomType
   } = window.LevelFormat;
+
+  const {
+    BASES, FAMILIES, SKINS, SIZE_LIMITS, slugify, customTypeKey, baseMeta, variantSize,
+    variantSkin, blankVariant, duplicateVariant, blankDesign, normalizeVariant, normalizeWindowDesigns
+  } = window.WindowFormat;
 
   const STORAGE_KEY = "procedural-map.level-workshop.draft.v3";
   const FILE_KEY = "procedural-map.level-workshop.file.v1";
   // Respaldo de las plantillas cuando no hay servidor del Workshop.
   const TEMPLATES_KEY = "procedural-map.level-workshop.room-templates.v1";
+  // Respaldo de los diseños de ventana cuando no hay servidor del Workshop.
+  const WINDOW_DESIGNS_KEY = "procedural-map.level-workshop.window-designs.v1";
+  // Tono con el que los diseños custom se distinguen de las familias de fábrica.
+  const CUSTOM_TONE = "#c9a6ff";
   const SLOT_SHORT = { left: "IZQ", front: "FRENTE", right: "DER" };
   const WALL_NAMES = { north: "norte", east: "este", south: "sur", west: "oeste" };
 
@@ -52,6 +61,11 @@
   // Salas guardadas para reutilizar. Con el servidor viven en
   // level_designs/room-templates.json; sin el, en localStorage.
   let roomTemplates = { schemaVersion: 1, templates: [] };
+  // Diseños de ventana del Window Workshop. Con el servidor viven en
+  // level_designs/window-designs.json, que es lo que lee el juego.
+  let windowDesigns = { schemaVersion: 1, designs: [] };
+  let selectedDesignId = null;
+  let designsDirty = false;
 
   function exampleLevel() {
     const result = createEmptyLevel();
@@ -276,6 +290,37 @@
   }
 
   const blockTotal = (block) => block.layers.reduce((total, wave) => total + layerTotal(wave), 0);
+
+  // --- Tipos de ventana de una capa -----------------------------------------
+  // Una capa puede nombrar una familia del catalogo o un diseño custom
+  // (`custom:<slug>`). Todo lo que dibuja chips o resúmenes pasa por acá, que
+  // nunca devuelve undefined: un diseño borrado se marca en vez de romper.
+
+  const designByKey = (type) => windowDesigns.designs.find((design) => customTypeKey(design) === type) || null;
+  const designGlyph = (design) => design.name.trim().split(/\s+/).slice(0, 2)
+    .map((word) => word[0].toUpperCase()).join("") || "◆";
+
+  function windowTypeMeta(type) {
+    if (WINDOW_TYPES[type]) return WINDOW_TYPES[type];
+    const design = isCustomType(type) ? designByKey(type) : null;
+    if (design) {
+      const family = WINDOW_TYPES[design.family];
+      return {
+        label: design.name,
+        glyph: designGlyph(design),
+        color: CUSTOM_TONE,
+        status: "custom",
+        hint: `Diseño propio sobre ${family ? family.label.toLowerCase() : design.family} · ${design.variants.length} variante(s) al azar.`
+      };
+    }
+    return {
+      label: `${String(type).replace(/^custom:/, "")} (falta)`,
+      glyph: "?",
+      color: "#ff6577",
+      status: "missing",
+      hint: "Este diseño ya no está en la pestaña Ventanas: el juego lo spawnea como una ventana normal."
+    };
+  }
 
   function svgElement(tag, attributes = {}) {
     const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
@@ -739,6 +784,7 @@
     let roomWaves = 0;
     let targets = 0;
     let plannedTargets = 0;
+    let missingDesignTargets = 0;
     let rewardAmmo = 0;
     let rewardRooms = 0;
     let openRooms = 0;
@@ -762,7 +808,9 @@
           for (const [type, count] of Object.entries(wave.windows)) {
             windows[type] = (windows[type] || 0) + count;
             targets += count;
-            if (WINDOW_TYPES[type].status !== "ready") plannedTargets += count;
+            const meta = windowTypeMeta(type);
+            if (meta.status === "planned") plannedTargets += count;
+            if (meta.status === "missing") missingDesignTargets += count;
           }
         }
       }
@@ -795,6 +843,7 @@
       roomWaves,
       targets,
       plannedTargets,
+      missingDesignTargets,
       rewardAmmo,
       rewardRooms,
       openRooms,
@@ -879,6 +928,9 @@
     if (summary.plannedTargets) {
       notes.push(`${summary.plannedTargets} ventanas son de familias sin comportamiento propio: el juego las spawnea como normales.`);
     }
+    if (summary.missingDesignTargets) {
+      notes.push(`${summary.missingDesignTargets} ventanas usan diseños que ya no existen: el juego las spawnea como normales.`);
+    }
     return notes;
   }
 
@@ -923,7 +975,7 @@
       chips.append(empty);
     }
     for (const [type, count] of families) {
-      const meta = WINDOW_TYPES[type];
+      const meta = windowTypeMeta(type);
       const chip = document.createElement("span");
       chip.className = "window-chip";
       chip.title = meta.hint;
@@ -1230,12 +1282,12 @@
   }
 
 
-  /** Chip de una familia: glifo, cantidad y los dos clics que la ajustan. */
+  /** Chip de una familia o diseño custom: glifo, cantidad y los dos clics que la ajustan. */
   function familyChip(type, layer, onlyOne) {
-    const meta = WINDOW_TYPES[type];
+    const meta = windowTypeMeta(type);
     const chip = document.createElement("button");
     chip.type = "button";
-    chip.className = `family-chip${meta.status === "planned" ? " planned" : ""}`;
+    chip.className = `family-chip${meta.status === "planned" ? " planned" : ""}${meta.status === "missing" ? " missing" : ""}`;
     chip.style.setProperty("--tone", meta.color);
     chip.innerHTML = `<b>${meta.glyph}</b>${layer.windows[type]}`;
     chip.title = `${meta.label}: ${meta.hint}\nClic suma una, clic derecho resta.`;
@@ -1261,22 +1313,24 @@
   }
 
 
-  /** Paleta de familias: un clic agrega la que falte, sin menues intermedios. */
+  /** Paleta de familias: un clic agrega la que falte, sin menues intermedios.
+   * Los diseños de la pestaña Ventanas aparecen al final, con su propio tono. */
   function paletteToggle(layer) {
     const wrap = document.createElement("span");
     wrap.className = "palette";
-    const missing = Object.keys(WINDOW_TYPES).filter((type) => !(type in layer.windows));
+    const available = [...Object.keys(WINDOW_TYPES), ...windowDesigns.designs.map(customTypeKey)];
+    const missing = available.filter((type) => !(type in layer.windows));
     if (!missing.length || layerTotal(layer) >= LIMITS.wave.max) return wrap;
 
     const button = document.createElement("button");
     button.type = "button";
     button.className = "family-chip add";
     button.textContent = "+";
-    button.title = "Agregar otra familia de ventana";
+    button.title = "Agregar otra familia de ventana o un diseño propio";
     const menu = document.createElement("span");
     menu.className = "palette-menu";
     for (const type of missing) {
-      const meta = WINDOW_TYPES[type];
+      const meta = windowTypeMeta(type);
       const option = document.createElement("button");
       option.type = "button";
       option.className = `family-chip${meta.status === "planned" ? " planned" : ""}`;
@@ -1568,6 +1622,446 @@
     dirty = false;
   }
 
+  // --- Window Workshop ---------------------------------------------------------
+  // Pestaña "Ventanas": diseños custom con variantes estéticas sobre una familia
+  // existente. La familia decide cómo se juega; la variante, cómo se ve. Todo lo
+  // que depende de la familia sale de WindowFormat.BASES: agregar una familia
+  // nueva es una entrada de datos ahí y otra en window_catalog.gd, nada acá.
+
+  // Textos de la escena real de cada base, para que el preview muestre lo que el
+  // jugador vería si la variante no pisa nada.
+  const BASE_PREVIEW = {
+    close: { title: "Aviso", buttons: ["Cerrar"] },
+    shutdown: { title: "Salir", message: "Presione Finalizar para salir.", buttons: ["Finalizar"] },
+    popup: { title: "Oportunidad unica", message: "CONVERTI TU DEUDA EN UNA OPORTUNIDAD", subtitle: "Trabaja mientras dormis. Dormi mientras trabajas.", buttons: ["SKIP"], ad: true },
+    "popup-slow": { title: "Felicitaciones", message: "SOS EL VISITANTE UN MILLON", subtitle: "Tu premio ya fue descontado de tu sueldo.", buttons: ["SKIP"], ad: true },
+    download: { title: "Descargando", message: "actualizacion.exe", buttons: ["Cancelar"], progress: true },
+    "infected-download": { title: "Descargando", message: "factura_impaga.exe", buttons: ["Cancelar"], progress: true },
+    firewall: { title: "Firewall activo", message: "Protegiendo las ventanas de este bloque.", buttons: ["Desactivar"] },
+    "critical-error": { title: "Error critico", message: "La aplicacion dejo de responder.", buttons: ["Reintentar", "Cerrar", "Depurar"] }
+  };
+
+  const currentDesign = () => windowDesigns.designs.find((design) => design.id === selectedDesignId) || null;
+
+  function setWorkshopTab(tab) {
+    const windows = tab === "windows";
+    document.body.classList.toggle("windows-mode", windows);
+    $("#tab-levels").setAttribute("aria-selected", String(!windows));
+    $("#tab-windows").setAttribute("aria-selected", String(windows));
+    $("#level-workspace").hidden = windows;
+    $("#window-workshop").hidden = !windows;
+    if (windows) renderWindowWorkshop();
+    else render();
+  }
+
+  /** Toda mutación de los diseños pasa por acá: respaldo local y redibujo. */
+  function commitDesigns() {
+    designsDirty = true;
+    if (!workshopApi) localStorage.setItem(WINDOW_DESIGNS_KEY, JSON.stringify(windowDesigns));
+    renderWindowWorkshop();
+  }
+
+  function updateDesignsSaveButton() {
+    const button = $("#save-window-designs");
+    button.textContent = designsDirty ? "Guardar •" : "Guardar";
+    button.title = workshopApi
+      ? "Guarda level_designs/window-designs.json, que es lo que lee el juego"
+      : "Sin servidor: guarda un borrador en el navegador";
+  }
+
+  async function loadWindowDesigns() {
+    let raw = null;
+    try {
+      raw = workshopApi
+        ? await apiJson("/api/window-designs")
+        : JSON.parse(localStorage.getItem(WINDOW_DESIGNS_KEY) || "null");
+    } catch (error) {
+      console.warn("No se pudieron leer los diseños de ventana", error);
+    }
+    windowDesigns = normalizeWindowDesigns(raw);
+    if (!currentDesign()) selectedDesignId = windowDesigns.designs[0]?.id || null;
+    designsDirty = false;
+    renderWindowWorkshop();
+    render();
+  }
+
+  async function saveWindowDesigns() {
+    const before = windowDesigns.designs.length;
+    windowDesigns = normalizeWindowDesigns(windowDesigns);
+    const dropped = before - windowDesigns.designs.length;
+    if (!currentDesign()) selectedDesignId = windowDesigns.designs[0]?.id || null;
+    try {
+      if (workshopApi) {
+        await apiJson("/api/window-designs", { method: "PUT", body: JSON.stringify(windowDesigns) });
+      } else {
+        localStorage.setItem(WINDOW_DESIGNS_KEY, JSON.stringify(windowDesigns));
+      }
+      designsDirty = false;
+      // Descartar en silencio sería mentirle al usuario: si algo quedó afuera
+      // del archivo, el guardado lo dice.
+      showToast(dropped
+        ? `Guardado, pero ${dropped} diseño(s) inválidos quedaron afuera`
+        : (workshopApi ? "Guardado: window-designs.json" : "Diseños guardados como borrador local"));
+    } catch (error) {
+      showToast(`No se pudieron guardar los diseños: ${error.message}`);
+    }
+    renderWindowWorkshop();
+    render();
+  }
+
+  /** Cuántas ventanas del nivel actual usan un tipo, para avisar antes de borrar. */
+  function countTypeInLevel(type) {
+    let count = 0;
+    for (const room of level.rooms) {
+      for (const block of roomBlocks(room)) {
+        for (const layer of block.layers) count += layer.windows[type] || 0;
+      }
+    }
+    return count;
+  }
+
+  function createDesign() {
+    const answer = window.prompt("Nombre del diseño de ventana:", "");
+    if (answer === null) return;
+    const design = blankDesign(answer);
+    // El slug nace del nombre y queda congelado: es lo que los niveles
+    // referencian, y renombrar el diseño no puede romperlos.
+    const base = design.slug;
+    let candidate = base;
+    let suffix = 2;
+    while (windowDesigns.designs.some((entry) => entry.slug === candidate)) candidate = `${base}-${suffix++}`;
+    design.slug = candidate;
+    windowDesigns.designs.push(design);
+    selectedDesignId = design.id;
+    commitDesigns();
+    showToast(`Diseño creado: ${customTypeKey(design)}`);
+  }
+
+  function deleteDesign(design) {
+    const used = countTypeInLevel(customTypeKey(design));
+    const warning = used ? ` El nivel actual lo usa en ${used} ventana(s), que pasarán a normales.` : "";
+    if (!window.confirm(`¿Eliminar el diseño “${design.name}”?${warning}`)) return;
+    windowDesigns.designs = windowDesigns.designs.filter((entry) => entry.id !== design.id);
+    if (selectedDesignId === design.id) selectedDesignId = windowDesigns.designs[0]?.id || null;
+    commitDesigns();
+    render();
+    showToast("Diseño eliminado");
+  }
+
+  function renderWindowWorkshop() {
+    renderDesignList();
+    renderDesignEditor();
+    updateDesignsSaveButton();
+  }
+
+  function renderDesignList() {
+    const list = $("#design-list");
+    list.replaceChildren();
+    const designs = windowDesigns.designs;
+    $("#design-count").textContent = designs.length ? String(designs.length) : "";
+    $("#design-help").textContent = designs.length
+      ? "En el editor de capas aparecen con la clave custom:."
+      : "Un diseño agrupa variantes estéticas de una misma ventana.";
+    for (const design of designs) {
+      const item = document.createElement("li");
+      item.className = `room-item${design.id === selectedDesignId ? " selected" : ""}`;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "room-item-button";
+      const name = document.createElement("span");
+      name.className = "room-item-name";
+      name.textContent = design.name;
+      const meta = document.createElement("span");
+      meta.className = "template-item-meta";
+      const familyMeta = WINDOW_TYPES[design.family];
+      meta.textContent = `${familyMeta ? familyMeta.glyph : "?"} · ${design.variants.length} var.`;
+      button.append(name, meta);
+      button.title = customTypeKey(design);
+      button.addEventListener("click", () => {
+        selectedDesignId = design.id;
+        renderWindowWorkshop();
+      });
+      item.append(button);
+      list.append(item);
+    }
+  }
+
+  function renderDesignEditor() {
+    const design = currentDesign();
+    $("#design-editor").hidden = !design;
+    $("#design-empty").textContent = design ? "" : "Creá un diseño o elegí uno de la lista.";
+    if (!design) return;
+    const nameInput = $("#design-name");
+    if (document.activeElement !== nameInput) nameInput.value = design.name;
+    $("#design-key").textContent = customTypeKey(design);
+    $("#design-family").value = design.family;
+    const familyMeta = WINDOW_TYPES[design.family];
+    $("#design-family-hint").textContent = familyMeta
+      ? `${familyMeta.label}: ${familyMeta.hint} Las variantes sólo cambian cómo se ve.`
+      : "";
+    const container = $("#variant-list");
+    container.replaceChildren();
+    design.variants.forEach((variant, index) => container.append(variantCard(design, variant, index)));
+    $("#add-variant").disabled = false;
+  }
+
+  function variantCard(design, variant, index) {
+    const card = document.createElement("article");
+    card.className = "variant-card";
+    const bases = BASES[design.family] || {};
+    const baseIds = Object.keys(bases);
+    const meta = baseMeta(design.family, variant.base) || bases[baseIds[0]] || { size: { width: 300, height: 150 }, fields: ["title"] };
+
+    const fields = document.createElement("div");
+    fields.className = "variant-fields";
+
+    const head = document.createElement("header");
+    head.className = "variant-head";
+    const title = document.createElement("strong");
+    title.textContent = `Variante ${index + 1}`;
+    head.append(title);
+    if (baseIds.length > 1) {
+      const baseSelect = document.createElement("select");
+      baseSelect.className = "variant-base";
+      baseSelect.title = "Escena base de esta variante";
+      for (const id of baseIds) {
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = bases[id].label;
+        baseSelect.append(option);
+      }
+      baseSelect.value = variant.base;
+      baseSelect.addEventListener("change", () => {
+        design.variants[index] = normalizeVariant({ ...variant, base: baseSelect.value }, design.family);
+        commitDesigns();
+      });
+      head.append(baseSelect);
+    }
+    // La skin re-viste el chrome de la ventana (tema, marco, barra y X) sin
+    // tocar el comportamiento ni el layout de la familia.
+    const skinSelect = document.createElement("select");
+    skinSelect.className = "variant-base";
+    skinSelect.title = "Skin del chrome de la ventana";
+    const nativeSkin = document.createElement("option");
+    nativeSkin.value = "";
+    nativeSkin.textContent = `Skin de la base (${SKINS[meta.skin]?.label || meta.skin})`;
+    skinSelect.append(nativeSkin);
+    for (const [id, skin] of Object.entries(SKINS)) {
+      const option = document.createElement("option");
+      option.value = id;
+      option.textContent = skin.label;
+      skinSelect.append(option);
+    }
+    skinSelect.value = SKINS[variant.skin] ? variant.skin : "";
+    skinSelect.addEventListener("change", () => {
+      variant.skin = skinSelect.value;
+      designsDirty = true;
+      updateDesignsSaveButton();
+      refreshPreview();
+    });
+    head.append(skinSelect);
+    const spacer = document.createElement("span");
+    spacer.className = "spacer";
+    const clone = document.createElement("button");
+    clone.type = "button";
+    clone.className = "icon-button";
+    clone.textContent = "⧉";
+    clone.title = "Duplicar esta variante";
+    clone.addEventListener("click", () => {
+      design.variants.splice(index + 1, 0, duplicateVariant(variant));
+      commitDesigns();
+    });
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "icon-button danger";
+    remove.textContent = "×";
+    remove.title = "Quitar esta variante";
+    remove.disabled = design.variants.length <= 1;
+    remove.addEventListener("click", () => {
+      design.variants.splice(index, 1);
+      commitDesigns();
+    });
+    head.append(spacer, clone, remove);
+    fields.append(head);
+
+    // El preview se refresca solo mientras se tipea; el resto de la tarjeta no
+    // se toca para no perder el foco del campo.
+    let preview = variantPreview(design, variant);
+    const refreshPreview = () => {
+      const next = variantPreview(design, variant);
+      preview.replaceWith(next);
+      preview = next;
+    };
+
+    const textFields = [
+      { key: "title", label: "Título" },
+      { key: "message", label: meta.messageLabel || "Mensaje" },
+      { key: "subtitle", label: meta.subtitleLabel || "Bajada" }
+    ].filter((field) => (meta.fields || []).includes(field.key));
+    for (const field of textFields) {
+      const label = document.createElement("label");
+      label.textContent = field.label;
+      const input = field.key === "title" ? document.createElement("input") : document.createElement("textarea");
+      if (field.key === "title") input.type = "text";
+      else input.rows = 2;
+      input.maxLength = field.key === "title" ? 60 : 200;
+      input.value = variant[field.key] || "";
+      input.placeholder = BASE_PREVIEW[variant.base]?.[field.key] || "El de la escena";
+      input.addEventListener("input", () => {
+        variant[field.key] = input.value;
+        designsDirty = true;
+        updateDesignsSaveButton();
+        refreshPreview();
+      });
+      label.append(input);
+      fields.append(label);
+    }
+
+    const sizeRow = document.createElement("div");
+    sizeRow.className = "variant-size";
+    const sizeLabel = document.createElement("span");
+    sizeLabel.className = "variant-size-label";
+    sizeLabel.textContent = "Tamaño (px)";
+    sizeLabel.title = `Vacío usa el de la base (${meta.size.width}×${meta.size.height}). Se acota a ${SIZE_LIMITS.width.min}–${SIZE_LIMITS.width.max} × ${SIZE_LIMITS.height.min}–${SIZE_LIMITS.height.max}.`;
+    const widthInput = document.createElement("input");
+    const heightInput = document.createElement("input");
+    for (const [input, axis] of [[widthInput, "width"], [heightInput, "height"]]) {
+      input.type = "number";
+      input.min = String(SIZE_LIMITS[axis].min);
+      input.max = String(SIZE_LIMITS[axis].max);
+      input.step = "10";
+      input.placeholder = String(meta.size[axis]);
+      input.value = variant.size ? String(variant.size[axis]) : "";
+      input.addEventListener("change", () => {
+        const width = Number(widthInput.value);
+        const height = Number(heightInput.value);
+        const size = (widthInput.value === "" && heightInput.value === "")
+          ? null
+          : { width: Number.isFinite(width) && widthInput.value !== "" ? width : meta.size.width,
+              height: Number.isFinite(height) && heightInput.value !== "" ? height : meta.size.height };
+        design.variants[index] = normalizeVariant({ ...variant, size }, design.family);
+        commitDesigns();
+      });
+    }
+    sizeRow.append(sizeLabel, widthInput, document.createTextNode("×"), heightInput);
+    fields.append(sizeRow);
+
+    card.append(fields, preview);
+    return card;
+  }
+
+  /** Maqueta CSS de la ventana, a escala. Aproximada a propósito: el preview
+   * fiel es el juego (Block Lab, F4); acá alcanza con leer los textos puestos. */
+  function variantPreview(design, variant) {
+    const meta = baseMeta(design.family, variant.base) || { size: { width: 300, height: 150 }, fields: ["title"] };
+    const preset = BASE_PREVIEW[variant.base] || { title: "Ventana", buttons: ["Aceptar"] };
+    const size = variantSize(variant, design.family);
+    const skin = variantSkin(variant, design.family);
+    const scale = 0.8;
+    const box = document.createElement("div");
+    box.className = `win-preview${skin === "retro" ? " retro" : ""}`;
+    box.style.width = `${Math.round(size.width * scale)}px`;
+    box.style.height = `${Math.round(size.height * scale)}px`;
+
+    const bar = document.createElement("div");
+    bar.className = "win-preview-titlebar";
+    const barText = document.createElement("span");
+    barText.textContent = variant.title || preset.title;
+    const cross = document.createElement("i");
+    cross.textContent = "×";
+    bar.append(barText, cross);
+    box.append(bar);
+
+    const body = document.createElement("div");
+    body.className = `win-preview-body${preset.ad ? " ad" : ""}`;
+    if ((meta.fields || []).includes("message")) {
+      const message = document.createElement("p");
+      message.className = "win-preview-message";
+      message.textContent = variant.message || preset.message || "";
+      body.append(message);
+    }
+    if ((meta.fields || []).includes("subtitle")) {
+      const subtitle = document.createElement("p");
+      subtitle.className = "win-preview-subtitle";
+      subtitle.textContent = variant.subtitle || preset.subtitle || "";
+      body.append(subtitle);
+    }
+    if (preset.progress) {
+      const track = document.createElement("div");
+      track.className = "win-preview-progress";
+      const fill = document.createElement("i");
+      track.append(fill);
+      body.append(track);
+    }
+    const buttonRow = document.createElement("div");
+    buttonRow.className = "win-preview-buttons";
+    for (const text of preset.buttons) {
+      const fake = document.createElement("span");
+      fake.textContent = text;
+      buttonRow.append(fake);
+    }
+    body.append(buttonRow);
+    box.append(body);
+    return box;
+  }
+
+  function makeFamilyOptions() {
+    const select = $("#design-family");
+    for (const family of FAMILIES) {
+      const option = document.createElement("option");
+      option.value = family;
+      option.textContent = WINDOW_TYPES[family] ? WINDOW_TYPES[family].label : family;
+      select.append(option);
+    }
+  }
+
+  function bindWindowWorkshop() {
+    $("#tab-levels").addEventListener("click", () => setWorkshopTab("levels"));
+    $("#tab-windows").addEventListener("click", () => setWorkshopTab("windows"));
+    $("#new-design").addEventListener("click", createDesign);
+    $("#save-window-designs").addEventListener("click", saveWindowDesigns);
+    $("#design-name").addEventListener("input", (event) => {
+      const design = currentDesign();
+      if (!design) return;
+      design.name = event.target.value;
+      designsDirty = true;
+      renderDesignList();
+      updateDesignsSaveButton();
+    });
+    $("#design-key").addEventListener("click", async () => {
+      const design = currentDesign();
+      if (!design) return;
+      try {
+        await navigator.clipboard.writeText(customTypeKey(design));
+        showToast("Clave copiada");
+      } catch (error) {
+        showToast(customTypeKey(design));
+      }
+    });
+    $("#design-family").addEventListener("change", (event) => {
+      const design = currentDesign();
+      if (!design || !FAMILIES.includes(event.target.value)) return;
+      design.family = event.target.value;
+      // Las bases son por familia: cada variante cae en una base válida de la nueva.
+      design.variants = design.variants.map((variant) => normalizeVariant(variant, design.family));
+      commitDesigns();
+      render();
+    });
+    $("#delete-design").addEventListener("click", () => {
+      const design = currentDesign();
+      if (design) deleteDesign(design);
+    });
+    $("#add-variant").addEventListener("click", () => {
+      const design = currentDesign();
+      if (!design) return;
+      // La variante nueva copia la última: crear una variante suele ser cambiar
+      // un texto, no arrancar de cero.
+      const last = design.variants[design.variants.length - 1];
+      design.variants.push(last ? duplicateVariant(last) : blankVariant(design.family));
+      commitDesigns();
+    });
+  }
+
   // --- Servidor del Workshop --------------------------------------------------
 
   const levelResPath = (file) => `res://level_designs/levels/${file}`;
@@ -1593,6 +2087,7 @@
     $("#open-sequence").hidden = !workshopApi;
     renderCurrentFile();
     await loadRoomTemplates();
+    await loadWindowDesigns();
   }
 
   async function apiJson(url, options = {}) {
@@ -2211,7 +2706,8 @@
       const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
       if (event.ctrlKey && event.key.toLowerCase() === "s") {
         event.preventDefault();
-        saveLevel();
+        if (document.body.classList.contains("windows-mode")) saveWindowDesigns();
+        else saveLevel();
         return;
       }
       if (typing || document.querySelector("dialog[open]")) return;
@@ -2234,6 +2730,8 @@
 
   makeSkyOptions();
   makeTextureEditors();
+  makeFamilyOptions();
+  bindWindowWorkshop();
   bindLevelFields();
   bindFileActions();
   bindCanvas();

@@ -14,22 +14,40 @@ extends RefCounted
 ## un nivel que las use se puede jugar igual desde el dia que se diseña.
 
 const NORMAL_TYPE := "normal"
+## Prefijo con el que una capa nombra un diseño del Window Workshop
+## (level_designs/window-designs.json) en lugar de una familia de fabrica.
+const CUSTOM_PREFIX := "custom:"
 
-const VARIANTS := {
-	"normal": [
-		preload("res://scenes/windows/close_window.tscn"),
-		preload("res://scenes/windows/shutdown_window.tscn"),
-	],
-	"download": [preload("res://scenes/windows/download_window.tscn")],
-	"infected-download": [preload("res://scenes/windows/infected_download_window.tscn")],
+## Escenas de cada familia, con nombre por escena para que un diseño custom
+## pueda elegir su base. Tiene que coincidir con BASES en
+## tools/level-editor/window-format.js (hay un test de paridad): agregar una
+## familia es una entrada aca y otra alla, y todo lo demas se deriva.
+const BASE_SCENES := {
+	"normal": {
+		"close": preload("res://scenes/windows/close_window.tscn"),
+		"shutdown": preload("res://scenes/windows/shutdown_window.tscn"),
+	},
 	# Dos variantes de espera: cinco segundos apura, diez ahoga.
-	"popup": [
-		preload("res://scenes/windows/popup_window.tscn"),
-		preload("res://scenes/windows/popup_slow_window.tscn"),
-	],
-	"firewall": [preload("res://scenes/windows/firewall_window.tscn")],
-	"critical-error": [preload("res://scenes/windows/critical_error_window.tscn")],
+	"popup": {
+		"popup": preload("res://scenes/windows/popup_window.tscn"),
+		"popup-slow": preload("res://scenes/windows/popup_slow_window.tscn"),
+	},
+	"download": {"download": preload("res://scenes/windows/download_window.tscn")},
+	"infected-download": {"infected-download": preload("res://scenes/windows/infected_download_window.tscn")},
+	"firewall": {"firewall": preload("res://scenes/windows/firewall_window.tscn")},
+	"critical-error": {"critical-error": preload("res://scenes/windows/critical_error_window.tscn")},
 }
+
+## Familia -> lista de escenas, derivada de BASE_SCENES para que las dos vistas
+## no puedan discrepar.
+static var VARIANTS: Dictionary = _derive_variants()
+
+
+static func _derive_variants() -> Dictionary:
+	var result := {}
+	for family in BASE_SCENES:
+		result[family] = (BASE_SCENES[family] as Dictionary).values()
+	return result
 
 
 ## Escena de una familia. Con varias variantes elige una, usando el generador que
@@ -57,3 +75,32 @@ static func scenes_for(window_types: PackedStringArray, rng: RandomNumberGenerat
 	for window_type in window_types:
 		scenes.append(scene_for(window_type, rng))
 	return scenes
+
+
+## Resuelve una capa a un plan de spawn: escena y configuracion por ventana.
+## Las familias de fabrica llevan configuracion vacia; un tipo `custom:<slug>`
+## elige al azar una variante de su diseño, que la ventana aplica al nacer
+## (titulo, mensaje, tamaño). Un diseño o una base desconocidos degradan a una
+## ventana normal, para que borrar un diseño nunca rompa un nivel que lo usaba.
+static func spawn_plan_for(window_types: PackedStringArray, rng: RandomNumberGenerator = null) -> Array[Dictionary]:
+	var plan: Array[Dictionary] = []
+	for window_type in window_types:
+		plan.append(_plan_entry(window_type, rng))
+	return plan
+
+
+static func _plan_entry(window_type: String, rng: RandomNumberGenerator) -> Dictionary:
+	if not window_type.begins_with(CUSTOM_PREFIX):
+		return {"scene": scene_for(window_type, rng), "config": {}}
+	var slug := window_type.trim_prefix(CUSTOM_PREFIX)
+	var design := WindowDesignCatalog.get_design(slug)
+	if design.is_empty():
+		push_warning("Unknown window design '%s'; spawning a normal window." % slug)
+		return {"scene": scene_for(NORMAL_TYPE, rng), "config": {}}
+	var family := str(design.get("family", NORMAL_TYPE))
+	var bases: Dictionary = BASE_SCENES.get(family, BASE_SCENES[NORMAL_TYPE])
+	var variant := WindowDesignCatalog.variant_for(design, rng)
+	var scene := bases.get(str(variant.get("base", "")), null) as PackedScene
+	if scene == null:
+		scene = bases.values()[0]
+	return {"scene": scene, "config": variant}

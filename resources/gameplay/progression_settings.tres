@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="ProgressionSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/progression_settings.gd" id="1_progression_settings"]
+
+[resource]
+script = ExtResource("1_progression_settings")
+xp_values = {
+"ball": 5,
+"chain_step": 10,
+"close_zone": 5,
+"first_clear": 300,
+"level_completed": 200,
+"level_failed": 50,
+"new_record": 100,
+"no_damage": 100,
+"room_clean": 25,
+"room_cleared": 50,
+"room_perfect": 100,
+"welcome": 50,
+"window_closed": 10,
+"zone_hit": 5
+}
+rank_xp = PackedInt32Array(0, 50, 100, 200, 400, 600)
+score_points_per_xp = 100
+level_thresholds = PackedInt32Array(0, 200, 600, 1500, 3000, 5500, 9000, 14000, 21000, 30000, 42000, 58000, 80000, 110000, 150000)
+level_names = PackedStringArray("286", "386", "486", "PENTIUM", "PENTIUM II", "PENTIUM III", "PENTIUM 4", "CORE 2", "CORE i3", "CORE i5", "CORE i7", "CORE i9", "XEON", "THREADRIPPER", "QUANTUM")
+elder_growth = 1.35
+xp_log_limit = 100
+save_delay = 2.0
+notice_seconds = 4.0
+progression_version = 1

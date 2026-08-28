@@ -30,6 +30,13 @@ func _run() -> void:
 	# El bind por grupo es diferido y la entrada en cascada tarda menos de un
 	# segundo; el settle al reposo llega despues del hold.
 	await create_timer(0.1).timeout
+	# El HUD de ronda lo usan tambien el laboratorio y los bancos de prueba:
+	# una ronda que no es de la campaña no puede sumar XP ni logros.
+	var tracker := hud_root.get_node("AchievementTracker") as AchievementTracker
+	if tracker == null:
+		return _fail("The round HUD should carry the achievement tracker.")
+	if tracker.is_bound():
+		return _fail("The tracker must not bind to a round outside the campaign catalog.")
 	controller.start_round()
 	controller.report_ammo_changed([7, 24])
 	controller.report_attack_fired()

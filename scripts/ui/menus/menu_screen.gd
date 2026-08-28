@@ -163,5 +163,11 @@ func settings() -> GameSettings:
 	return _autoload("Settings") as GameSettings
 
 
+## El perfil puede no estar (tests que corren sin ese autoload): los menus que
+## lo muestran se vacian en vez de romperse.
+func profile() -> GameProfile:
+	return (Engine.get_main_loop() as SceneTree).root.get_node_or_null("PlayerProfile") as GameProfile
+
+
 func _autoload(autoload_name: String) -> Node:
 	return (Engine.get_main_loop() as SceneTree).root.get_node(autoload_name)

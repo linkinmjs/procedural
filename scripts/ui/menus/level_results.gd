@@ -21,6 +21,9 @@ const VALUE_COLORS := {
 var _summary: Dictionary = {}
 var _level_title := ""
 var _has_next := false
+## Lo que la partida le dejo al perfil (XP, nivel, logros). Vacio si no hay
+## perfil: el desglose del puntaje se muestra igual.
+var _progress: Dictionary = {}
 var _rows: Array[Dictionary] = []
 var _revealed := 0
 var _elapsed := 0.0
@@ -28,11 +31,12 @@ var _rows_box: VBoxContainer
 var _rank_label: Label
 
 
-static func create(summary: Dictionary, level_title: String, has_next: bool) -> LevelResults:
+static func create(summary: Dictionary, level_title: String, has_next: bool, progress := {}) -> LevelResults:
 	var menu := LevelResults.new()
 	menu._summary = summary
 	menu._level_title = level_title
 	menu._has_next = has_next
+	menu._progress = progress
 	# Los resultados no se descartan con cancelar: se sale eligiendo que hacer
 	# con el intento, no dejandolo a medias.
 	menu.dismissable = false
@@ -53,6 +57,9 @@ func _ready() -> void:
 	add_separator()
 	_build_actions()
 	_rows = ScoreBreakdown.rows_for(_summary)
+	# El puntaje cuenta la partida; despues viene lo que le dejo al jugador.
+	if not _progress.is_empty():
+		_rows.append_array(ProgressionBreakdown.rows_for(_progress, _next_level_name()))
 
 
 func _process(delta: float) -> void:
@@ -78,6 +85,14 @@ func _unhandled_input(event: InputEvent) -> void:
 func reveal_all() -> void:
 	while _revealed < _rows.size():
 		_reveal_next()
+
+
+## Nombre del nivel que se abrio al completar este, si hay uno siguiente.
+func _next_level_name() -> String:
+	if not _has_next:
+		return ""
+	var seq := sequence()
+	return str(seq.get_level_name(int(seq.get_current_index()) + 1))
 
 
 func retry() -> void:

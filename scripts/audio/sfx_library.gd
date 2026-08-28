@@ -26,6 +26,8 @@ extends Resource
 ##   chain_saved            - acierto con el timer casi agotado
 ##   chain_tick             - tic de urgencia del timer de cadena
 ##   bank                   - pozo cobrado al limpiar la sala
+##   badge_unlocked         - globo de logro desbloqueado (Notices)
+##   level_up               - globo de subida de nivel del jugador (Notices)
 ##   ui_hover / ui_click / ui_back - botones de los menus
 ##
 ## El disparo del arma no pasa por aca: va por el SpatialAudio3D del arma.

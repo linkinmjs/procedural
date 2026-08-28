@@ -1,7 +1,8 @@
 extends Node
 
 ## Revisa el HUD de puntaje sin abrir el editor: arma una cadena, la captura
-## viva y despues cobrada. Guarda dos PNG en .godot/.
+## viva, con un globo de logro encima, y despues cobrada. Guarda tres PNG en
+## .godot/.
 ##
 ## El desglose del nivel no se prueba aca porque el HUD ya no lo muestra: es la
 ## pantalla de resultados, que tiene su propia vista en menu_visual_smoke_test.
@@ -30,6 +31,23 @@ func _ready() -> void:
 		return
 	if not _save("res://.godot/score-hud-chain.png"):
 		return
+
+	# El globo de logro en partida: panel del juego, abajo y al centro, sin
+	# pisar los vitales ni el log.
+	var notices := get_node("/root/Notices")
+	notices.notice_seconds = 30.0
+	notices.show_badge(AchievementCatalog.find("overclock"))
+	await get_tree().create_timer(HudStyle.DUR_SLIDE_IN + 0.05).timeout
+	await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	var balloon := notices.current_balloon() as NoticeBalloon
+	if balloon == null or not _inside_viewport(balloon):
+		_fail("The in-game badge notice should sit inside the reference viewport.")
+		return
+	if not _save("res://.godot/score-hud-notice.png"):
+		return
+	balloon.play_out()
+	await get_tree().create_timer(HudStyle.DUR_HIDE + 0.1).timeout
 
 	controller.report_room_cleared("room-a", "Sala A")
 	await get_tree().process_frame

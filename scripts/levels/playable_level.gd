@@ -300,7 +300,11 @@ func _show_results(summary: Dictionary) -> void:
 		get_tree().create_timer(0.5, true, false, true).timeout.connect(_show_results.bind(summary))
 		return
 	var level_title := str(level_data.get("name", "Nivel"))
-	menus.open(LevelResults.create(summary, level_title, _level_sequence().has_next_level()))
+	# El perfil ya cerro la partida cuando el puntaje se publico: su reporte
+	# (XP, nivel, logros) va a la misma pantalla, debajo del desglose.
+	var profile := get_node_or_null("/root/PlayerProfile") as GameProfile
+	var report: Dictionary = profile.last_run_report if profile != null else {}
+	menus.open(LevelResults.create(summary, level_title, _level_sequence().has_next_level(), report))
 
 
 func _open_pause_menu() -> void:

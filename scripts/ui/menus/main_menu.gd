@@ -12,12 +12,16 @@ extends MenuScreen
 ## pantalla gigante, puede mostrar esto mismo.
 
 const GAME_NAME := "procedural"
+## Grupo con el que el escritorio se deja encontrar (los globos de aviso se
+## visten de Windows cuando hay uno en el arbol).
+const GROUP := "desktop"
 const WALLPAPER := preload("res://assets/textures/ui/xp/wallpaper_bliss.jpg")
 ## Los iconos del escritorio van a 48 px, como en un escritorio de verdad; los
 ## de la barra y el menu de inicio, a 32.
 const ICON_STAR := preload("res://assets/textures/ui/xp/icons/star.png")
 const ICON_FOLDER := preload("res://assets/textures/ui/xp/icons/folder.png")
 const ICON_GEAR := preload("res://assets/textures/ui/xp/icons/gear.png")
+const ICON_COMPUTER := preload("res://assets/textures/ui/xp/icons/computer.png")
 const DESKTOP_STAR := preload("res://assets/textures/ui/xp/icons/large/star.png")
 const DESKTOP_FOLDER := preload("res://assets/textures/ui/xp/icons/large/folder.png")
 const DESKTOP_GEAR := preload("res://assets/textures/ui/xp/icons/large/gear.png")
@@ -29,6 +33,10 @@ const DESKTOP_MARGIN := Vector2(18.0, 16.0)
 var taskbar: Taskbar
 var start_menu: StartMenuPanel
 var task_button: Button
+## El marcador siempre visible del jugador: nivel y barra de XP arriba de la
+## ventana, y el nombre del nivel en la bandeja de la barra.
+var profile_header: ProfileHeader
+var level_chip: Label
 
 var _icons: VBoxContainer
 
@@ -38,6 +46,7 @@ func _ready() -> void:
 	# una decoracion, es el menu. Los que aparecen durante la partida usan la
 	# piel del juego.
 	skin = MenuSkin.DESKTOP
+	add_to_group(GROUP)
 	# Se llega aca desde un nivel, donde el mouse estaba capturado.
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	_build_wallpaper()
@@ -72,16 +81,29 @@ func play() -> void:
 	sequence().play_current_level()
 
 
+func open_level_select() -> void:
+	menus().open(LevelSelectMenu.create(MenuSkin.DESKTOP))
+
+
+## Mi PC es la vitrina del jugador: nivel, estadisticas y logros.
+func open_my_computer() -> void:
+	menus().open(MyComputerMenu.create())
+
+
 func quit_game() -> void:
 	get_tree().quit()
 
 
 func _fill_window() -> void:
+	profile_header = ProfileHeader.create(profile(), true, text_color(), muted_color(), open_my_computer)
+	content.add_child(profile_header)
+	if profile_header.visible:
+		add_separator()
 	add_line("MENU_CAMPAIGN")
 	add_line(tr("MENU_LEVEL_POSITION").format({"position": sequence().get_position_text()}), true)
 	add_separator()
 	add_button("MENU_PLAY", play)
-	add_button("MENU_SELECT_LEVEL", Callable(), false)
+	add_button("MENU_SELECT_LEVEL", open_level_select)
 	add_button("MENU_OPTIONS", open_options)
 	add_button("MENU_QUIT", quit_game)
 
@@ -96,10 +118,10 @@ func _build_wallpaper() -> void:
 	add_child(wallpaper)
 
 
-## Solo el ejecutable del juego abre algo. Los demas iconos tampoco se quedan
-## mudos: hacen parpadear el boton de la ventana, asi que el escritorio se puede
-## explorar pero siempre termina senalando de vuelta al juego. En la fase 4 esos
-## mismos huecos son los niveles.
+## El ejecutable abre la ventana del juego, `niveles` el selector y `mi pc` la
+## vitrina del jugador. Los que todavia no llevan a ningun lado tampoco se
+## quedan mudos: hacen parpadear el boton de la ventana, asi que el escritorio
+## se puede explorar pero siempre termina senalando de vuelta al juego.
 func _build_desktop_icons() -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -116,9 +138,9 @@ func _build_desktop_icons() -> void:
 	margin.add_child(_icons)
 
 	_add_icon(DESKTOP_STAR, "%s.exe" % GAME_NAME, open_window)
-	_add_icon(DESKTOP_FOLDER, "DESKTOP_LEVELS", nudge_to_window)
+	_add_icon(DESKTOP_FOLDER, "DESKTOP_LEVELS", open_level_select)
 	_add_icon(DESKTOP_GEAR, "DESKTOP_OPTIONS", open_options)
-	_add_icon(DESKTOP_COMPUTER, "DESKTOP_COMPUTER", nudge_to_window)
+	_add_icon(DESKTOP_COMPUTER, "DESKTOP_COMPUTER", open_my_computer)
 	_add_icon(DESKTOP_RECYCLE, "DESKTOP_RECYCLE", nudge_to_window)
 
 
@@ -142,6 +164,12 @@ func _build_taskbar() -> void:
 	taskbar.start_toggled.connect(_on_start_toggled)
 	add_child(taskbar)
 	task_button = taskbar.add_task(GAME_NAME, ICON_STAR, _toggle_window)
+	var current_profile := profile()
+	if current_profile != null:
+		level_chip = taskbar.add_tray_chip(current_profile.get_level_name())
+		current_profile.xp_changed.connect(func(_total: int, _delta: int, _reason: String) -> void:
+			level_chip.text = current_profile.get_level_name()
+		)
 
 
 ## El menu de inicio cuelga sobre la barra, pegado al borde inferior izquierdo.
@@ -160,7 +188,8 @@ func _build_start_menu() -> void:
 	anchor.add_child(start_menu)
 
 	start_menu.add_entry("START_PLAY", ICON_STAR, play)
-	start_menu.add_entry("START_SELECT_LEVEL", ICON_FOLDER, Callable(), false)
+	start_menu.add_entry("START_SELECT_LEVEL", ICON_FOLDER, open_level_select)
+	start_menu.add_entry("START_MY_COMPUTER", ICON_COMPUTER, open_my_computer)
 	start_menu.add_entry("START_OPTIONS", ICON_GEAR, open_options)
 	start_menu.add_shutdown(quit_game)
 	# El escritorio no pasa por MenuStack.open(): se cablea aca.

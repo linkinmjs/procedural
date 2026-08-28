@@ -35,6 +35,7 @@ const ATTENTION_META := "attention"
 var start_button: Button
 
 var _tasks: HBoxContainer
+var _tray_row: HBoxContainer
 var _clock: Label
 ## Ultimo texto puesto en el reloj. Sin esto el reloj se reescribia en cada
 ## frame para un texto que cambia una vez por minuto.
@@ -129,6 +130,19 @@ func is_asking_attention(button: Button) -> bool:
 	return button.has_meta(ATTENTION_META)
 
 
+## Un rotulo en la bandeja, a la izquierda del reloj: el nivel del jugador vive
+## ahi, donde un sistema operativo muestra lo que esta corriendo.
+func add_tray_chip(text: String) -> Label:
+	var chip := Label.new()
+	chip.text = text
+	chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	chip.add_theme_color_override("font_color", LABEL_COLOR)
+	chip.add_theme_font_size_override("font_size", 11)
+	_tray_row.add_child(chip)
+	_tray_row.move_child(chip, _tray_row.get_child_count() - 2)
+	return chip
+
+
 ## El boton de ventana se dibuja hundido o suelto segun este abierta, asi que el
 ## aviso tiñe todos sus estados y no solo el que se ve ahora.
 func _set_attention(button: Button, lit: bool) -> void:
@@ -202,9 +216,13 @@ func _build_tray() -> PanelContainer:
 	style.content_margin_right = 10.0
 	tray.add_theme_stylebox_override("panel", style)
 
+	_tray_row = HBoxContainer.new()
+	_tray_row.add_theme_constant_override("separation", 12)
+	tray.add_child(_tray_row)
+
 	_clock = Label.new()
 	_clock.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_clock.add_theme_color_override("font_color", LABEL_COLOR)
 	_clock.add_theme_font_size_override("font_size", 12)
-	tray.add_child(_clock)
+	_tray_row.add_child(_clock)
 	return tray

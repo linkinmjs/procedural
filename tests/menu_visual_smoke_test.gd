@@ -1,9 +1,10 @@
 extends Node
 
 ## Revisa como se ven los menus sin abrir el editor: el escritorio del menu
-## principal, el aviso pendiente en la barra de tareas, el menu de inicio, la
-## pausa sobre el nivel y la pantalla de resultados con un desglose de ejemplo.
-## Guarda cinco PNG en .godot/.
+## principal, el aviso pendiente en la barra de tareas, el menu de inicio, un
+## globo de logro sobre el escritorio, la vitrina de Mi PC, el selector de
+## niveles, la pausa sobre el nivel y la pantalla de resultados con un desglose
+## de ejemplo. Guarda ocho PNG en .godot/.
 
 const MAIN_MENU_SCENE := preload("res://scenes/ui/menus/main_menu.tscn")
 
@@ -45,6 +46,44 @@ func _ready() -> void:
 		return
 	if not _save("res://.godot/menu-start.png"):
 		return
+	main_menu.taskbar.start_button.button_pressed = false
+
+	# El globo de logro sobre el escritorio, pegado a la bandeja.
+	var notices := get_node("/root/Notices")
+	notices.notice_seconds = 30.0
+	notices.show_badge(AchievementCatalog.find("kill_9"))
+	await _drawn()
+	await get_tree().create_timer(HudStyle.DUR_SLIDE_IN).timeout
+	await _drawn()
+	if not notices.is_showing():
+		_fail("The badge notice should be on screen.")
+		return
+	if not _save("res://.godot/menu-notice-badge.png"):
+		return
+	notices.current_balloon().play_out()
+	await get_tree().create_timer(HudStyle.DUR_HIDE + 0.1).timeout
+
+	# Mi PC: la vitrina con el catalogo entero, casi todo por ganar.
+	main_menu.open_my_computer()
+	await _drawn()
+	var vitrine := menus.top() as MyComputerMenu
+	if vitrine == null or not _inside_viewport(vitrine.window):
+		_fail("The My PC window should sit inside the reference viewport.")
+		return
+	if not _save("res://.godot/menu-my-pc.png"):
+		return
+	menus.close_all()
+
+	# El selector de niveles con la piel de Windows.
+	main_menu.open_level_select()
+	await _drawn()
+	var select := menus.top() as LevelSelectMenu
+	if select == null or not _inside_viewport(select.window):
+		_fail("The level select window should sit inside the reference viewport.")
+		return
+	if not _save("res://.godot/menu-level-select.png"):
+		return
+	menus.close_all()
 	main_menu.queue_free()
 
 	menus.open(PauseMenu.create("Nivel 1", "1 / 3", 12400))
@@ -57,7 +96,7 @@ func _ready() -> void:
 		return
 	menus.close_all()
 
-	menus.open(LevelResults.create(_fake_summary(), "Nivel 1", true))
+	menus.open(LevelResults.create(_fake_summary(), "Nivel 1", true, _fake_report()))
 	var results := menus.top() as LevelResults
 	results.reveal_all()
 	await _drawn()
@@ -95,6 +134,25 @@ func _fake_summary() -> Dictionary:
 		"accuracy_percent": 85.2,
 		"no_damage": true,
 		"record": {"previous": 15240, "delta": 2650, "is_new": true, "had_previous": true},
+	}
+
+
+## Reporte del perfil con todas las filas posibles: XP, subida de nivel,
+## logros nuevos y nivel desbloqueado.
+func _fake_report() -> Dictionary:
+	return {
+		"level_id": "nivel-1",
+		"completed": true,
+		"first_clear": true,
+		"xp_earned": 1240,
+		"xp_events": [],
+		"level_before": 3,
+		"level_name_before": "486",
+		"level_after": 4,
+		"leveled_up": true,
+		"level_name": "PENTIUM",
+		"badges": [AchievementCatalog.find("firewall_up"), AchievementCatalog.find("defrag_1")],
+		"progress": {"remaining": 1380, "next_name": "PENTIUM II"},
 	}
 
 

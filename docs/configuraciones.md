@@ -123,6 +123,24 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | Punch / shake / roll | ídem → `_punch`, `_shake`, `_roll_pending`, `_on_score_changed` | 1.28–1.35x / ±9 px / 0.55 s / 0.4 s | Intensidad del contador al subir, caer y cobrar; velocidad del número rodante. |
 | Pitch por escalón | ídem → `_celebrate_step_up` | 1.0 + 0.12 · escalón | Cuánto sube el tono del sonido al escalar. |
 
+## Progresión y logros
+
+| Parámetro | Dónde | Valor | Qué modifica |
+|---|---|---|---|
+| `xp_values` | `resources/gameplay/progression_settings.tres` | mapa motivo → XP | Cuánto paga cada acción valiosa (zona, cierre, escalón de cadena, sala, nivel, primera vez, sin daño, récord). Disparar y fallar no figuran a propósito. |
+| `rank_xp` | ídem | 0/50/100/200/400/600 | XP por índice de rango D…S+ al cerrar el nivel. |
+| `score_points_per_xp` | ídem | 100 | Cuántos puntos de puntaje valen 1 XP al cerrar el nivel. |
+| `level_thresholds` / `level_names` | ídem | 15 umbrales (0 … 150 000) y sus nombres de hardware | La tabla de niveles de jugador. Los umbrales tienen que crecer; el primero es 0. |
+| `elder_growth` | ídem | 1.35 | Cuánto crece cada salto más allá de la tabla (nombres `OC+n`). |
+| `xp_log_limit` | ídem | 100 | Entradas del historial de XP que se conservan en el perfil. |
+| `save_delay` | ídem | 2.0 s | Espera antes de escribir el perfil (una sala entera = una escritura). |
+| `notice_seconds` | ídem | 4.0 s | Cuánto queda a la vista cada globo de aviso. |
+| `progression_version` | ídem | 1 | Subirlo al cambiar la tabla de niveles: los perfiles guardados recalculan su nivel desde la XP. |
+| `BADGES` | `scripts/progression/achievement_catalog.gd` | 24 filas `{id, stat, threshold, kind, xp, icon}` | Qué logros existen, de qué estadística dependen y cuánto pagan. Agregar uno = una fila + `BADGE_<ID>_NAME/DESC` en el CSV. |
+| `LATE_NIGHT_FROM` / `LATE_NIGHT_TO` | `scripts/progression/achievement_tracker.gd` | 2 / 4 | Horas locales que cuentan como "de madrugada" para `CRON JOB`. |
+| `PROFILE_PATH` / `TEST_PROFILE_PATH` | `scripts/autoloads/player_profile.gd` | `user://profile.cfg` / `user://profile.test.cfg` | Dónde se guarda el perfil; en headless (smoke tests) se usa el segundo. |
+| `LAYER` / `DESKTOP_MARGIN` / `GAME_MARGIN` | `scripts/autoloads/notices.gd` | 130 / (8, barra + 6) / 28 | Capa del globo y a qué distancia del borde se apoya en el escritorio y en partida. |
+
 ## Ronda y flujo del nivel
 
 | Parámetro | Dónde | Valor | Qué modifica |

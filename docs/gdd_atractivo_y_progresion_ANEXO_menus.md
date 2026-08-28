@@ -305,7 +305,7 @@ Fases pensadas para que cada una deje el juego jugable.
 | **1** | Menú de pausa con reanudar, reintentar y salir | Hecha |
 | **2** | Menú principal y `main_scene` nueva; `Jugar` arranca la secuencia | Hecha |
 | **3** | Pantalla de resultados; reemplaza la transición automática | Hecha |
-| **4** | Selección de nivel con récords | Pendiente |
+| **4** | Selección de nivel con récords | Hecha (ver anexo de gamificación) |
 | **5** | Opciones persistentes en `user://settings.cfg` | Pendiente |
 | **6** | Theme de menú propio y pulido visual del escritorio | Pendiente |
 | **7** | Migración al lobby diegético | Eje 4 sin definir |
@@ -334,6 +334,10 @@ Fases pensadas para que cada una deje el juego jugable.
 | Ajustes guardados y aplicados | [`scripts/autoloads/settings.gd`](../scripts/autoloads/settings.gd) |
 | Textos en los tres idiomas | [`resources/i18n/strings.csv`](../resources/i18n/strings.csv) |
 | Navegación entre escenas | `LevelSequence.play_current_level()` y compañía |
+| Selección de nivel con récords y desbloqueo | [`scripts/ui/menus/level_select_menu.gd`](../scripts/ui/menus/level_select_menu.gd) |
+| Mi PC: vitrina del jugador | [`scripts/ui/menus/my_computer_menu.gd`](../scripts/ui/menus/my_computer_menu.gd) |
+| Cabecera de perfil en la ventana del menú | [`scripts/ui/menus/profile_header.gd`](../scripts/ui/menus/profile_header.gd) |
+| Globo de aviso de la bandeja | [`scripts/autoloads/notices.gd`](../scripts/autoloads/notices.gd) |
 
 Decisiones que se tomaron mientras se armaba:
 
@@ -413,9 +417,24 @@ Decisiones que se tomaron mientras se armaba:
   segundos el HUD deja a la vista el cobro de la última cadena, que era el
   motivo por el que la espera existía.
 
-Lo que todavía no existe: selección de nivel, récords, créditos y pantalla de
-carga. Los botones que ya están en pantalla pero no hacen nada
-quedan deshabilitados a propósito, para que se vea a dónde va el menú.
+Lo que todavía no existe: créditos y pantalla de carga. El icono `papelera`
+sigue sin destino y hace parpadear la ventana, como antes lo hacían `niveles`
+y `mi pc`.
+
+Decisiones que llegaron con la gamificación (el detalle está en
+`gdd_atractivo_y_progresion_ANEXO_gamificacion.md`):
+
+- **Los niveles se desbloquean en orden, completando.** Los rangos nunca
+  cierran contenido: sólo abren expresión (fase 3). Un nivel bloqueado se ve en
+  el selector con su motivo, no se esconde.
+- **`mi pc` es la vitrina del jugador.** Nivel, barra de XP, estadísticas,
+  logros y últimos eventos. Es la respuesta a "¿cada icono merece su propia
+  ventana?": cuando hay algo que mostrar, sí.
+- **La ventana del menú muestra al jugador antes que a la campaña.** Su nivel
+  y su barra van arriba, y el nombre del nivel se repite en la bandeja de la
+  barra de tareas.
+- **La campaña sigue donde quedó.** `LevelSequence` restaura el último nivel
+  jugado desde el perfil al arrancar; antes cada sesión volvía al primero.
 
 ---
 
@@ -429,14 +448,15 @@ quedan deshabilitados a propósito, para que se vea a dónde va el menú.
   una ventana de sistema es parte de la gracia?
 - ¿El fondo se queda en Bliss o el escritorio del juego pide uno propio? El pack
   trae veinte, y el eje 4 los quiere como desbloqueables.
-- Los iconos decorativos ya no son mudos: avisan desde la barra. ¿Alcanza con
+- ~~Los iconos decorativos ya no son mudos: avisan desde la barra. ¿Alcanza con
   eso o cada uno merece su propia ventana de sistema (una papelera vacía, un
-  `mi pc` con las estadísticas de la campaña)?
+  `mi pc` con las estadísticas de la campaña)?~~ `mi pc` ya es la vitrina;
+  queda la papelera.
 - ¿La pausa congela el reloj del nivel? Debería, pero conviene decirlo.
 - ¿La pantalla de resultados aparece al terminar cada nivel o sólo al cerrar la
   campaña?
-- ¿Los niveles se desbloquean en orden o están todos disponibles desde el
-  principio?
+- ~~¿Los niveles se desbloquean en orden o están todos disponibles desde el
+  principio?~~ En orden, completando (anexo de gamificación).
 - ¿Queremos soporte de mando desde el principio o alcanza con teclado y mouse?
 - ¿El escritorio del menú y el escritorio del lobby son el mismo dato guardado o
   son dos cosas distintas?

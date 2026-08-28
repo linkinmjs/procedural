@@ -15,7 +15,7 @@ resources/   # recursos .tres/.res de datos: armas, themes, animaciones, audio, 
 scenes/      # escenas .tscn agrupadas por dominio
   player/ weapons/ projectiles/ levels/ targets/ windows/ ui/ environment/ sandbox/
 scripts/     # scripts .gd espejando la estructura de scenes/
-  autoloads/ player/ weapons/ projectiles/ levels/ targets/ windows/ ui/ gameplay/ environment/ sandbox/
+  autoloads/ player/ weapons/ projectiles/ levels/ targets/ windows/ ui/ gameplay/ progression/ environment/ sandbox/
 level_designs/  # definiciones de nivel en JSON, leidas en runtime
 addons/      # plugins de terceros (SimpleDungeons)
 tests/       # smoke tests headless y visuales
@@ -36,7 +36,7 @@ campania.
 - `scenes/sandbox/weapon_test.tscn`: poligono con cajas de municion y blancos reutilizables.
 - `scenes/sandbox/block_lab.tscn`: laboratorio configurable de habitaciones y bloques de objetivos.
 - `scenes/targets/target_spawn_volume_3d.tscn`: volumen configurable que distribuye pelotas estaticas y muestra sus limites de debug.
-- `scenes/ui/round_hud.tscn`: HUD reutilizable de vida, tiempo, precision y eventos de ronda. Incluye el controlador de puntaje y su HUD.
+- `scenes/ui/round_hud.tscn`: HUD reutilizable de vida, tiempo, precision y eventos de ronda. Incluye el controlador de puntaje, su HUD y el `AchievementTracker` que alimenta el perfil.
 - `scenes/ui/score_hud.tscn`: contador de combo, marcador y resumen de nivel.
 
 Los menus de pausa, confirmacion y resultados no son escenas: los arma
@@ -130,7 +130,7 @@ Pruebas del sistema de puntuacion:
 
 `Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/score_level_smoke_test.gd`
 
-Vista del HUD de puntaje, en `.godot/score-hud-chain.png` (cadena viva) y `.godot/score-hud-bank.png` (cadena ya cobrada):
+Vista del HUD de puntaje, en `.godot/score-hud-chain.png` (cadena viva), `.godot/score-hud-notice.png` (globo de logro en partida) y `.godot/score-hud-bank.png` (cadena ya cobrada):
 
 `Godot_v4.7-stable_win64_console.exe --path . res://tests/score_hud_visual_smoke_test.tscn`
 
@@ -154,9 +154,11 @@ La separacion no es estetica: las ventanas de Windows son objetivos a los que se
 les dispara, asi que un menu que se viera igual seria ambiguo. La piel se elige
 con `skin` antes de llamar a `build_window()`.
 
-- Escritorio: iconos de `procedural.exe`, niveles, opciones, mi pc y papelera. Un clic selecciona, y solo uno queda seleccionado a la vez; el doble clic ejecuta. `procedural.exe` abre la ventana del juego; los demas hacen parpadear el boton de la ventana en la barra, como un aviso pendiente, para devolver al jugador al juego.
-- Barra de tareas: boton de inicio con su menu, boton de la ventana abierta y reloj. Cerrar la ventana la deja en la barra; su boton la vuelve a abrir. Si la ventana esta cerrada, el aviso queda encendido hasta que la abran.
-- Menu principal: jugar el nivel actual de la campania, opciones y salir. Seleccionar nivel todavia no existe.
+- Escritorio: iconos de `procedural.exe`, niveles, opciones, mi pc y papelera. Un clic selecciona, y solo uno queda seleccionado a la vez; el doble clic ejecuta. `procedural.exe` abre la ventana del juego, `niveles` el selector de niveles y `mi pc` la vitrina del jugador; la papelera hace parpadear el boton de la ventana en la barra, como un aviso pendiente, para devolver al jugador al juego.
+- Barra de tareas: boton de inicio con su menu, boton de la ventana abierta, el nivel del jugador y el reloj. Cerrar la ventana la deja en la barra; su boton la vuelve a abrir. Si la ventana esta cerrada, el aviso queda encendido hasta que la abran.
+- Menu principal: el nivel del jugador con su barra de XP (abre Mi PC), jugar el nivel actual de la campania, seleccionar nivel, opciones y salir. La campania sigue donde quedo la ultima vez.
+- Seleccion de nivel: una fila por nivel con rango, porcentaje del techo, record, mejor tiempo e intentos. Completar un nivel abre el siguiente; los bloqueados se ven con su motivo.
+- Mi PC: nivel y barra de XP, estadisticas acumuladas, los 24 logros (ganados en color, por ganar en gris, ocultos como `???`) y los ultimos eventos de XP.
 - Opciones: volumen general, musica y efectos; sensibilidad del mouse; idioma; ventana o pantalla completa y resolucion. Se abre desde el escritorio y desde la pausa.
 - Entrada al nivel: un velo con el numero del nivel que entra y se va en poco mas de dos segundos. Cualquier tecla lo saltea y reintentar no lo muestra.
 - Pausa: reanudar, reintentar y abandonar el nivel, que pide confirmacion.
@@ -190,9 +192,36 @@ Vista de las opciones en las dos pieles, en `.godot/options-desktop.png` y `.god
 
 `Godot_v4.7-stable_win64_console.exe --path . res://tests/options_visual_smoke_test.tscn`
 
-Vista de los menus, en `.godot/menu-main.png`, `.godot/menu-notify.png`, `.godot/menu-start.png`, `.godot/menu-pause.png` y `.godot/menu-results.png`:
+Vista de los menus, en `.godot/menu-main.png`, `.godot/menu-notify.png`, `.godot/menu-start.png`, `.godot/menu-notice-badge.png`, `.godot/menu-my-pc.png`, `.godot/menu-level-select.png`, `.godot/menu-pause.png` y `.godot/menu-results.png`:
 
 `Godot_v4.7-stable_win64_console.exe --path . res://tests/menu_visual_smoke_test.tscn`
+
+## Progresion
+
+Lo que cada partida le deja al jugador vive en un perfil persistente
+(`user://profile.cfg`): XP que solo sube, un nivel de jugador con nombre de
+hardware (`286`, `386`, `486`, `PENTIUM`, ... `QUANTUM` y despues `OC+n`),
+estadisticas acumuladas, logros y la posicion de la campania. El diseño sale de
+aplicar *Gamification by Design* (Zichermann) sobre el sistema de puntaje.
+
+- Pagan XP: acertar zonas, cerrar ventanas (mas por la X), subir de escalon la cadena, limpiar salas, terminar el nivel (fallar tambien), completarlo por primera vez, sin daño, record nuevo, puntaje y rango. Disparar, fallar, recargar y las trampas no pagan nada.
+- Logros: 24, en `scripts/progression/achievement_catalog.gd`. Escaleras (`END TASK`, `ALT+F4`, `DEFRAG`), unicos (`OVERCLOCK`, `FIREWALL UP`, `SUDO`, `RING 0`...) y sorpresas ocultas que premian fallos (`SEGFAULT`, `BLUE SCREEN`, `CTRL+Z`...). Cada condicion es "una estadistica llego a N"; agregar uno es una fila y dos claves en el CSV.
+- Avisos: un globo de la bandeja de Windows en el escritorio, un panel del HUD en partida; de a uno, en cola. Lo que se gana al cerrar el nivel se lista en la pantalla de resultados en vez de en globos.
+- `AchievementTracker` (en `round_hud.tscn`) escucha a `RoundController` y `ScoreController` y traduce a XP y estadisticas; el gameplay no sabe que existe un perfil.
+- Las perillas viven en [`resources/gameplay/progression_settings.tres`](resources/gameplay/progression_settings.tres). En headless el perfil escribe en `user://profile.test.cfg`, asi que los smoke tests no le suman XP al jugador.
+
+El diseño completo esta en
+[`docs/gdd_atractivo_y_progresion_ANEXO_gamificacion.md`](docs/gdd_atractivo_y_progresion_ANEXO_gamificacion.md).
+
+Pruebas de la progresion (tabla de niveles y catalogo), del perfil en disco, del puente entre la ronda y el perfil, y del selector, Mi PC y los globos desde el escritorio:
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/progression_smoke_test.gd`
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/profile_persistence_smoke_test.gd`
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/achievements_smoke_test.gd`
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/level_select_smoke_test.gd`
 
 La entrada al nivel se ve en `.godot/level-intro.png`, que sale de la prueba
 visual del nivel jugable.

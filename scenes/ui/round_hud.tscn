@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/round_controller.gd" id="1_round"]
 [ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="2_hud"]
@@ -7,6 +7,7 @@
 [ext_resource type="Resource" path="res://resources/gameplay/score_settings.tres" id="5_score_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/score_hud.tscn" id="6_score_hud"]
 [ext_resource type="Theme" path="res://resources/themes/hud_theme.tres" id="7_theme"]
+[ext_resource type="Script" path="res://scripts/progression/achievement_tracker.gd" id="8_tracker"]
 
 [sub_resource type="StyleBoxFlat" id="HealthBackground"]
 bg_color = Color(0.025, 0.08, 0.12, 1)
@@ -31,6 +32,9 @@ auto_start = false
 unique_name_in_owner = true
 script = ExtResource("4_score")
 settings = ExtResource("5_score_settings")
+
+[node name="AchievementTracker" type="Node" parent="."]
+script = ExtResource("8_tracker")
 
 [node name="ScoreHUD" parent="." instance=ExtResource("6_score_hud")]
 

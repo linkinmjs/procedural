@@ -129,3 +129,125 @@ AD_WAIT,Esperá {seconds}s,Aguarde {seconds}s,Wait {seconds}s
 AD_SKIP,Saltear ahora,Pular agora,Skip now
 LOG_WINDOW_SHIELDED,{window} PROTEGIDA // DESACTIVA EL FIREWALL,{window} PROTEGIDA // DESATIVE O FIREWALL,{window} SHIELDED // DISABLE THE FIREWALL
 LOG_BLOCK_DEPLOYED,BLOQUE {slot} DESPLEGADO,BLOCO {slot} IMPLANTADO,{slot} BLOCK DEPLOYED
+BADGE_HELLO_WORLD_NAME,HELLO WORLD,HELLO WORLD,HELLO WORLD
+BADGE_HELLO_WORLD_DESC,Empezá tu primera partida.,Comece sua primeira partida.,Start your first run.
+BADGE_KILL_9_NAME,KILL -9,KILL -9,KILL -9
+BADGE_KILL_9_DESC,Cerrá tu primera ventana.,Feche sua primeira janela.,Close your first window.
+BADGE_END_TASK_5_NAME,END TASK,END TASK,END TASK
+BADGE_END_TASK_5_DESC,Cerrá 5 ventanas.,Feche 5 janelas.,Close 5 windows.
+BADGE_END_TASK_25_NAME,END PROCESS TREE,END PROCESS TREE,END PROCESS TREE
+BADGE_END_TASK_25_DESC,Cerrá 25 ventanas.,Feche 25 janelas.,Close 25 windows.
+BADGE_END_TASK_100_NAME,TASKKILL /F,TASKKILL /F,TASKKILL /F
+BADGE_END_TASK_100_DESC,Cerrá 100 ventanas.,Feche 100 janelas.,Close 100 windows.
+BADGE_END_TASK_500_NAME,FORMAT C:,FORMAT C:,FORMAT C:
+BADGE_END_TASK_500_DESC,Cerrá 500 ventanas.,Feche 500 janelas.,Close 500 windows.
+BADGE_ALT_F4_10_NAME,ALT+F4,ALT+F4,ALT+F4
+BADGE_ALT_F4_10_DESC,Cerrá 10 ventanas por la X.,Feche 10 janelas pelo X.,Close 10 windows through the X.
+BADGE_ALT_F4_50_NAME,ALT+F4 II,ALT+F4 II,ALT+F4 II
+BADGE_ALT_F4_50_DESC,Cerrá 50 ventanas por la X.,Feche 50 janelas pelo X.,Close 50 windows through the X.
+BADGE_ALT_F4_200_NAME,ALT+F4 III,ALT+F4 III,ALT+F4 III
+BADGE_ALT_F4_200_DESC,Cerrá 200 ventanas por la X.,Feche 200 janelas pelo X.,Close 200 windows through the X.
+BADGE_DEFRAG_1_NAME,DEFRAG,DEFRAG,DEFRAG
+BADGE_DEFRAG_1_DESC,Limpiá tu primera sala.,Limpe sua primeira sala.,Clear your first room.
+BADGE_DEFRAG_10_NAME,DEFRAG II,DEFRAG II,DEFRAG II
+BADGE_DEFRAG_10_DESC,Limpiá 10 salas.,Limpe 10 salas.,Clear 10 rooms.
+BADGE_DEFRAG_50_NAME,DEFRAG III,DEFRAG III,DEFRAG III
+BADGE_DEFRAG_50_DESC,Limpiá 50 salas.,Limpe 50 salas.,Clear 50 rooms.
+BADGE_CLEAN_BUILD_NAME,CLEAN BUILD,CLEAN BUILD,CLEAN BUILD
+BADGE_CLEAN_BUILD_DESC,Limpiá una sala con una sola cadena y sin fallar.,Limpe uma sala com uma única sequência e sem errar.,Clear a room in a single chain without missing.
+BADGE_OVERCLOCK_NAME,OVERCLOCK,OVERCLOCK,OVERCLOCK
+BADGE_OVERCLOCK_DESC,Cobrá un pozo con el multiplicador al máximo.,Receba um pote com o multiplicador no máximo.,Bank a pot at the top multiplier.
+BADGE_FIREWALL_UP_NAME,FIREWALL UP,FIREWALL UP,FIREWALL UP
+BADGE_FIREWALL_UP_DESC,Completá un nivel sin recibir daño.,Complete um nível sem receber dano.,Complete a level without taking damage.
+BADGE_PIXEL_PERFECT_NAME,PIXEL PERFECT,PIXEL PERFECT,PIXEL PERFECT
+BADGE_PIXEL_PERFECT_DESC,Completá un nivel con 100% de precisión.,Complete um nível com 100% de precisão.,Complete a level at 100% accuracy.
+BADGE_SUDO_NAME,SUDO,SUDO,SUDO
+BADGE_SUDO_DESC,Conseguí rango S en un nivel.,Consiga patente S em um nível.,Earn an S rank on a level.
+BADGE_RING_0_NAME,RING 0,RING 0,RING 0
+BADGE_RING_0_DESC,Conseguí rango S+ en un nivel.,Consiga patente S+ em um nível.,Earn an S+ rank on a level.
+BADGE_SYSTEM_SHUTDOWN_NAME,SYSTEM SHUTDOWN,SYSTEM SHUTDOWN,SYSTEM SHUTDOWN
+BADGE_SYSTEM_SHUTDOWN_DESC,Completá todos los niveles de la campaña.,Complete todos os níveis da campanha.,Complete every level of the campaign.
+BADGE_SEGFAULT_NAME,SEGFAULT,SEGFAULT,SEGFAULT
+BADGE_SEGFAULT_DESC,Caé en una trampa.,Caia em uma armadilha.,Fall for a trap.
+BADGE_BLUE_SCREEN_NAME,BLUE SCREEN,BLUE SCREEN,BLUE SCREEN
+BADGE_BLUE_SCREEN_DESC,Quedate sin vida.,Fique sem vida.,Run out of HP.
+BADGE_NOT_RESPONDING_NAME,NOT RESPONDING,NOT RESPONDING,NOT RESPONDING
+BADGE_NOT_RESPONDING_DESC,Quedate sin tiempo.,Fique sem tempo.,Run out of time.
+BADGE_CTRL_Z_NAME,CTRL+Z,CTRL+Z,CTRL+Z
+BADGE_CTRL_Z_DESC,Reintentá 10 veces.,Tente de novo 10 vezes.,Retry 10 times.
+BADGE_CRON_JOB_NAME,CRON JOB,CRON JOB,CRON JOB
+BADGE_CRON_JOB_DESC,Jugá de madrugada.,Jogue de madrugada.,Play in the small hours.
+LOG_BADGE,LOGRO // {name} // +{xp} XP,CONQUISTA // {name} // +{xp} XP,BADGE // {name} // +{xp} XP
+LOG_LEVEL_UP,LEVEL UP // {name} // NIVEL {level},LEVEL UP // {name} // NÍVEL {level},LEVEL UP // {name} // LEVEL {level}
+XP_REASON_WELCOME,Bienvenida,Boas-vindas,Welcome
+XP_REASON_ZONE_HIT,Zona acertada,Zona acertada,Zone hit
+XP_REASON_WINDOW_CLOSED,Ventana cerrada,Janela fechada,Window closed
+XP_REASON_CLOSE_ZONE,Cerrada por la X,Fechada pelo X,Closed through the X
+XP_REASON_BALL,Pelota destruida,Bola destruída,Ball destroyed
+XP_REASON_CHAIN_STEP,Escalón de cadena,Degrau de sequência,Chain step
+XP_REASON_ROOM_CLEARED,Sala limpiada,Sala limpa,Room cleared
+XP_REASON_ROOM_CLEAN,Sala sin daño,Sala sem dano,Room without damage
+XP_REASON_ROOM_PERFECT,Sala perfecta,Sala perfeita,Perfect room
+XP_REASON_LEVEL_COMPLETED,Nivel completado,Nível completo,Level completed
+XP_REASON_LEVEL_FAILED,Intento fallido,Tentativa falhou,Failed run
+XP_REASON_FIRST_CLEAR,Primera vez completado,Primeira vez completo,First clear
+XP_REASON_NO_DAMAGE,Nivel sin daño,Nível sem dano,Level without damage
+XP_REASON_NEW_RECORD,Nuevo récord,Novo recorde,New record
+XP_REASON_SCORE,Puntaje,Pontos,Score
+XP_REASON_RANK,Rango,Patente,Rank
+XP_REASON_BADGE,Logro,Conquista,Badge
+XP_REASON_RECALIBRATED,Tabla de niveles actualizada,Tabela de níveis atualizada,Level table updated
+PROFILE_LEVEL_LINE,NIVEL {level} — {name},NÍVEL {level} — {name},LEVEL {level} — {name}
+PROFILE_XP_LINE,{current} / {needed} XP,{current} / {needed} XP,{current} / {needed} XP
+PROFILE_XP_TOTAL,{xp} XP en total,{xp} XP no total,{xp} XP in total
+PROFILE_NEXT,{xp} XP para {name},{xp} XP para {name},{xp} XP to {name}
+PROFILE_SECTION_STATS,ESTADÍSTICAS,ESTATÍSTICAS,STATS
+PROFILE_SECTION_BADGES,LOGROS,CONQUISTAS,BADGES
+PROFILE_SECTION_LOG,ÚLTIMOS EVENTOS,ÚLTIMOS EVENTOS,RECENT EVENTS
+PROFILE_BADGES_COUNT,{earned} / {total},{earned} / {total},{earned} / {total}
+PROFILE_COMPLETED_VALUE,{done} / {total},{done} / {total},{done} / {total}
+PROFILE_STAT_RUNS,Partidas,Partidas,Runs
+PROFILE_STAT_COMPLETED,Niveles completados,Níveis completos,Levels completed
+PROFILE_STAT_WINDOWS,Ventanas cerradas,Janelas fechadas,Windows closed
+PROFILE_STAT_X_CLOSES,Cerradas por la X,Fechadas pelo X,Closed through the X
+PROFILE_STAT_SHOTS,Disparos,Disparos,Shots
+PROFILE_STAT_ACCURACY,Precisión,Precisão,Accuracy
+PROFILE_STAT_BEST_CHAIN,Mejor cadena,Melhor sequência,Best chain
+PROFILE_STAT_BEST_MULT,Mejor multiplicador,Melhor multiplicador,Best multiplier
+PROFILE_STAT_ROOMS,Salas limpiadas,Salas limpas,Rooms cleared
+PROFILE_STAT_PERFECT,Salas perfectas,Salas perfeitas,Perfect rooms
+PROFILE_STAT_DAMAGE,Daño recibido,Dano recebido,Damage taken
+PROFILE_STAT_TIME,Tiempo jugado,Tempo jogado,Time played
+PROFILE_STAT_RETRIES,Reintentos,Tentativas de novo,Retries
+PROFILE_STAT_TRAPS,Trampas,Armadilhas,Traps
+PROFILE_LOCKED,Bloqueado,Bloqueado,Locked
+PROFILE_HIDDEN_NAME,???,???,???
+PROFILE_HIDDEN_DESC,Logro oculto. Se revela al ganarlo.,Conquista oculta. Revela-se ao ganhá-la.,Hidden badge. Revealed once earned.
+PROFILE_EARNED_AT,Ganado el {date},Ganho em {date},Earned on {date}
+PROFILE_EMPTY_LOG,Todavía no hay eventos.,Ainda não há eventos.,No events yet.
+XP_GAINED,XP GANADA,XP GANHA,XP EARNED
+XP_VALUE,+{xp} XP,+{xp} XP,+{xp} XP
+XP_NEXT_ROW,PRÓXIMO NIVEL,PRÓXIMO NÍVEL,NEXT LEVEL
+XP_NEXT_LEVEL,{xp} XP para {name},{xp} XP para {name},{xp} XP to {name}
+LEVELUP_TITLE,SUBISTE DE NIVEL,SUBIU DE NÍVEL,LEVEL UP
+LEVELUP_BODY,{name} — nivel {level},{name} — nível {level},{name} — level {level}
+LEVELUP_ROW,NIVEL DE JUGADOR,NÍVEL DE JOGADOR,PLAYER LEVEL
+LEVELUP_ROW_VALUE,{from} → {to},{from} → {to},{from} → {to}
+LEVELUP_UNLOCKED,NIVEL DESBLOQUEADO,NÍVEL DESBLOQUEADO,LEVEL UNLOCKED
+BADGE_TITLE,LOGRO DESBLOQUEADO,CONQUISTA DESBLOQUEADA,BADGE UNLOCKED
+BADGE_ROW,LOGRO,CONQUISTA,BADGE
+BADGE_BODY,{name}   +{xp} XP,{name}   +{xp} XP,{name}   +{xp} XP
+SELECT_LEVEL_HEADER,NIVEL,NÍVEL,LEVEL
+SELECT_RANK,RANGO,PATENTE,RANK
+SELECT_CEILING,TECHO,TETO,CEILING
+SELECT_RECORD,RÉCORD,RECORDE,BEST
+SELECT_TIME,TIEMPO,TEMPO,TIME
+SELECT_ATTEMPTS,INTENTOS,TENTATIVAS,ATTEMPTS
+SELECT_LOCKED_HINT,Bloqueado — completá el nivel anterior,Bloqueado — complete o nível anterior,Locked — complete the previous level
+SELECT_NONE,—,—,—
+SELECT_COMPLETED,✓,✓,✓
+SELECT_CEILING_VALUE,{percent}%,{percent}%,{percent}%
+SELECT_TIME_VALUE,{minutes}:{seconds},{minutes}:{seconds},{minutes}:{seconds}
+SELECT_OLD_FORMULA,*,*,*
+SELECT_ROW,{number}. {name},{number}. {name},{number}. {name}
+START_MY_COMPUTER,Mi PC,Meu PC,My PC

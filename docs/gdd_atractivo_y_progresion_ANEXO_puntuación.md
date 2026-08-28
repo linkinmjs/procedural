@@ -589,6 +589,12 @@ Los rankings globales quedan fuera de alcance por ahora, pero conviene que el
 puntaje sea **determinista y reproducible** desde el inicio, para poder sumarlos
 después sin rediseñar nada.
 
+El puntaje mide *una partida*; lo que la partida le deja *al jugador* (XP,
+nivel, logros, campaña recordada) vive en el perfil y se define aparte, en
+`gdd_atractivo_y_progresion_ANEXO_gamificacion.md`. Son dos números con dos
+trabajos: el puntaje es el grande y se compara contra el techo; la XP es la
+chica, sólo sube y no se compara con nada.
+
 ---
 
 ## 12. Relación con los otros tres ejes

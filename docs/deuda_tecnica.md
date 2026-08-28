@@ -75,18 +75,16 @@ Al corregir algo, borrar su entrada de este archivo.
   estan probados, pero el cambio de arma, el drop y el pickup no. Es justo el
   codigo con mas bugs latentes.
 
-## Pantallas que faltan
+## Progresion y logros
 
-- [ ] **Selector de niveles.** El boton `SELECCIONAR NIVEL` del menu principal y
-  la entrada `Seleccionar nivel` del menu de inicio estan deshabilitados a
-  proposito, y el icono `niveles` del escritorio solo hace parpadear la ventana.
-  Los datos ya existen: `LevelSequence` da el catalogo y `ScoreRecords` el
-  puntaje, el rango y los intentos de cada nivel.
-  **Fix:** un `MenuScreen` mas, con la piel que le pasen como hace
-  `OptionsMenu`, listando los niveles con su record. Al elegir uno,
-  `LevelSequence` tiene que poder saltar a un indice: hoy solo sabe avanzar,
-  retroceder y volver al primero.
-  El diseno esta en `docs/gdd_atractivo_y_progresion_ANEXO_menus.md`, §3.
+- [ ] **Arte propio de los logros.** `BadgeTile` reusa los seis iconos del pack
+  de Windows XP (`assets/textures/ui/xp/icons/`) por el campo `icon` del
+  catalogo. El libro que guio el diseño insiste en que cada logro sea una
+  pieza visual propia. **Fix:** un icono por logro (o por escalera, con un
+  color por tramo), en `assets/textures/ui/badges/`, y `BadgeTile.icon_for`
+  leyendo de ahi.
+- [ ] `resources/audio/sfx_library.tres` no tiene stream para `badge_unlocked`
+  ni `level_up`: los globos salen mudos hasta que se elija un sonido.
 
 ## Limpieza pendiente
 

@@ -22,8 +22,10 @@ buses/default_bus_layout="res://resources/audio/default_bus_layout.tres"
 [autoload]
 
 Settings="*res://scripts/autoloads/settings.gd"
+PlayerProfile="*res://scripts/autoloads/player_profile.gd"
 LevelSequence="*res://scripts/autoloads/level_sequence.gd"
 MenuStack="*res://scripts/autoloads/menu_stack.gd"
+Notices="*res://scripts/autoloads/notices.gd"
 
 [display]
 

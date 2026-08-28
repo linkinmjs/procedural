@@ -2,7 +2,7 @@ extends SceneTree
 
 
 func _initialize() -> void:
-	var level := LevelDefinitionLoader.load_level("res://level_designs/levels/nivel-1.json")
+	var level := LevelDefinitionLoader.load_level("res://level_designs/levels/nivel-01.json")
 	if level.is_empty():
 		_fail("The saved level definition should load.")
 		return
@@ -11,9 +11,9 @@ func _initialize() -> void:
 		return
 	# El limite sale del propio archivo: rediseniar el nivel en la herramienta no
 	# tiene que invalidar la prueba.
-	var raw := JSON.parse_string(FileAccess.get_file_as_string("res://level_designs/levels/nivel-1.json")) as Dictionary
+	var raw := JSON.parse_string(FileAccess.get_file_as_string("res://level_designs/levels/nivel-01.json")) as Dictionary
 	if raw == null or int(level.timeLimitSeconds) != int(raw.get("timeLimitSeconds", -1)):
-		_fail("The loader should preserve the time limit declared by nivel-1.")
+		_fail("The loader should preserve the time limit declared by nivel-01.")
 		return
 	if not SkyCatalog.has_sky(LevelDefinitionLoader.get_sky_id(level)):
 		_fail("The loader should resolve the sky of the level.")

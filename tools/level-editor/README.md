@@ -148,7 +148,7 @@ El editor conserva automáticamente un borrador en el almacenamiento local del n
 Importar un archivo anterior desde el editor lo completa en memoria. Para migrar los archivos versionados en el disco:
 
 ```powershell
-node tools/level-editor/migrate-level.js level_designs/levels/nivel-1.json
+node tools/level-editor/migrate-level.js level_designs/levels/nivel-01.json
 ```
 
 Una oleada guardada como número suelto (`"waves": [5]`) pasa a `{ "windows": { "normal": 5 } }`.

@@ -92,7 +92,7 @@ Al corregir algo, borrar su entrada de este archivo.
   (meshes y animaciones como sub_resources, y nodos bajo `Weapons_Models`) que
   no dependia de los archivos blaster ya borrados. Limpiarlo requiere abrir la
   escena en el editor; hasta entonces solo abulta el `.tscn`.
-- [ ] Los JSON de nivel siguen con guiones (`nivel-1.json`, `level-sequence.json`)
+- [ ] Los JSON de nivel siguen con guiones (`nivel-01.json`, `level-sequence.json`)
   porque el nombre de archivo hace de ID de contenido. Renombrarlos a snake_case
   implica tocar los `id` del catalogo.
 
@@ -130,7 +130,7 @@ Mejoras señaladas en el code review y dejadas como deuda a propósito:
 
 Nada de esto se midió con el Profiler todavía: son hallazgos por lectura de
 código. Antes de atacar los puntos grandes conviene tomar una línea base en
-`nivel-2` (el más cargado: 4 salas, 39 ventanas) con **Debugger > Monitors**
+`nivel-10` (el más cargado: 6 salas, 70 ventanas) con **Debugger > Monitors**
 (`Time > Process`, `Render > Total Draw Calls`, `Physics 3D > Active Bodies`)
 y repetir después de cada cambio. Lo que ya está bien y no hay que tocar:
 Jolt, capas segmentadas, audio pooleado en `Sfx`, materiales cacheados en

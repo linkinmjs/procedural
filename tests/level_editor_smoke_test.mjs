@@ -670,9 +670,9 @@ await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const base = `http://127.0.0.1:${server.address().port}`;
 try {
   const listed = (await (await fetch(`${base}/api/levels`)).json()).levels;
-  const firstEntry = listed.find((item) => item.file === "nivel-1.json");
-  assert.ok(firstEntry, "La API debe listar nivel-1.json");
-  const levelOne = await (await fetch(`${base}/api/levels/nivel-1.json`)).json();
+  const firstEntry = listed.find((item) => item.file === "nivel-01.json");
+  assert.ok(firstEntry, "La API debe listar nivel-01.json");
+  const levelOne = await (await fetch(`${base}/api/levels/nivel-01.json`)).json();
   assert.equal(levelOne.id, firstEntry.id, "El listado y el archivo deben coincidir");
 
   const evil = await fetch(`${base}/api/levels/..%2F..%2Fpwned.json`, { method: "PUT", body: "{}" });

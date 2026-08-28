@@ -1,23 +1,23 @@
 {
   "schemaVersion": 10,
-  "id": "level-1787164129302",
-  "name": "Nivel-1",
-  "description": "",
-  "timeLimitSeconds": 60,
+  "id": "nivel-01",
+  "name": "Hola, mundo",
+  "description": "Tutorial. Apuntá a la X o al botón: un tiro al cuerpo de la ventana la atraviesa. Cada sala se sella hasta que cae su último bloque.",
+  "timeLimitSeconds": 80,
   "gridSize": 1,
   "startingAmmo": {
-    "magazine": 17,
-    "reserve": 51
+    "magazine": 10,
+    "reserve": 12
   },
-  "sky": "overcast",
+  "sky": "clear-day",
   "defaults": {
     "wallHeight": 6,
     "maxBlockHeight": 6,
     "hasCeiling": true,
     "corridorWidth": 3.5,
     "textures": {
-      "walls": "bricks/brick-01",
-      "floor": "tile/tile-01",
+      "walls": "plaster/plaster-02",
+      "floor": "tile/tile-03",
       "ceiling": "plaster/plaster-01",
       "door": "wood/wood-01",
       "block": "metal/metal-01"
@@ -25,17 +25,17 @@
   },
   "rooms": [
     {
-      "id": "f46299e2-723e-41dd-bcd6-2fb4acba5fcd",
-      "name": "Sala 1",
+      "id": "05ec79cb-4eae-510c-8533-7db3f7e0d83c",
+      "name": "Escritorio",
       "type": "custom",
       "role": "start",
       "position": {
-        "x": -17,
-        "z": -11
+        "x": 0,
+        "z": 0
       },
       "size": {
-        "width": 5,
-        "depth": 5
+        "width": 8,
+        "depth": 8
       },
       "entry": {
         "wall": "west",
@@ -51,13 +51,13 @@
       },
       "radio": {
         "enabled": true,
-        "corner": "ne"
+        "corner": "nw"
       },
       "textures": {
-        "walls": "bricks/bricks-24",
-        "floor": "floor/horror-floor-09",
-        "ceiling": "floor/horror-floor-06",
-        "door": "elements/elements-07",
+        "walls": "wood/wood-04",
+        "floor": "wood/wood-08",
+        "ceiling": "plaster/plaster-01",
+        "door": "",
         "block": ""
       },
       "waves": [
@@ -89,25 +89,25 @@
       ]
     },
     {
-      "id": "49a0da1a-0443-4af3-ac43-fd0c100b96a9",
-      "name": "Sala 2",
-      "type": "small",
+      "id": "8f7d1441-8ad9-58f7-a5ea-2a879ea7c199",
+      "name": "Bandeja de entrada",
+      "type": "custom",
       "role": "transition",
       "position": {
-        "x": -2,
-        "z": -15
+        "x": 16,
+        "z": 0
       },
       "size": {
-        "width": 14,
-        "depth": 14
+        "width": 12,
+        "depth": 12
       },
       "entry": {
         "wall": "west",
         "offset": 0
       },
       "facing": 0,
-      "wallHeight": 20,
-      "hasCeiling": false,
+      "wallHeight": null,
+      "hasCeiling": null,
       "ammoReward": {
         "enabled": false,
         "amount": 30,
@@ -142,8 +142,7 @@
               "layers": [
                 {
                   "windows": {
-                    "normal": 5,
-                    "infected-download": 1
+                    "custom:bienvenida": 4
                   }
                 }
               ]
@@ -156,7 +155,46 @@
               "layers": []
             }
           }
-        },
+        }
+      ]
+    },
+    {
+      "id": "593744a3-1d10-5573-a453-56735bf4e633",
+      "name": "Galería",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 37,
+        "z": 0
+      },
+      "size": {
+        "width": 18,
+        "depth": 10
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
         {
           "blocks": {
             "left": {
@@ -191,13 +229,13 @@
       ]
     },
     {
-      "id": "bd70533a-e8c7-4ada-ad2a-bea69f4fdffe",
-      "name": "Sala 3",
+      "id": "880a9ab3-2314-5146-89ce-64d12312fbbf",
+      "name": "Salida",
       "type": "custom",
       "role": "exit",
       "position": {
-        "x": 14,
-        "z": -2
+        "x": 55,
+        "z": 0
       },
       "size": {
         "width": 8,
@@ -208,8 +246,8 @@
         "offset": 0
       },
       "facing": 0,
-      "wallHeight": 6,
-      "hasCeiling": null,
+      "wallHeight": 5,
+      "hasCeiling": false,
       "ammoReward": {
         "enabled": false,
         "amount": 30,
@@ -220,8 +258,8 @@
         "corner": "ne"
       },
       "textures": {
-        "walls": "",
-        "floor": "",
+        "walls": "bricks/brick-02",
+        "floor": "grass/grass-03",
         "ceiling": "",
         "door": "",
         "block": ""
@@ -257,21 +295,30 @@
   ],
   "connections": [
     {
-      "id": "fc346cb3-5154-4374-bccd-971d0100ed5b",
-      "fromRoomId": "f46299e2-723e-41dd-bcd6-2fb4acba5fcd",
-      "toRoomId": "49a0da1a-0443-4af3-ac43-fd0c100b96a9",
-      "fromWall": "east",
-      "toWall": "west",
-      "width": 1.5,
-      "waypoints": []
-    },
-    {
-      "id": "79698a94-1962-4d02-98e2-08da1eb7f7a8",
-      "fromRoomId": "49a0da1a-0443-4af3-ac43-fd0c100b96a9",
-      "toRoomId": "bd70533a-e8c7-4ada-ad2a-bea69f4fdffe",
+      "id": "9799e630-c36f-59cf-a596-da29dce1e508",
+      "fromRoomId": "05ec79cb-4eae-510c-8533-7db3f7e0d83c",
+      "toRoomId": "8f7d1441-8ad9-58f7-a5ea-2a879ea7c199",
       "fromWall": "east",
       "toWall": "west",
       "width": 3.5,
+      "waypoints": []
+    },
+    {
+      "id": "c1f613d5-578a-56ce-abcb-8b3cde4d28d1",
+      "fromRoomId": "8f7d1441-8ad9-58f7-a5ea-2a879ea7c199",
+      "toRoomId": "593744a3-1d10-5573-a453-56735bf4e633",
+      "fromWall": "east",
+      "toWall": "west",
+      "width": 3.5,
+      "waypoints": []
+    },
+    {
+      "id": "6b8d51e0-a076-5608-b717-8395c2e72c75",
+      "fromRoomId": "593744a3-1d10-5573-a453-56735bf4e633",
+      "toRoomId": "880a9ab3-2314-5146-89ce-64d12312fbbf",
+      "fromWall": "east",
+      "toWall": "west",
+      "width": 3,
       "waypoints": []
     }
   ]

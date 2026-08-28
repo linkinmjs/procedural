@@ -1,5 +1,11 @@
 # Análisis y curva de niveles
 
+> **Estado (2026-08-28):** la campaña construida a partir de este análisis está
+> documentada en [`campania.md`](campania.md) (diez niveles, `nivel-01` …
+> `nivel-10`). El diagnóstico de abajo describe los tres niveles de prueba
+> anteriores, que ya no existen; las fórmulas de presupuesto y las reglas de
+> composición siguen vigentes y son las que usa la campaña.
+
 ## Objetivo del documento
 
 Este documento propone una primera campaña de ocho niveles para enseñar y luego

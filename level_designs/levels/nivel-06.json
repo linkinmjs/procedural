@@ -1,0 +1,420 @@
+{
+  "schemaVersion": 10,
+  "id": "nivel-06",
+  "name": "Error crítico",
+  "description": "Leé antes de tirar: sólo 'Cerrar' cierra. La X y los otros botones son trampa (-150 y se corta la cadena) y se barajan al fallar.",
+  "timeLimitSeconds": 120,
+  "gridSize": 1,
+  "startingAmmo": {
+    "magazine": 10,
+    "reserve": 24
+  },
+  "sky": "overcast",
+  "defaults": {
+    "wallHeight": 6,
+    "maxBlockHeight": 6,
+    "hasCeiling": true,
+    "corridorWidth": 3.5,
+    "textures": {
+      "walls": "plaster/plaster-09",
+      "floor": "tile/tile-18",
+      "ceiling": "plaster/plaster-01",
+      "door": "wood/wood-01",
+      "block": "metal/metal-01"
+    }
+  },
+  "rooms": [
+    {
+      "id": "2ff1d76f-3138-5541-9c0b-39e182ddd9cc",
+      "name": "Sala de espera",
+      "type": "custom",
+      "role": "start",
+      "position": {
+        "x": 0,
+        "z": 0
+      },
+      "size": {
+        "width": 8,
+        "depth": 8
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": 4,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": true,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "wood/wood-04",
+        "floor": "wood/wood-08",
+        "ceiling": "plaster/plaster-01",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "ad1206a6-990f-5a55-a06b-62c1bc648d50",
+      "name": "Lectura",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 0,
+        "z": -16
+      },
+      "size": {
+        "width": 12,
+        "depth": 12
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": true,
+        "amount": 6,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": []
+            },
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "custom:excepcion": 2
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "b8dac407-7ad5-505a-8bcd-64bc7db97318",
+      "name": "Falsa alarma",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 18,
+        "z": -16
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": true,
+        "amount": 8,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": []
+            },
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 4,
+                    "firewall": 1
+                  }
+                },
+                {
+                  "windows": {
+                    "normal": 3,
+                    "critical-error": 2
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "d3443b13-9a28-5a75-afc1-5a752a1331ad",
+      "name": "No dispares todavía",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 18,
+        "z": -36
+      },
+      "size": {
+        "width": 16,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "critical-error": 2
+                  }
+                }
+              ]
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": []
+            },
+            "right": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "custom:excepcion": 2
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "65a5a63e-d7af-5491-b7c3-d221d10eb8a0",
+      "name": "Salida",
+      "type": "custom",
+      "role": "exit",
+      "position": {
+        "x": 18,
+        "z": -54
+      },
+      "size": {
+        "width": 8,
+        "depth": 8
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": 5,
+      "hasCeiling": false,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": true,
+        "corner": "sw"
+      },
+      "textures": {
+        "walls": "bricks/brick-02",
+        "floor": "grass/grass-03",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#c9a6ff",
+              "layers": []
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "b5edf400-634c-5f00-9cac-940396c6c47c",
+      "fromRoomId": "2ff1d76f-3138-5541-9c0b-39e182ddd9cc",
+      "toRoomId": "ad1206a6-990f-5a55-a06b-62c1bc648d50",
+      "fromWall": "north",
+      "toWall": "south",
+      "width": 3.5,
+      "waypoints": []
+    },
+    {
+      "id": "05290d3e-bfa6-56d8-a04d-53b86ba69d91",
+      "fromRoomId": "ad1206a6-990f-5a55-a06b-62c1bc648d50",
+      "toRoomId": "b8dac407-7ad5-505a-8bcd-64bc7db97318",
+      "fromWall": "east",
+      "toWall": "west",
+      "width": 3.5,
+      "waypoints": []
+    },
+    {
+      "id": "e8cbd98d-363d-5e18-976d-3abf70b48be0",
+      "fromRoomId": "b8dac407-7ad5-505a-8bcd-64bc7db97318",
+      "toRoomId": "d3443b13-9a28-5a75-afc1-5a752a1331ad",
+      "fromWall": "north",
+      "toWall": "south",
+      "width": 3.5,
+      "waypoints": []
+    },
+    {
+      "id": "374c8d5e-fe6c-50bf-8f93-db8aff534df3",
+      "fromRoomId": "d3443b13-9a28-5a75-afc1-5a752a1331ad",
+      "toRoomId": "65a5a63e-d7af-5491-b7c3-d221d10eb8a0",
+      "fromWall": "north",
+      "toWall": "south",
+      "width": 3,
+      "waypoints": []
+    }
+  ]
+}

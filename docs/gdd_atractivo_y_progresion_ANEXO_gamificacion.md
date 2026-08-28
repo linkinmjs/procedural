@@ -135,7 +135,7 @@ Nunca pagan: disparar, fallar, recargar, moverse, trampas. Es la primera
 contramedida anti-exploit y también la regla higiénica del anexo de
 puntuación (§8): lo que no aporta no paga.
 
-Orden de magnitud: `nivel-2` (39 ventanas, 4 salas) bien jugado ronda 1 700 XP;
+Orden de magnitud: un nivel medio de la campaña (`nivel-04`, 31 ventanas, 4 salas) bien jugado ronda 1 400 XP;
 la primera campaña completa, 4 000 a 5 000 XP más logros.
 
 ---

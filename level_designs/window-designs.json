@@ -35,6 +35,214 @@
           "size": null
         }
       ]
+    },
+    {
+      "id": "seed-bienvenida",
+      "slug": "bienvenida",
+      "name": "Bienvenida",
+      "family": "normal",
+      "variants": [
+        {
+          "base": "close",
+          "skin": "",
+          "title": "Consejo del día",
+          "message": "",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "close",
+          "skin": "",
+          "title": "Recordatorio",
+          "message": "",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "shutdown",
+          "skin": "",
+          "title": "Asistente de bienvenida",
+          "message": "Gracias por instalar. ¿Desea cerrar el asistente?",
+          "subtitle": "",
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "seed-actualizacion",
+      "slug": "actualizacion",
+      "name": "Actualización",
+      "family": "normal",
+      "variants": [
+        {
+          "base": "shutdown",
+          "skin": "",
+          "title": "Actualización disponible",
+          "message": "Hay 14 actualizaciones pendientes. Reinicie para aplicarlas.",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "shutdown",
+          "skin": "retro",
+          "title": "Instalando actualización 3 de 14",
+          "message": "No apague el equipo.",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "close",
+          "skin": "",
+          "title": "Reinicio pendiente",
+          "message": "",
+          "subtitle": "",
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "seed-oferta",
+      "slug": "oferta",
+      "name": "Oferta",
+      "family": "popup",
+      "variants": [
+        {
+          "base": "popup",
+          "skin": "",
+          "title": "¡Felicitaciones!",
+          "message": "Sos el visitante 1.000.000",
+          "subtitle": "Reclamá tu premio antes de que expire",
+          "size": null
+        },
+        {
+          "base": "popup-slow",
+          "skin": "",
+          "title": "Aviso del sistema",
+          "message": "Tu PC está lento",
+          "subtitle": "Limpiá 3.492 errores ahora",
+          "size": null
+        },
+        {
+          "base": "popup",
+          "skin": "retro",
+          "title": "Oferta limitada",
+          "message": "Reproductor gratis",
+          "subtitle": "Instalá la barra de herramientas",
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "seed-driver",
+      "slug": "driver",
+      "name": "Driver",
+      "family": "download",
+      "variants": [
+        {
+          "base": "download",
+          "skin": "",
+          "title": "Descargando...",
+          "message": "driver_audio_v2.exe",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "download",
+          "skin": "",
+          "title": "Descargando...",
+          "message": "codec_pack_full.zip",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "download",
+          "skin": "",
+          "title": "Descargando...",
+          "message": "manual_impresora.pdf",
+          "subtitle": "",
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "seed-factura",
+      "slug": "factura",
+      "name": "Factura",
+      "family": "infected-download",
+      "variants": [
+        {
+          "base": "infected-download",
+          "skin": "",
+          "title": "Descargando...",
+          "message": "citacion_judicial.exe",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "infected-download",
+          "skin": "",
+          "title": "Descargando...",
+          "message": "foto_tuya_jaja.exe",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "infected-download",
+          "skin": "",
+          "title": "Descargando...",
+          "message": "premio_reclamar.exe",
+          "subtitle": "",
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "seed-antivirus",
+      "slug": "antivirus",
+      "name": "Antivirus",
+      "family": "firewall",
+      "variants": [
+        {
+          "base": "firewall",
+          "skin": "",
+          "title": "Protección activada",
+          "message": "Se bloqueó una conexión entrante. Las demás ventanas están protegidas.",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "firewall",
+          "skin": "retro",
+          "title": "Escudo del sistema",
+          "message": "Análisis en curso. No cierre las demás ventanas.",
+          "subtitle": "",
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "seed-excepcion",
+      "slug": "excepcion",
+      "name": "Excepción",
+      "family": "critical-error",
+      "variants": [
+        {
+          "base": "critical-error",
+          "skin": "",
+          "title": "Excepción no controlada",
+          "message": "El programa dejó de responder. Lea antes de elegir.",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "critical-error",
+          "skin": "retro",
+          "title": "Error fatal 0x0000007B",
+          "message": "Se produjo un error irrecuperable.",
+          "subtitle": "",
+          "size": null
+        }
+      ]
     }
   ]
 }

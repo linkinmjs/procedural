@@ -1,52 +1,116 @@
 {
   "schemaVersion": 10,
-  "id": "level-1787180619943",
-  "name": "Nivel-2",
-  "description": "",
-  "timeLimitSeconds": 60,
+  "id": "nivel-02",
+  "name": "Actualizaciones pendientes",
+  "description": "Capas: limpiar la pantalla no siempre cierra el bloque. Recargá (R) cuando la pared se vacía, no cuando el cargador se vacía.",
+  "timeLimitSeconds": 95,
   "gridSize": 1,
   "startingAmmo": {
-    "magazine": 17,
-    "reserve": 50
+    "magazine": 10,
+    "reserve": 14
   },
-  "sky": "night",
+  "sky": "clear-day",
   "defaults": {
     "wallHeight": 6,
     "maxBlockHeight": 6,
     "hasCeiling": true,
     "corridorWidth": 3.5,
     "textures": {
-      "walls": "",
-      "floor": "",
-      "ceiling": "",
-      "door": "",
-      "block": ""
+      "walls": "plaster/plaster-04",
+      "floor": "tile/tile-06",
+      "ceiling": "plaster/plaster-02",
+      "door": "wood/wood-01",
+      "block": "metal/metal-01"
     }
   },
   "rooms": [
     {
-      "id": "5e6a1377-3409-4445-98ae-23f02b21c608",
-      "name": "Sala 1",
+      "id": "5da689d1-67a2-564a-b276-fb039d3355bd",
+      "name": "Recepción",
       "type": "custom",
       "role": "start",
       "position": {
-        "x": 4,
-        "z": 8
+        "x": 0,
+        "z": 0
       },
       "size": {
-        "width": 6,
-        "depth": 10
+        "width": 8,
+        "depth": 8
       },
       "entry": {
         "wall": "south",
         "offset": 0
       },
       "facing": 0,
-      "wallHeight": 3,
+      "wallHeight": 4,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": true,
+        "corner": "se"
+      },
+      "textures": {
+        "walls": "wood/wood-04",
+        "floor": "wood/wood-08",
+        "ceiling": "plaster/plaster-01",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#2ed5c5",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "00a26c97-eef8-5b93-9193-19fcab29e132",
+      "name": "Parches",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 0,
+        "z": -16
+      },
+      "size": {
+        "width": 12,
+        "depth": 12
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
       "hasCeiling": null,
       "ammoReward": {
         "enabled": true,
-        "amount": 10,
+        "amount": 8,
         "color": "#f4bc59"
       },
       "radio": {
@@ -78,17 +142,12 @@
               "layers": [
                 {
                   "windows": {
-                    "normal": 3
+                    "custom:actualizacion": 3
                   }
                 },
                 {
                   "windows": {
                     "normal": 4
-                  }
-                },
-                {
-                  "windows": {
-                    "normal": 5
                   }
                 }
               ]
@@ -105,20 +164,20 @@
       ]
     },
     {
-      "id": "b37aed15-0a68-4de4-b5de-61151479b93b",
-      "name": "Sala 2",
-      "type": "small",
-      "role": "exit",
+      "id": "c75f524b-3fad-570a-b064-79d3940aabbb",
+      "name": "Cebolla",
+      "type": "custom",
+      "role": "transition",
       "position": {
-        "x": 22,
-        "z": 13
+        "x": 18,
+        "z": -16
       },
       "size": {
         "width": 14,
         "depth": 14
       },
       "entry": {
-        "wall": "north",
+        "wall": "west",
         "offset": 0
       },
       "facing": 0,
@@ -130,7 +189,7 @@
         "color": "#f4bc59"
       },
       "radio": {
-        "enabled": true,
+        "enabled": false,
         "corner": "ne"
       },
       "textures": {
@@ -144,93 +203,11 @@
         {
           "blocks": {
             "left": {
-              "enabled": true,
-              "movement": "static",
-              "movementSpeed": 0.65,
-              "color": "#2ed5c5",
-              "layers": [
-                {
-                  "windows": {
-                    "normal": 2
-                  }
-                }
-              ]
-            },
-            "front": {
               "enabled": false,
               "movement": "static",
               "movementSpeed": 0.65,
               "color": "#2ed5c5",
               "layers": []
-            },
-            "right": {
-              "enabled": true,
-              "movement": "static",
-              "movementSpeed": 0.65,
-              "color": "#2ed5c5",
-              "layers": [
-                {
-                  "windows": {
-                    "normal": 2
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "id": "8273b11f-8952-472b-9b75-f4fa5de9f073",
-      "name": "Sala 3",
-      "type": "small",
-      "role": "transition",
-      "position": {
-        "x": 4,
-        "z": -6
-      },
-      "size": {
-        "width": 14,
-        "depth": 14
-      },
-      "entry": {
-        "wall": "south",
-        "offset": 0
-      },
-      "facing": 0,
-      "wallHeight": 10,
-      "hasCeiling": false,
-      "ammoReward": {
-        "enabled": false,
-        "amount": 30,
-        "color": "#f4bc59"
-      },
-      "radio": {
-        "enabled": false,
-        "corner": "ne"
-      },
-      "textures": {
-        "walls": "",
-        "floor": "",
-        "ceiling": "",
-        "door": "",
-        "block": ""
-      },
-      "waves": [
-        {
-          "blocks": {
-            "left": {
-              "enabled": true,
-              "movement": "opposite",
-              "movementSpeed": 0.65,
-              "color": "#2ed5c5",
-              "layers": [
-                {
-                  "windows": {
-                    "normal": 2
-                  }
-                }
-              ]
             },
             "front": {
               "enabled": true,
@@ -245,12 +222,7 @@
                 },
                 {
                   "windows": {
-                    "normal": 5
-                  }
-                },
-                {
-                  "windows": {
-                    "normal": 2
+                    "custom:actualizacion": 5
                   }
                 }
               ]
@@ -267,24 +239,24 @@
       ]
     },
     {
-      "id": "390ce68b-efae-4fd3-8c19-ea6f11f60d78",
-      "name": "Sala 4",
+      "id": "78ea1b3a-855a-560f-99ea-45c369e09fff",
+      "name": "Salida",
       "type": "custom",
-      "role": "transition",
+      "role": "exit",
       "position": {
-        "x": 17,
-        "z": -6
+        "x": 34,
+        "z": -16
       },
       "size": {
-        "width": 10,
-        "depth": 14
+        "width": 8,
+        "depth": 8
       },
       "entry": {
         "wall": "west",
         "offset": 0
       },
       "facing": 0,
-      "wallHeight": 10,
+      "wallHeight": 5,
       "hasCeiling": false,
       "ammoReward": {
         "enabled": false,
@@ -292,12 +264,12 @@
         "color": "#f4bc59"
       },
       "radio": {
-        "enabled": false,
-        "corner": "ne"
+        "enabled": true,
+        "corner": "nw"
       },
       "textures": {
-        "walls": "",
-        "floor": "",
+        "walls": "bricks/brick-02",
+        "floor": "grass/grass-03",
         "ceiling": "",
         "door": "",
         "block": ""
@@ -313,17 +285,11 @@
               "layers": []
             },
             "front": {
-              "enabled": true,
-              "movement": "opposite",
-              "movementSpeed": 0.3,
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
               "color": "#2ed5c5",
-              "layers": [
-                {
-                  "windows": {
-                    "normal": 10
-                  }
-                }
-              ]
+              "layers": []
             },
             "right": {
               "enabled": false,
@@ -339,30 +305,30 @@
   ],
   "connections": [
     {
-      "id": "a3b71153-4209-49cb-a41d-10ce5a54a8c9",
-      "fromRoomId": "5e6a1377-3409-4445-98ae-23f02b21c608",
-      "toRoomId": "8273b11f-8952-472b-9b75-f4fa5de9f073",
+      "id": "86a7061a-1474-5eef-a52b-23277f1aa851",
+      "fromRoomId": "5da689d1-67a2-564a-b276-fb039d3355bd",
+      "toRoomId": "00a26c97-eef8-5b93-9193-19fcab29e132",
       "fromWall": "north",
       "toWall": "south",
       "width": 3.5,
       "waypoints": []
     },
     {
-      "id": "46843283-53ee-4520-a21e-f8f119b40aaa",
-      "fromRoomId": "8273b11f-8952-472b-9b75-f4fa5de9f073",
-      "toRoomId": "390ce68b-efae-4fd3-8c19-ea6f11f60d78",
+      "id": "2f7abf19-34ba-5cf4-8b69-23925f4e0132",
+      "fromRoomId": "00a26c97-eef8-5b93-9193-19fcab29e132",
+      "toRoomId": "c75f524b-3fad-570a-b064-79d3940aabbb",
       "fromWall": "east",
       "toWall": "west",
       "width": 3.5,
       "waypoints": []
     },
     {
-      "id": "4ae02a91-c39a-477d-bd5a-1d81845c02c7",
-      "fromRoomId": "390ce68b-efae-4fd3-8c19-ea6f11f60d78",
-      "toRoomId": "b37aed15-0a68-4de4-b5de-61151479b93b",
-      "fromWall": "south",
-      "toWall": "north",
-      "width": 3.5,
+      "id": "7b907d5c-b1b9-5435-b73e-dd82bc90b193",
+      "fromRoomId": "c75f524b-3fad-570a-b064-79d3940aabbb",
+      "toRoomId": "78ea1b3a-855a-560f-99ea-45c369e09fff",
+      "fromWall": "east",
+      "toWall": "west",
+      "width": 3,
       "waypoints": []
     }
   ]

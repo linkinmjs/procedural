@@ -2,16 +2,44 @@
   "schemaVersion": 1,
   "levels": [
     {
-      "id": "level-1787164129302",
-      "path": "res://level_designs/levels/nivel-1.json"
+      "id": "nivel-01",
+      "path": "res://level_designs/levels/nivel-01.json"
     },
     {
-      "id": "level-1787180619943",
-      "path": "res://level_designs/levels/nivel-2.json"
+      "id": "nivel-02",
+      "path": "res://level_designs/levels/nivel-02.json"
     },
     {
-      "id": "level-1787192042769",
-      "path": "res://level_designs/levels/nivel-3.json"
+      "id": "nivel-03",
+      "path": "res://level_designs/levels/nivel-03.json"
+    },
+    {
+      "id": "nivel-04",
+      "path": "res://level_designs/levels/nivel-04.json"
+    },
+    {
+      "id": "nivel-05",
+      "path": "res://level_designs/levels/nivel-05.json"
+    },
+    {
+      "id": "nivel-06",
+      "path": "res://level_designs/levels/nivel-06.json"
+    },
+    {
+      "id": "nivel-07",
+      "path": "res://level_designs/levels/nivel-07.json"
+    },
+    {
+      "id": "nivel-08",
+      "path": "res://level_designs/levels/nivel-08.json"
+    },
+    {
+      "id": "nivel-09",
+      "path": "res://level_designs/levels/nivel-09.json"
+    },
+    {
+      "id": "nivel-10",
+      "path": "res://level_designs/levels/nivel-10.json"
     }
   ]
 }

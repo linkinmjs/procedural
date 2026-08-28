@@ -69,7 +69,7 @@ func _check_migration() -> bool:
 		return false
 
 	# Y los del repo, que ya estan en v9, cargan sin pasar por la migracion.
-	var current := LevelDefinitionLoader.load_level("res://level_designs/levels/nivel-1.json")
+	var current := LevelDefinitionLoader.load_level("res://level_designs/levels/nivel-01.json")
 	if current.is_empty() or int(current.schemaVersion) != LevelDefinitionLoader.SUPPORTED_SCHEMA_VERSION:
 		_fail("The campaign level should load on the current schema.")
 		return false

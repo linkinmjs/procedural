@@ -3,7 +3,7 @@ extends SceneTree
 ## Prueba del sistema de puntuacion: pozo, escalones, castigo por fallar, cobro
 ## al cerrar la sala, bonos de sala y de nivel, techo y rango.
 
-const LEVEL_PATH := "res://level_designs/levels/nivel-2.json"
+const LEVEL_PATH := "res://level_designs/levels/nivel-02.json"
 
 var _controller: RoundController
 var _score: ScoreController

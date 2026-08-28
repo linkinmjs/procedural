@@ -26,7 +26,7 @@ const LINTEL_HEIGHT := 0.6
 const GENERIC_NAME_FILLER := " -_.0123456789"
 
 
-@export_file("*.json") var level_definition_path := "res://level_designs/levels/nivel-1.json"
+@export_file("*.json") var level_definition_path := "res://level_designs/levels/nivel-01.json"
 @export_range(0.05, 5.0, 0.05) var moving_block_speed := 0.65
 @export_range(0.0, 100.0, 1.0) var block_crossing_damage := 15.0
 ## Segundos entre el cierre del nivel y la pantalla de resultados. El cobro de

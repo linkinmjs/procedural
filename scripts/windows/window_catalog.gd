@@ -17,6 +17,11 @@ const NORMAL_TYPE := "normal"
 ## Prefijo con el que una capa nombra un diseño del Window Workshop
 ## (level_designs/window-designs.json) en lugar de una familia de fabrica.
 const CUSTOM_PREFIX := "custom:"
+## Prefijo con el que una capa nombra una actividad musical
+## (level_designs/music-activities.json). Todas comparten escena: la
+## actividad viaja como configuracion y decide que se pregunta.
+const MUSIC_PREFIX := "music:"
+const MUSIC_ACTIVITY_SCENE := preload("res://scenes/windows/music_activity_window.tscn")
 
 ## Escenas de cada familia, con nombre por escena para que un diseño custom
 ## pueda elegir su base. Tiene que coincidir con BASES en
@@ -90,6 +95,8 @@ static func spawn_plan_for(window_types: PackedStringArray, rng: RandomNumberGen
 
 
 static func _plan_entry(window_type: String, rng: RandomNumberGenerator) -> Dictionary:
+	if window_type.begins_with(MUSIC_PREFIX):
+		return _music_entry(window_type.trim_prefix(MUSIC_PREFIX), rng)
 	if not window_type.begins_with(CUSTOM_PREFIX):
 		return {"scene": scene_for(window_type, rng), "config": {}}
 	var slug := window_type.trim_prefix(CUSTOM_PREFIX)
@@ -104,3 +111,15 @@ static func _plan_entry(window_type: String, rng: RandomNumberGenerator) -> Dict
 	if scene == null:
 		scene = bases.values()[0]
 	return {"scene": scene, "config": variant}
+
+
+## Una actividad musical: la escena es siempre la misma y la configuracion es
+## la actividad entera, que la ventana convierte en una pregunta al nacer. Un
+## id que ya no esta en el catalogo degrada a una ventana normal, para que
+## borrar una actividad nunca rompa un nivel que la usaba.
+static func _music_entry(activity_id: String, rng: RandomNumberGenerator) -> Dictionary:
+	var activity := MusicActivityCatalog.get_activity(activity_id)
+	if activity.is_empty():
+		push_warning("Unknown music activity '%s'; spawning a normal window." % activity_id)
+		return {"scene": scene_for(NORMAL_TYPE, rng), "config": {}}
+	return {"scene": MUSIC_ACTIVITY_SCENE, "config": activity}

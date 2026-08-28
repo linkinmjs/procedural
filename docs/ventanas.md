@@ -84,6 +84,8 @@ Las familias que el formato acepta pero todavía no tienen escena —`confirm`, 
 
 Agregar una familia es escribir su escena, darle un script que extienda `WindowPanel3D` con su regla, y sumarla a `VARIANTS` en el catálogo. El formato y la herramienta ya la aceptan.
 
+Además de las familias, una capa puede repartir **actividades musicales** (`music:<id>`): ventanas con un teclado de notas que se cierran al completar una consigna de teoría. Comparten toda la infraestructura de esta página —zonas, traer al frente, firewall, puntaje— y se documentan en [`actividades_musicales.md`](actividades_musicales.md).
+
 ### Traer al frente
 
 La barra de título de toda ventana es una zona: acertarle la adelanta sobre sus hermanas, como al hacer clic en un escritorio. No cierra, no puntúa y se puede repetir. Es lo que le da sentido a que las ventanas de un bloque se superpongan.

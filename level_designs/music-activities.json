@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "activities": [
+    {
+      "id": "nota-suelta",
+      "name": "Encontrá la nota",
+      "description": "La primera: ubicar una nota blanca en el teclado.",
+      "question": "note",
+      "roots": "naturals",
+      "palette": "natural",
+      "hints": false
+    },
+    {
+      "id": "escala-c-mayor-asc",
+      "name": "Escala de C mayor",
+      "description": "La mas facil: de C a C subiendo por las blancas, con la tecla que toca iluminada.",
+      "question": "scale",
+      "roots": ["C"],
+      "mode": "major",
+      "direction": "up",
+      "octave": true,
+      "palette": "natural",
+      "hints": true
+    },
+    {
+      "id": "escala-c-mayor-desc",
+      "name": "Escala de C mayor, bajando",
+      "description": "La misma escala al reves y sin ayuda.",
+      "question": "scale",
+      "roots": ["C"],
+      "mode": "major",
+      "direction": "down",
+      "octave": true,
+      "palette": "natural",
+      "hints": false
+    },
+    {
+      "id": "escala-mayor-asc",
+      "name": "Escala mayor",
+      "description": "Tonica al azar entre las blancas: aparecen los sostenidos. Errar reinicia.",
+      "question": "scale",
+      "roots": "naturals",
+      "mode": "major",
+      "direction": "up",
+      "octave": true,
+      "palette": "chromatic",
+      "hints": false,
+      "onMiss": "restart"
+    },
+    {
+      "id": "escala-menor-asc",
+      "name": "Escala menor",
+      "description": "Menor natural desde A, E o D.",
+      "question": "scale",
+      "roots": ["A", "E", "D"],
+      "mode": "minor",
+      "direction": "up",
+      "octave": true,
+      "palette": "chromatic",
+      "hints": false
+    },
+    {
+      "id": "pentatonica-menor",
+      "name": "Pentatónica menor",
+      "description": "Cinco notas, ida y vuelta.",
+      "question": "scale",
+      "roots": ["A", "E"],
+      "mode": "minor-pentatonic",
+      "direction": "both",
+      "octave": true,
+      "palette": "chromatic",
+      "hints": false
+    },
+    {
+      "id": "triadas-mayores",
+      "name": "Tríadas mayores",
+      "description": "Las tres notas del acorde, en cualquier orden.",
+      "question": "chord",
+      "roots": "naturals",
+      "qualities": ["major"],
+      "ordered": false,
+      "palette": "chromatic",
+      "hints": false
+    },
+    {
+      "id": "triadas-menores",
+      "name": "Tríadas menores",
+      "description": "Las tres notas del acorde menor, en cualquier orden.",
+      "question": "chord",
+      "roots": "naturals",
+      "qualities": ["minor"],
+      "ordered": false,
+      "palette": "chromatic",
+      "hints": false
+    },
+    {
+      "id": "arpegio-mayor",
+      "name": "Arpegio mayor",
+      "description": "Fundamental, tercera y quinta, en ese orden.",
+      "question": "chord",
+      "roots": "naturals",
+      "qualities": ["major"],
+      "ordered": true,
+      "palette": "chromatic",
+      "hints": false
+    },
+    {
+      "id": "triadas-mezcla",
+      "name": "Tríadas mayores, menores y disminuidas",
+      "description": "Hay que leer la calidad antes de disparar. Errar reinicia.",
+      "question": "chord",
+      "roots": "any",
+      "qualities": ["major", "minor", "diminished"],
+      "ordered": false,
+      "palette": "chromatic",
+      "hints": false,
+      "onMiss": "restart"
+    },
+    {
+      "id": "intervalos-basicos",
+      "name": "Intervalos básicos",
+      "description": "Tercera mayor, cuarta y quinta justas desde una blanca.",
+      "question": "interval",
+      "roots": "naturals",
+      "intervals": ["M3", "P4", "P5"],
+      "palette": "chromatic",
+      "hints": false
+    },
+    {
+      "id": "intervalos-todos",
+      "name": "Todos los intervalos",
+      "description": "Cualquier intervalo desde cualquier nota.",
+      "question": "interval",
+      "roots": "any",
+      "intervals": ["m2", "M2", "m3", "M3", "P4", "TT", "P5", "m6", "M6", "m7", "M7"],
+      "palette": "chromatic",
+      "hints": false,
+      "onMiss": "restart"
+    }
+  ]
+}

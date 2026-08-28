@@ -485,8 +485,8 @@
                 ]
               },
               {
-                "pattern": "^custom:[a-z0-9][a-z0-9-]*$",
-                "description": "Diseño del Window Workshop (level_designs/window-designs.json). Si el diseño ya no existe, el juego lo spawnea como una ventana normal."
+                "pattern": "^(custom|music):[a-z0-9][a-z0-9-]*$",
+                "description": "Diseño del Window Workshop (custom:, level_designs/window-designs.json) o actividad musical (music:, level_designs/music-activities.json). Si ya no existe, el juego lo spawnea como una ventana normal."
               }
             ]
           },

@@ -449,13 +449,18 @@ static func _validate_layer(layer_variant: Variant, room_id: String) -> bool:
 	return true
 
 
-## Un diseño del Window Workshop: `custom:` mas un slug en minusculas. No se
-## valida que el diseño exista — si falta, WindowCatalog lo spawnea como una
-## ventana normal — para que borrar un diseño nunca invalide un nivel guardado.
+## Un diseño del Window Workshop (`custom:`) o una actividad musical
+## (`music:`), mas un slug en minusculas. No se valida que existan — si
+## faltan, WindowCatalog los spawnea como una ventana normal — para que
+## borrar un diseño o una actividad nunca invalide un nivel guardado.
 static func _is_valid_custom_type(window_type: String) -> bool:
-	if not window_type.begins_with("custom:"):
+	var slug := ""
+	if window_type.begins_with("custom:"):
+		slug = window_type.trim_prefix("custom:")
+	elif window_type.begins_with("music:"):
+		slug = window_type.trim_prefix("music:")
+	else:
 		return false
-	var slug := window_type.trim_prefix("custom:")
 	if slug.is_empty() or slug.begins_with("-"):
 		return false
 	for character in slug:

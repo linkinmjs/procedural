@@ -10,6 +10,7 @@ zone_values = {
 "close": 100,
 "finish": 60,
 "next": 10,
+"note": 10,
 "sign": 40,
 "trap": -150
 }

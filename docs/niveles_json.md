@@ -106,6 +106,8 @@ Las familias y su comportamiento están en [`ventanas.md`](ventanas.md). En la h
 
 Además de las familias, una capa puede nombrar un **diseño del Window Workshop** con la clave `custom:<slug>` (por ejemplo `{"custom:estafa-bancaria": 3}`). El diseño vive en `level_designs/window-designs.json`, hereda el comportamiento de su familia base y al spawnear alterna sus variantes estéticas al azar. Si el diseño ya no existe, el juego lo spawnea como `normal` con un aviso: borrar un diseño nunca invalida un nivel guardado.
 
+Con la misma regla, `music:<id>` nombra una **actividad musical** de `level_designs/music-activities.json` (por ejemplo `{"music:escala-c-mayor-asc": 1}`): una ventana con un teclado que se cierra al completar la consigna. Ver [`actividades_musicales.md`](actividades_musicales.md).
+
 ### Migraciones (v8 → v9 → v10)
 
 Hasta v8 la sala tenía un único grupo de bloques y los tres aparecían juntos; dentro del bloque, lo que hoy son `layers` se llamaba `waves`. `LevelDefinitionLoader` migra ese formato al cargar: el grupo único pasa a ser la primera y única oleada. v10 agrega `radio` por sala (`{ enabled, corner }`); una sala sin el campo recibe la radio apagada. Las migraciones son en memoria, así que un archivo viejo se juega sin convertirlo, y la herramienta lo guarda ya en la versión actual la primera vez que se lo edita.

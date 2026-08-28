@@ -17,6 +17,9 @@ extends Resource
 	"finish": 60,
 	"sign": 40,
 	"next": 10,
+	# Nota intermedia de una actividad musical: suma a la cadena y poco al
+	# pozo; la que completa la actividad paga como `close`.
+	"note": 10,
 	"trap": -150,
 }
 ## Valor de una zona que no figura en la tabla.

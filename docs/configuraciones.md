@@ -101,6 +101,9 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | `skip_seconds` | `popup_window.gd` y variantes `.tscn` | 5 (10 en la lenta) | Espera del SKIP de la publicidad. |
 | `MAX_LIVE_ADS` | `popup_window.gd` | 7 | Tope de publicidades simultáneas por capa. |
 | `download_seconds` | `download_window.gd` y variantes `.tscn` | 12 s | Duración de la descarga. |
+| Teclado de la actividad musical | `scripts/windows/music_activity_window.gd` → `BLACK_KEY_*`, `*_TINT`, `WRONG_NOTE_DB` | 0.62 / 0.56, −9 dB | Proporción de las teclas negras, tintes de acierto/guía/error y volumen de la nota equivocada. |
+| `pixels_per_meter` de la actividad | `scenes/windows/music_activity_window.tscn` | 90 | Tamaño en el mundo del teclado (480 × 230 px → 5,3 × 2,6 m). |
+| Tono de las teclas | `scripts/music/note_synth.gd` → `HARMONIC_GAINS`, `DECAY_RATE`, `SECONDS` | 4 armónicos, 6.5, 0.55 s | Timbre y duración de la nota que suena al acertar. |
 | Pop de bola | `scripts/targets/target_ball.gd` → `_play_destruction` | 1.22x, 0.05 + 0.11 s | Inflado y colapso al destruirse. |
 | Esquirlas de bola | → `_spawn_burst` | 14 partículas, 0.55 s | Cantidad, velocidad y vida de las esquirlas. |
 | `barrier_color` / `safe_close_distance` | `scripts/levels/room_door_3d.gd` | rojo / 2 m | Color de la puerta sellada y distancia para cerrarse. |
@@ -110,7 +113,7 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 
 | Parámetro | Dónde | Valor | Qué modifica |
 |---|---|---|---|
-| `zone_values` / `ball_value` | `resources/gameplay/score_settings.tres` | close 100, trap -150, bola 50… | Puntos por zona de ventana y por bola. |
+| `zone_values` / `ball_value` | `resources/gameplay/score_settings.tres` | close 100, trap -150, note 10, bola 50… | Puntos por zona de ventana y por bola. `note` es la nota intermedia de una actividad musical. |
 | `chain_thresholds` / `chain_multipliers` | ídem | 3, 6, 10, 14, 19, 25 / x1…x8 | Hits por escalón y multiplicador de cada uno. |
 | `grace_seconds` | ídem | 3 s | Tiempo sin acertar antes de que la cadena empiece a caer. |
 | `miss_step_drops` / `timeout_step_drop` | ídem | 2, 3, 4 / 1 | Escalones perdidos por fallo (1.º, 2.º, 3.º seguido) y por timeout. |

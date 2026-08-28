@@ -612,7 +612,10 @@ assert.match(styles, /\.family-chip\.missing/, "Un diseño borrado se marca en l
   const windowsSchema = schema.$defs.layer.properties.windows.propertyNames;
   assert.ok(Array.isArray(windowsSchema.anyOf), "El schema acepta familias o customs");
   const schemaPattern = windowsSchema.anyOf.find((option) => option.pattern)?.pattern;
-  assert.equal(schemaPattern, LevelFormat.CUSTOM_TYPE_PATTERN.source, "El schema y la tool aceptan el mismo patrón custom");
+  assert.equal(schemaPattern, LevelFormat.LAYER_TYPE_PATTERN.source, "El schema y la tool aceptan el mismo patrón de tipos extendidos (custom: y music:)");
+  assert.ok(new RegExp(schemaPattern).test("music:escala-c-mayor-asc"), "El schema acepta las actividades musicales");
+  assert.ok(LevelFormat.isMusicType("music:escala-c-mayor-asc") && !LevelFormat.isCustomType("music:escala-c-mayor-asc"),
+    "Un tipo music: es musical y no custom");
   assert.ok(new RegExp(schemaPattern).test(`custom:${WindowFormat.blankDesign("Prueba").slug}`),
     "Un slug generado por la tool siempre pasa el schema");
 }

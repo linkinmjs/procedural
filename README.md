@@ -102,6 +102,21 @@ Cada bloque declara ademas cuantas capas tiene, que familia de ventana reparte y
 
 Los presets cubren una mecanica cada uno: tres oleadas, capas que se pelan de a poco, publicidad que se llama sola, descarga rapida contra lenta, descarga infectada en un bloque movil, firewall y una pared de ventanas apiladas para probar el traer al frente. `Mezcla` reparte una familia de cada una en la misma capa, salvo la infectada, que colgaria el bloque antes de que se vea el resto.
 
+## Actividades musicales (experimental)
+
+Una capa puede repartir, en vez de ventanas, **actividades** para memorizar
+teoria musical: un teclado en cifrado americano (C D E F G A B, con las
+negras montadas encima) y una consigna —la escala de C mayor en orden, las
+notas de una triada, un intervalo desde una nota—. Se resuelven disparando
+las teclas correctas y recien entonces se cierran, asi que para el bloque son
+una ventana mas. Acertar suena la nota y suma a la cadena; errar cobra como
+una trampa. Las actividades son datos en `level_designs/music-activities.json`
+y se nombran como `music:<id>` en las capas; el Block Lab las ofrece en su
+desplegable. El detalle esta en
+[`docs/actividades_musicales.md`](docs/actividades_musicales.md).
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/music_activity_smoke_test.gd`
+
 ## Puntuacion
 
 El puntaje no se cobra al impactar: cada objetivo resuelto suma a un **pozo**

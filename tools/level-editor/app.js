@@ -6,7 +6,7 @@
     RELATIVE_WALLS, LIMITS, clamp, clampInt, newId, createEmptyLevel, createRoom, createConnection,
     chooseConnectionWalls, degreesToWall, assignRole, normalizeRoles, resolveEntryWalls, normalizeLevel,
     corridorPlan, corridorOutline, doorPoint, blankLayer, blankRoomWave, layerTotal,
-    roomTemplateFrom, roomFromTemplate, normalizeRoomTemplates, isCustomType
+    roomTemplateFrom, roomFromTemplate, normalizeRoomTemplates, isCustomType, isMusicType
   } = window.LevelFormat;
 
   const {
@@ -22,6 +22,7 @@
   const WINDOW_DESIGNS_KEY = "procedural-map.level-workshop.window-designs.v1";
   // Tono con el que los diseños custom se distinguen de las familias de fábrica.
   const CUSTOM_TONE = "#c9a6ff";
+  const MUSIC_TONE = "#7fe0b0";
   const SLOT_SHORT = { left: "IZQ", front: "FRENTE", right: "DER" };
   const WALL_NAMES = { north: "norte", east: "este", south: "sur", west: "oeste" };
 
@@ -302,6 +303,15 @@
 
   function windowTypeMeta(type) {
     if (WINDOW_TYPES[type]) return WINDOW_TYPES[type];
+    if (isMusicType(type)) {
+      return {
+        label: `♪ ${String(type).slice("music:".length)}`,
+        glyph: "♪",
+        color: MUSIC_TONE,
+        status: "music",
+        hint: "Actividad musical de level_designs/music-activities.json. Se juega como una ventana que se cierra al completar la consigna."
+      };
+    }
     const design = isCustomType(type) ? designByKey(type) : null;
     if (design) {
       const family = WINDOW_TYPES[design.family];

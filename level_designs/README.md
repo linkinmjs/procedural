@@ -46,7 +46,7 @@ Cada elemento de `blocks.<slot>.waves` declara cuántas ventanas de cada familia
 { "windows": { "normal": 4, "firewall": 2 } }
 ```
 
-Las familias válidas son `normal`, `popup`, `download`, `firewall`, `critical-error`, `confirm`, `ad`, `fake-close`, `task-manager`, `corrupt-file` e `installer`, y salen de los comportamientos que enumera `docs/gdd_atractivo_y_progresion.md`. La lista vive en `WINDOW_TYPES` (`tools/level-editor/level-format.js`) y en `VALID_WINDOW_TYPES` (`scripts/levels/level_definition_loader.gd`), que tienen que coincidir. Una clave también puede ser `custom:<slug>`: un diseño de `window-designs.json` (ver abajo).
+Las familias válidas son `normal`, `popup`, `download`, `firewall`, `critical-error`, `confirm`, `ad`, `fake-close`, `task-manager`, `corrupt-file` e `installer`, y salen de los comportamientos que enumera `docs/gdd_atractivo_y_progresion.md`. La lista vive en `WINDOW_TYPES` (`tools/level-editor/level-format.js`) y en `VALID_WINDOW_TYPES` (`scripts/levels/level_definition_loader.gd`), que tienen que coincidir. Una clave también puede ser `custom:<slug>`: un diseño de `window-designs.json` (ver abajo), o `music:<id>`: una actividad musical de `music-activities.json` (ver `docs/actividades_musicales.md`).
 
 Sólo se guardan las familias con al menos una ventana, y el total de una oleada va de 1 a 64. Las familias sin comportamiento propio se spawnean como una ventana normal; el editor las marca como *pronto* para que se vea qué está declarado y qué está construido.
 

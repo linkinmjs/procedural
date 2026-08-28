@@ -49,6 +49,14 @@
   // pierda datos por abrirse sin los diseños cargados.
   const CUSTOM_TYPE_PATTERN = /^custom:[a-z0-9][a-z0-9-]*$/;
   const isCustomType = (type) => CUSTOM_TYPE_PATTERN.test(String(type ?? ""));
+  // Y una actividad musical como `music:<id>` (level_designs/music-activities.json),
+  // con la misma tolerancia: el juego degrada a normal si el id ya no existe.
+  const MUSIC_TYPE_PATTERN = /^music:[a-z0-9][a-z0-9-]*$/;
+  const isMusicType = (type) => MUSIC_TYPE_PATTERN.test(String(type ?? ""));
+  // Lo que acepta el schema como clave de capa ademas de las familias: es la
+  // union de los dos patrones, y el test de paridad lo compara con schema.json.
+  const LAYER_TYPE_PATTERN = /^(custom|music):[a-z0-9][a-z0-9-]*$/;
+  const isExtendedType = (type) => isCustomType(type) || isMusicType(type);
   const TEXTURE_SLOTS = { walls: "Paredes", floor: "Suelo", ceiling: "Techo", door: "Puertas", block: "Bloques" };
   const WALLS = ["north", "east", "south", "west"];
   const WALL_LABELS = { north: "N", east: "E", south: "S", west: "O" };
@@ -143,7 +151,7 @@
     // Primero las familias del catalogo en su orden estable, despues los
     // diseños custom en el orden en que el archivo los traiga.
     const known = Object.keys(WINDOW_TYPES).filter((type) => type in counts);
-    const custom = Object.keys(counts).filter((type) => !(type in WINDOW_TYPES) && isCustomType(type));
+    const custom = Object.keys(counts).filter((type) => !(type in WINDOW_TYPES) && isExtendedType(type));
     for (const type of [...known, ...custom]) {
       const value = Math.min(clampInt(counts[type], LIMITS.windowCount), LIMITS.wave.max - total);
       if (value <= 0) continue;
@@ -686,6 +694,10 @@
     DEFAULT_WINDOW_TYPE,
     CUSTOM_TYPE_PATTERN,
     isCustomType,
+    MUSIC_TYPE_PATTERN,
+    isMusicType,
+    LAYER_TYPE_PATTERN,
+    isExtendedType,
     TEXTURE_SLOTS,
     WALLS,
     WALL_LABELS,

@@ -100,6 +100,13 @@ const LEVEL_PRESETS := [
 		"right": {"enabled": true, "targets": 4, "layers": 1, "family": "normal", "wave": 2, "moves": true},
 	},
 	{
+		"name": "Musica // escala, triada e intervalo",
+		"shape": RoomShape.LARGE,
+		"left": {"enabled": true, "targets": 1, "layers": 2, "family": "music:triadas-mayores", "wave": 1, "moves": false},
+		"front": {"enabled": true, "targets": 1, "layers": 2, "family": "music:escala-c-mayor-asc", "wave": 1, "moves": false},
+		"right": {"enabled": true, "targets": 1, "layers": 2, "family": "music:intervalos-basicos", "wave": 1, "moves": false},
+	},
+	{
 		"name": "Pequena // cierre frontal",
 		"shape": RoomShape.SMALL,
 		"left": {"enabled": false, "targets": 0, "layers": 1, "family": "normal", "wave": 1, "moves": false},
@@ -124,8 +131,9 @@ var room_size := ROOM_DIMENSIONS[RoomShape.SMALL] as Vector2
 var _encounter_spawned := false
 var _configured_blocks: Dictionary = {}
 var _applying_preset := false
-## FAMILY_CHOICES mas los diseños del Window Workshop, que se leen del catalogo
-## al abrir el laboratorio: un diseño nuevo se prueba aca sin armar un nivel.
+## FAMILY_CHOICES mas los diseños del Window Workshop y las actividades
+## musicales, que se leen de sus catalogos al abrir el laboratorio: un diseño
+## o una actividad nuevos se prueban aca sin armar un nivel.
 var _family_choices: Array = []
 ## Oleada que se esta peleando, contando desde 1. Las siguientes esperan a que
 ## se limpie esta, igual que en una sala de la campania.
@@ -184,6 +192,12 @@ func _setup_family_options() -> void:
 		_family_choices.append({
 			"id": WindowCatalog.CUSTOM_PREFIX + slug,
 			"label": WindowDesignCatalog.design_name(slug),
+		})
+	# Y las actividades musicales, en su orden de dificultad.
+	for id in MusicActivityCatalog.get_ids():
+		_family_choices.append({
+			"id": WindowCatalog.MUSIC_PREFIX + id,
+			"label": "Musica // " + MusicActivityCatalog.activity_name(id),
 		})
 	for option in [%LeftFamily, %FrontFamily, %RightFamily]:
 		option.clear()

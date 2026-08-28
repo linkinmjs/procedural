@@ -129,3 +129,37 @@ AD_WAIT,Esperá {seconds}s,Aguarde {seconds}s,Wait {seconds}s
 AD_SKIP,Saltear ahora,Pular agora,Skip now
 LOG_WINDOW_SHIELDED,{window} PROTEGIDA // DESACTIVA EL FIREWALL,{window} PROTEGIDA // DESATIVE O FIREWALL,{window} SHIELDED // DISABLE THE FIREWALL
 LOG_BLOCK_DEPLOYED,BLOQUE {slot} DESPLEGADO,BLOCO {slot} IMPLANTADO,{slot} BLOCK DEPLOYED
+MUSIC_ACTIVITY,Actividad musical,Atividade musical,Music activity
+MUSIC_PROMPT_NOTE,Tocá la nota {note},Toque a nota {note},Play the note {note}
+MUSIC_PROMPT_SCALE,"Escala de {root} {mode}, {direction}","Escala de {root} {mode}, {direction}","{root} {mode} scale, {direction}"
+MUSIC_PROMPT_CHORD,Notas del acorde de {root} {quality},Notas do acorde de {root} {quality},Notes of the {root} {quality} chord
+MUSIC_PROMPT_ARPEGGIO,"Arpegio de {root} {quality}, desde la fundamental","Arpejo de {root} {quality}, a partir da fundamental","{root} {quality} arpeggio, from the root"
+MUSIC_PROMPT_INTERVAL,{interval} desde {root},{interval} a partir de {root},{interval} up from {root}
+MUSIC_DIRECTION_UP,ascendente,ascendente,ascending
+MUSIC_DIRECTION_DOWN,descendente,descendente,descending
+MUSIC_DIRECTION_BOTH,ida y vuelta,ida e volta,up and down
+MUSIC_MODE_MAJOR,mayor,maior,major
+MUSIC_MODE_MINOR,menor,menor,minor
+MUSIC_MODE_HARMONIC_MINOR,menor armónica,menor harmônica,harmonic minor
+MUSIC_MODE_MAJOR_PENTATONIC,pentatónica mayor,pentatônica maior,major pentatonic
+MUSIC_MODE_MINOR_PENTATONIC,pentatónica menor,pentatônica menor,minor pentatonic
+MUSIC_MODE_CHROMATIC,cromática,cromática,chromatic
+MUSIC_CHORD_MAJOR,mayor,maior,major
+MUSIC_CHORD_MINOR,menor,menor,minor
+MUSIC_CHORD_DIMINISHED,disminuido,diminuto,diminished
+MUSIC_CHORD_AUGMENTED,aumentado,aumentado,augmented
+MUSIC_CHORD_DOMINANT_7,séptima de dominante,sétima da dominante,dominant seventh
+MUSIC_CHORD_MAJOR_7,séptima mayor,sétima maior,major seventh
+MUSIC_CHORD_MINOR_7,séptima menor,sétima menor,minor seventh
+MUSIC_INTERVAL_MINOR_2,Segunda menor,Segunda menor,Minor second
+MUSIC_INTERVAL_MAJOR_2,Segunda mayor,Segunda maior,Major second
+MUSIC_INTERVAL_MINOR_3,Tercera menor,Terça menor,Minor third
+MUSIC_INTERVAL_MAJOR_3,Tercera mayor,Terça maior,Major third
+MUSIC_INTERVAL_PERFECT_4,Cuarta justa,Quarta justa,Perfect fourth
+MUSIC_INTERVAL_TT,Tritono,Trítono,Tritone
+MUSIC_INTERVAL_PERFECT_5,Quinta justa,Quinta justa,Perfect fifth
+MUSIC_INTERVAL_MINOR_6,Sexta menor,Sexta menor,Minor sixth
+MUSIC_INTERVAL_MAJOR_6,Sexta mayor,Sexta maior,Major sixth
+MUSIC_INTERVAL_MINOR_7,Séptima menor,Sétima menor,Minor seventh
+MUSIC_INTERVAL_MAJOR_7,Séptima mayor,Sétima maior,Major seventh
+MUSIC_INTERVAL_PERFECT_8,Octava,Oitava,Octave

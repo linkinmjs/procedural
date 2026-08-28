@@ -25,13 +25,54 @@ const NOISE_GAIN := 0.04
 ## Semilla fija: el stream es identico en cada corrida (y en los tests).
 const NOISE_SEED := 0x1ED
 
+## Gruñido grave que solo se oye pegado al bloque: un sub de 42 Hz con su
+## octava, latiendo tres veces por segundo. Tambien entero en Hz, cierra limpio.
+const GROWL_HZ := 42.0
+const GROWL_GAIN := 0.7
+const GROWL_OCTAVE_GAIN := 0.22
+const THROB_HZ := 3.0
+const THROB_DEPTH := 0.4
+
 static var _stream: AudioStreamWAV
+static var _growl_stream: AudioStreamWAV
 
 
 static func get_stream() -> AudioStreamWAV:
 	if _stream == null:
 		_stream = _build()
 	return _stream
+
+
+static func get_growl_stream() -> AudioStreamWAV:
+	if _growl_stream == null:
+		_growl_stream = _build_growl()
+	return _growl_stream
+
+
+static func _build_growl() -> AudioStreamWAV:
+	var sample_count := int(MIX_RATE * LOOP_SECONDS)
+	var data := PackedByteArray()
+	data.resize(sample_count * 2)
+	for index in sample_count:
+		var t := float(index) / MIX_RATE
+		var throb := 1.0 - THROB_DEPTH * (0.5 + 0.5 * sin(TAU * THROB_HZ * t))
+		var value := GROWL_GAIN * sin(TAU * GROWL_HZ * t)
+		value += GROWL_OCTAVE_GAIN * sin(TAU * GROWL_HZ * 2.0 * t)
+		value = tanh(value * throb)
+		data.encode_s16(index * 2, int(clampf(value, -1.0, 1.0) * 32767.0))
+	return _wrap(data, sample_count)
+
+
+static func _wrap(data: PackedByteArray, sample_count: int) -> AudioStreamWAV:
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = MIX_RATE
+	stream.stereo = false
+	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	stream.loop_begin = 0
+	stream.loop_end = sample_count
+	stream.data = data
+	return stream
 
 
 static func _build() -> AudioStreamWAV:
@@ -51,12 +92,4 @@ static func _build() -> AudioStreamWAV:
 		value = tanh(value)
 		var sample := int(clampf(value, -1.0, 1.0) * 32767.0)
 		data.encode_s16(index * 2, sample)
-	var stream := AudioStreamWAV.new()
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
-	stream.mix_rate = MIX_RATE
-	stream.stereo = false
-	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	stream.loop_begin = 0
-	stream.loop_end = sample_count
-	stream.data = data
-	return stream
+	return _wrap(data, sample_count)

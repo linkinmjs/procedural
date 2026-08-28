@@ -37,7 +37,7 @@ Sala
    disponibles (por ejemplo, porque un slot se colgó) se saltean.
 5. **Limpiar.** Sin oleadas pendientes, la sala queda limpia: se abren las
    puertas, se cobra la cadena de puntaje con el multiplicador vigente, se
-   pagan los bonos de sala, aparece la recompensa de munición (`ammoReward`)
+   pagan los bonos de sala, flota la burbuja de munición (`ammoReward`)
    en el centro y la luz de la sala baja al 30 % como invitación a seguir.
 
 La cadena de puntaje **vive dentro de la sala**: se reinicia al entrar a cada

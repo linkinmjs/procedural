@@ -6,7 +6,6 @@ const ROOM_LIGHT_SCENE := preload("res://scenes/environment/room_light.tscn")
 ## Altura de respaldo cuando el nivel no declara la suya.
 const WALL_HEIGHT := 6.0
 const CEILING_THICKNESS := 0.3
-const AMMO_PICKUP_SCENE := preload("res://scenes/weapons/glock_ammo_pickup.tscn")
 const RADIO_SCENE := preload("res://scenes/props/radio.tscn")
 const WALL_THICKNESS := 0.35
 ## Distancia de la radio a la cara interior de cada pared de su esquina.
@@ -21,6 +20,11 @@ const CORNER_SIGNS := {
 const DOOR_HEIGHT := 3.0
 ## Pared que queda como minimo sobre el vano.
 const LINTEL_HEIGHT := 0.6
+## Cuanto por encima del vano cuelga el cartel con el destino de la puerta.
+const DOOR_SIGN_RISE := 0.32
+const DOOR_SIGN_COLOR := Color(0.36, 0.92, 1.0)
+## A que altura flota la burbuja de municion en el centro de la sala limpiada.
+const AMMO_BUBBLE_HEIGHT := 1.55
 ## Lo que puede rodear al numero en el nombre de un nivel sin volverlo un nombre
 ## propio: separadores y digitos.
 const GENERIC_NAME_FILLER := " -_.0123456789"
@@ -260,6 +264,10 @@ const SLOWMO_FADE_IN_SECONDS := 0.8
 ## muestra el resultado y el jugador decide si reintenta, avanza o se va.
 func _on_level_scored(summary: Dictionary) -> void:
 	_start_slow_motion()
+	# Las burbujas que nadie tomo revientan con el cierre: ya no hay a quien
+	# darle balas.
+	for bubble in get_tree().get_nodes_in_group(AmmoBubble.GROUP):
+		(bubble as AmmoBubble).burst()
 	# La sala final se apaga con la misma curva y duracion que el time_scale.
 	if _exit_encounter != null:
 		_dim_room_light(_exit_encounter.room_id, exit_light_factor, SLOWMO_FADE_IN_SECONDS, true)
@@ -410,12 +418,15 @@ func _build_rooms() -> void:
 			var opening_width := float(opening.get("width", 0.0))
 			if opening_width <= 0.0:
 				continue
+			var along_offset := float(opening.get("offset", 0.0))
 			doors.append(_add_room_opening(room_marker, wall, width, depth, wall_height,
-					opening_width, float(opening.get("offset", 0.0))))
+					opening_width, along_offset))
+			_add_door_sign(room_marker, wall, width, depth, wall_height, along_offset,
+					_door_destination(room_id, wall))
 		room_doors[room_id] = doors
 
-		_add_room_label(room_marker, str(room.name), wall_height)
-		room_lights[room_id] = _add_room_light(room_marker, Vector3(width, wall_height, depth))
+		room_lights[room_id] = _add_room_light(room_marker, Vector3(width, wall_height, depth),
+				LevelDefinitionLoader.room_has_ceiling(level_data, room))
 		var encounter := ConfiguredRoomEncounter3D.new()
 		encounter.name = "%sEncounter" % safe_name
 		encounter.position = center
@@ -612,7 +623,8 @@ func _spawn_radios() -> void:
 		director.register(radio)
 
 
-## Limpiar una sala configurada como recompensa deja un cargador en su centro.
+## Limpiar una sala configurada como recompensa hace flotar en su centro una
+## burbuja con las balas: se toma tocandola o disparandole.
 func _spawn_ammo_reward(room_id: String) -> void:
 	var room := _room_by_id(room_id)
 	if room.is_empty():
@@ -620,13 +632,12 @@ func _spawn_ammo_reward(room_id: String) -> void:
 	var reward := LevelDefinitionLoader.get_room_ammo_reward(room)
 	if not bool(reward.enabled) or int(reward.amount) <= 0:
 		return
-	var pickup := AMMO_PICKUP_SCENE.instantiate() as WeaponPickUp
-	pickup.name = "%sAmmoReward" % _safe_node_name(str(room.name))
-	pickup.position = _room_center(room) + Vector3(0.0, 1.2, 0.0)
-	var magazine: int = pickup.weapon.weapon.magazine
-	pickup.weapon.current_ammo = mini(int(reward.amount), magazine)
-	pickup.weapon.reserve_ammo = maxi(int(reward.amount) - magazine, 0)
-	add_child(pickup)
+	var bubble := AmmoBubble.new()
+	bubble.name = "%sAmmoReward" % _safe_node_name(str(room.name))
+	bubble.amount = int(reward.amount)
+	bubble.tint = reward.color
+	bubble.position = _room_center(room) + Vector3(0.0, AMMO_BUBBLE_HEIGHT, 0.0)
+	add_child(bubble)
 	round_controller.add_log(tr("LOG_AMMO_REWARD").format({
 		"room": str(room.name).to_upper(),
 		"amount": int(reward.amount),
@@ -891,14 +902,14 @@ func _apply_starting_ammo() -> void:
 	manager.update_ammo.emit([slot.current_ammo, slot.reserve_ammo])
 
 
-func _add_room_light(parent: Node3D, room_size: Vector3) -> RoomLight:
+func _add_room_light(parent: Node3D, room_size: Vector3, has_ceiling: bool) -> RoomLight:
 	var room_light := ROOM_LIGHT_SCENE.instantiate() as RoomLight
 	room_light.energy = 3.0
 	room_light.max_range = 24.0
 	parent.add_child(room_light)
 	# La luz cuelga bajo el techo, asi que sigue a la altura de la sala.
 	room_light.position = Vector3(0.0, minf(room_size.y - 0.8, 3.2), 0.0)
-	room_light.configure_for_room(room_size)
+	room_light.configure_for_room(room_size, has_ceiling)
 	return room_light
 
 
@@ -909,15 +920,49 @@ func _dim_room_light(room_id: String, factor: float, duration: float, realtime: 
 	room_light.dim_to(factor, duration, realtime)
 
 
-func _add_room_label(parent: Node3D, label_text: String, wall_height: float) -> void:
-	var label := Label3D.new()
-	label.text = label_text.to_upper()
-	label.position = Vector3(0.0, maxf(wall_height - 0.75, 1.5), 0.0)
-	label.font_size = 48
-	label.modulate = Color(0.36, 0.92, 1.0)
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.no_depth_test = false
-	parent.add_child(label)
+## Nombre de la sala a la que lleva el vano de esa pared, o vacio si ninguna.
+func _door_destination(room_id: String, wall: String) -> String:
+	for connection_variant in level_data.connections:
+		var connection := connection_variant as Dictionary
+		var other_id := ""
+		if str(connection.fromRoomId) == room_id and str(connection.fromWall) == wall:
+			other_id = str(connection.toRoomId)
+		elif str(connection.toRoomId) == room_id and str(connection.toWall) == wall:
+			other_id = str(connection.fromRoomId)
+		if not other_id.is_empty():
+			return str(_room_by_id(other_id).get("name", ""))
+	return ""
+
+
+## Cartel sobre el vano, del lado de adentro, con la sala a la que lleva. Es la
+## senializacion de un edificio: reemplaza a la etiqueta que flotaba en el
+## medio, que tapaba la vista y no decia hacia donde ir.
+func _add_door_sign(parent: Node3D, wall: String, width: float, depth: float, wall_height: float, along_offset: float, destination: String) -> void:
+	if destination.is_empty():
+		return
+	var is_horizontal := wall == "north" or wall == "south"
+	var door_height := _door_height_for(wall_height)
+	var sign_y := minf(door_height + DOOR_SIGN_RISE, wall_height - 0.15)
+	if sign_y < door_height + 0.05:
+		return
+	var offset := _wall_offset(wall, width, depth)
+	var inward := Vector3(0.0, 0.0, -signf(offset.y)) if is_horizontal else Vector3(-signf(offset.x), 0.0, 0.0)
+	var local_position := Vector3(offset.x, sign_y, offset.y) + inward * (WALL_THICKNESS * 0.5 + 0.02)
+	if is_horizontal:
+		local_position.x += along_offset
+	else:
+		local_position.z += along_offset
+	var sign := Label3D.new()
+	sign.name = "%sSign" % wall.capitalize()
+	sign.text = "\u2192 %s" % destination.to_upper()
+	sign.font_size = 56
+	sign.outline_size = 8
+	sign.modulate = DOOR_SIGN_COLOR
+	sign.outline_modulate = Color(0.02, 0.05, 0.08, 0.95)
+	sign.position = local_position
+	# El frente del Label3D mira a +Z; se lo gira hasta que mire hacia adentro.
+	sign.rotation.y = atan2(inward.x, inward.z)
+	parent.add_child(sign)
 
 
 func _add_box(parent: Node3D, box_name: String, box_position: Vector3, box_size: Vector3, material: Material) -> void:

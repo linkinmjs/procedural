@@ -1,0 +1,479 @@
+{
+  "schemaVersion": 10,
+  "id": "nivel-17",
+  "name": "Puerto abierto",
+  "description": "Firewall e infectada juntos, en capas y en paredes que avanzan: el puzzle del 8 con el reloj del 4.",
+  "timeLimitSeconds": 175,
+  "gridSize": 1,
+  "startingAmmo": {
+    "magazine": 10,
+    "reserve": 40
+  },
+  "sky": "sunset",
+  "defaults": {
+    "wallHeight": 6,
+    "maxBlockHeight": 6,
+    "hasCeiling": true,
+    "corridorWidth": 3.5,
+    "textures": {
+      "walls": "metal/metal-12",
+      "floor": "floor/horror-floor-11",
+      "ceiling": "metal/metal-04",
+      "door": "wood/wood-01",
+      "block": "metal/metal-01"
+    }
+  },
+  "rooms": [
+    {
+      "id": "1663bcc5-9857-5a1a-a8e1-019e2c756bfe",
+      "name": "Router",
+      "type": "custom",
+      "role": "start",
+      "position": {
+        "x": 0,
+        "z": 0
+      },
+      "size": {
+        "width": 8,
+        "depth": 8
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "facing": 90,
+      "wallHeight": 4,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": true,
+        "corner": "sw"
+      },
+      "textures": {
+        "walls": "wood/wood-04",
+        "floor": "wood/wood-08",
+        "ceiling": "plaster/plaster-01",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "300e7e8f-f833-5783-8915-f2dcfeecbbaf",
+      "name": "Puerto 80",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 17,
+        "z": 0
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": true,
+        "amount": 10,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": []
+            },
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 4,
+                    "infected-download": 1,
+                    "firewall": 1
+                  }
+                },
+                {
+                  "windows": {
+                    "normal": 3,
+                    "custom:factura": 1,
+                    "custom:antivirus": 1
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "63424005-c103-5fb7-bf05-ca008592c7d3",
+      "name": "Túnel",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 17,
+        "z": -19
+      },
+      "size": {
+        "width": 18,
+        "depth": 12
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": true,
+        "amount": 12,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": true,
+              "movement": "opposite",
+              "movementSpeed": 0.55,
+              "color": "#ff9f6b",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "firewall": 1
+                  }
+                },
+                {
+                  "windows": {
+                    "normal": 3,
+                    "infected-download": 1
+                  }
+                }
+              ]
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": []
+            },
+            "right": {
+              "enabled": true,
+              "movement": "opposite",
+              "movementSpeed": 0.55,
+              "color": "#ff9f6b",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3
+                  }
+                },
+                {
+                  "windows": {
+                    "normal": 3,
+                    "custom:vpn": 1
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "cbed3660-17b0-5c47-8f89-e94461d8d86e",
+      "name": "Cortafuegos caído",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 41,
+        "z": -19
+      },
+      "size": {
+        "width": 18,
+        "depth": 16
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": 8,
+      "hasCeiling": false,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "custom:vpn": 1
+                  }
+                }
+              ]
+            },
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "custom:rescate": 1
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": [
+                {
+                  "windows": {
+                    "popup": 3
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": []
+            },
+            "front": {
+              "enabled": true,
+              "movement": "opposite",
+              "movementSpeed": 0.5,
+              "color": "#ff9f6b",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "infected-download": 1,
+                    "firewall": 1
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "0abf1e82-7334-5b18-add1-e7132a9e65a1",
+      "name": "Salida",
+      "type": "custom",
+      "role": "exit",
+      "position": {
+        "x": 41,
+        "z": -39
+      },
+      "size": {
+        "width": 8,
+        "depth": 8
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": 5,
+      "hasCeiling": false,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": true,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "bricks/brick-02",
+        "floor": "grass/grass-03",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#ff9f6b",
+              "layers": []
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "3afa6072-ffc8-56ea-a53d-be69ab1eec64",
+      "fromRoomId": "1663bcc5-9857-5a1a-a8e1-019e2c756bfe",
+      "toRoomId": "300e7e8f-f833-5783-8915-f2dcfeecbbaf",
+      "fromWall": "east",
+      "toWall": "west",
+      "width": 3.5,
+      "waypoints": []
+    },
+    {
+      "id": "f640ad52-2c0a-5c96-b131-f41861fe86ba",
+      "fromRoomId": "300e7e8f-f833-5783-8915-f2dcfeecbbaf",
+      "toRoomId": "63424005-c103-5fb7-bf05-ca008592c7d3",
+      "fromWall": "north",
+      "toWall": "south",
+      "width": 3.5,
+      "waypoints": []
+    },
+    {
+      "id": "42f508c2-91bc-5e4a-9e6b-697b40c394a5",
+      "fromRoomId": "63424005-c103-5fb7-bf05-ca008592c7d3",
+      "toRoomId": "cbed3660-17b0-5c47-8f89-e94461d8d86e",
+      "fromWall": "east",
+      "toWall": "west",
+      "width": 4.5,
+      "waypoints": []
+    },
+    {
+      "id": "8d2737ce-2911-5fd3-823e-98fd72be861a",
+      "fromRoomId": "cbed3660-17b0-5c47-8f89-e94461d8d86e",
+      "toRoomId": "0abf1e82-7334-5b18-add1-e7132a9e65a1",
+      "fromWall": "north",
+      "toWall": "south",
+      "width": 3,
+      "waypoints": []
+    }
+  ]
+}

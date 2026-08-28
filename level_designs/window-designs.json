@@ -243,6 +243,150 @@
           "size": null
         }
       ]
+    },
+    {
+      "id": "seed-soporte",
+      "slug": "soporte",
+      "name": "Soporte técnico",
+      "family": "normal",
+      "variants": [
+        {
+          "base": "shutdown",
+          "skin": "",
+          "title": "Soporte técnico",
+          "message": "Detectamos 3 problemas en su equipo. Llame ya al 0800-SOPORTE.",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "shutdown",
+          "skin": "retro",
+          "title": "Asistente de limpieza",
+          "message": "Su registro tiene 1.204 entradas obsoletas.",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "close",
+          "skin": "retro",
+          "title": "Licencia vencida",
+          "message": "",
+          "subtitle": "",
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "seed-torrent",
+      "slug": "torrent",
+      "name": "Torrent",
+      "family": "download",
+      "variants": [
+        {
+          "base": "download",
+          "skin": "",
+          "title": "Descargando...",
+          "message": "pelicula_hd_final.avi",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "download",
+          "skin": "",
+          "title": "Descargando...",
+          "message": "juego_completo.iso",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "download",
+          "skin": "xp",
+          "title": "Descargando...",
+          "message": "album_2003.zip",
+          "subtitle": "",
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "seed-rescate",
+      "slug": "rescate",
+      "name": "Rescate",
+      "family": "infected-download",
+      "variants": [
+        {
+          "base": "infected-download",
+          "skin": "",
+          "title": "Descargando...",
+          "message": "tus_archivos.exe",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "infected-download",
+          "skin": "",
+          "title": "Descargando...",
+          "message": "clave_descifrado.exe",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "infected-download",
+          "skin": "xp",
+          "title": "Descargando...",
+          "message": "pago_pendiente.exe",
+          "subtitle": "",
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "seed-vpn",
+      "slug": "vpn",
+      "name": "VPN",
+      "family": "firewall",
+      "variants": [
+        {
+          "base": "firewall",
+          "skin": "",
+          "title": "Túnel seguro",
+          "message": "Conexión cifrada activa. Las demás ventanas están detrás del túnel.",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "firewall",
+          "skin": "retro",
+          "title": "Proxy corporativo",
+          "message": "Tráfico filtrado. Desactive para continuar.",
+          "subtitle": "",
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "seed-panico",
+      "slug": "panico",
+      "name": "Kernel panic",
+      "family": "critical-error",
+      "variants": [
+        {
+          "base": "critical-error",
+          "skin": "retro",
+          "title": "Kernel panic",
+          "message": "Fallo en el módulo de memoria. Elija con cuidado.",
+          "subtitle": "",
+          "size": null
+        },
+        {
+          "base": "critical-error",
+          "skin": "",
+          "title": "Violación de acceso",
+          "message": "La dirección 0x0000000C no es válida.",
+          "subtitle": "",
+          "size": null
+        }
+      ]
     }
   ]
 }

@@ -20,7 +20,8 @@ La escena inicial `scenes/levels/playable_level.tscn` construye el nivel activo 
 - Un trigger por sala que despliega sus bloques al ingresar.
 - Bloques izquierdo, frontal y derecho relativos a la pared de entrada, cubriendo su pared completa de piso a techo.
 - El jugador dentro de la sala marcada como `start`, orientado según su `facing`, con la munición de `startingAmmo`.
-- Un bloque de munición en el centro de las salas que declaran `ammoReward`, al caer su último bloque.
+- Una burbuja de munición flotando en el centro de las salas que declaran `ammoReward`, al caer su último bloque. Se toma tocándola o disparándole, entrega sólo lo que entra en la reserva y se queda con el resto; las que nadie tomó revientan al terminar el nivel.
+- Un cartel sobre cada vano, del lado de adentro, con el nombre de la sala a la que lleva. Es la señalización del nivel: no hay etiquetas flotando en el aire.
 - Una radio con música en loop en la esquina de las salas que declaran `radio`, apoyada contra las dos paredes y mirando al centro. Se rompe de un disparo; entre varias, solo la más cercana lleva la acústica de sala (`RadioDirector`).
 - La luz de una sala baja al limpiarla (`cleared_light_factor`); la de salida se apaga junto con la cámara lenta del cierre.
 - El HUD y el tiempo de ronda de `timeLimitSeconds`.

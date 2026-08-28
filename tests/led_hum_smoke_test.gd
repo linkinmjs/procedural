@@ -27,6 +27,10 @@ func _run() -> void:
 	if LedHumSynth.get_stream() != stream:
 		_fail("The hum stream should be built once and shared.")
 		return
+	var growl := LedHumSynth.get_growl_stream()
+	if growl == null or growl == stream or growl.loop_mode != AudioStreamWAV.LOOP_FORWARD or growl.data.size() != stream.data.size():
+		_fail("The growl should be its own forward-looping loop of the same length.")
+		return
 
 	var block := BLOCK_SCENE.instantiate() as TargetBlock3D
 	block.target_count = 0
@@ -44,10 +48,16 @@ func _run() -> void:
 	if block.hum_player.max_distance <= 0.0 or block.hum_player.unit_size > 3.0:
 		_fail("The hum must fade fast with distance: short unit_size and a max_distance cutoff.")
 		return
+	if block.growl_player == null or block.growl_player.stream != growl or not block.growl_player.playing:
+		_fail("A block should carry the shared growl, already looping.")
+		return
+	if block.growl_player.max_distance > block.hum_player.max_distance or block.growl_player.volume_db > -40.0:
+		_fail("The growl only lives near the block: shorter reach than the hum and silent until someone gets close.")
+		return
 	block.crash("test")
 	await process_frame
-	if block.hum_player.playing:
-		_fail("A crashed block should cut its hum.")
+	if block.hum_player.playing or block.growl_player.playing:
+		_fail("A crashed block should cut its hum and its growl.")
 		return
 	block.queue_free()
 

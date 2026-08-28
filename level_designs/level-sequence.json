@@ -40,6 +40,86 @@
     {
       "id": "nivel-10",
       "path": "res://level_designs/levels/nivel-10.json"
+    },
+    {
+      "id": "nivel-11",
+      "path": "res://level_designs/levels/nivel-11.json"
+    },
+    {
+      "id": "nivel-12",
+      "path": "res://level_designs/levels/nivel-12.json"
+    },
+    {
+      "id": "nivel-13",
+      "path": "res://level_designs/levels/nivel-13.json"
+    },
+    {
+      "id": "nivel-14",
+      "path": "res://level_designs/levels/nivel-14.json"
+    },
+    {
+      "id": "nivel-15",
+      "path": "res://level_designs/levels/nivel-15.json"
+    },
+    {
+      "id": "nivel-16",
+      "path": "res://level_designs/levels/nivel-16.json"
+    },
+    {
+      "id": "nivel-17",
+      "path": "res://level_designs/levels/nivel-17.json"
+    },
+    {
+      "id": "nivel-18",
+      "path": "res://level_designs/levels/nivel-18.json"
+    },
+    {
+      "id": "nivel-19",
+      "path": "res://level_designs/levels/nivel-19.json"
+    },
+    {
+      "id": "nivel-20",
+      "path": "res://level_designs/levels/nivel-20.json"
+    },
+    {
+      "id": "nivel-21",
+      "path": "res://level_designs/levels/nivel-21.json"
+    },
+    {
+      "id": "nivel-22",
+      "path": "res://level_designs/levels/nivel-22.json"
+    },
+    {
+      "id": "nivel-23",
+      "path": "res://level_designs/levels/nivel-23.json"
+    },
+    {
+      "id": "nivel-24",
+      "path": "res://level_designs/levels/nivel-24.json"
+    },
+    {
+      "id": "nivel-25",
+      "path": "res://level_designs/levels/nivel-25.json"
+    },
+    {
+      "id": "nivel-26",
+      "path": "res://level_designs/levels/nivel-26.json"
+    },
+    {
+      "id": "nivel-27",
+      "path": "res://level_designs/levels/nivel-27.json"
+    },
+    {
+      "id": "nivel-28",
+      "path": "res://level_designs/levels/nivel-28.json"
+    },
+    {
+      "id": "nivel-29",
+      "path": "res://level_designs/levels/nivel-29.json"
+    },
+    {
+      "id": "nivel-30",
+      "path": "res://level_designs/levels/nivel-30.json"
     }
   ]
 }

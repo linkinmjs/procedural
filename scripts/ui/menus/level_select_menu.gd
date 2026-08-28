@@ -22,6 +22,11 @@ var _play_buttons: Array[Button] = []
 var _row_count := 0
 
 
+## Filas visibles antes de que la lista pase a scroll, y alto de cada una.
+const MAX_VISIBLE_ROWS := 8
+const ROW_HEIGHT := 46.0
+
+
 static func create(menu_skin: MenuSkin) -> LevelSelectMenu:
 	var menu := LevelSelectMenu.new()
 	menu.skin = menu_skin
@@ -33,9 +38,23 @@ func _ready() -> void:
 	var seq := sequence()
 	var rows := VBoxContainer.new()
 	rows.add_theme_constant_override("separation", 4)
-	content.add_child(rows)
-	rows.add_child(_build_header())
-	rows.add_child(HSeparator.new())
+	var header := VBoxContainer.new()
+	header.add_theme_constant_override("separation", 4)
+	header.add_child(_build_header())
+	header.add_child(HSeparator.new())
+	content.add_child(header)
+	# Con la campaña entera la lista no entra en pantalla: las filas van en un
+	# scroll que sigue al foco, y la cabecera queda fija arriba.
+	if seq.get_level_count() > MAX_VISIBLE_ROWS:
+		var scroll := ScrollContainer.new()
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.custom_minimum_size = Vector2(0.0, ROW_HEIGHT * MAX_VISIBLE_ROWS)
+		scroll.follow_focus = true
+		rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll.add_child(rows)
+		content.add_child(scroll)
+	else:
+		content.add_child(rows)
 	for index in seq.get_level_count():
 		rows.add_child(_build_row(index))
 		_row_count += 1

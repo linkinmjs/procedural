@@ -1,0 +1,463 @@
+{
+  "schemaVersion": 10,
+  "id": "nivel-24",
+  "name": "Desbordamiento",
+  "description": "Densidad: capas de nueve y diez ventanas en paredes anchas. Mantener el multiplicador cuando todo se superpone.",
+  "timeLimitSeconds": 190,
+  "gridSize": 1,
+  "startingAmmo": {
+    "magazine": 10,
+    "reserve": 50
+  },
+  "sky": "overcast",
+  "defaults": {
+    "wallHeight": 6,
+    "maxBlockHeight": 6,
+    "hasCeiling": true,
+    "corridorWidth": 3.5,
+    "textures": {
+      "walls": "bricks/bricks-25",
+      "floor": "tile/tile-25",
+      "ceiling": "plaster/plaster-18",
+      "door": "wood/wood-01",
+      "block": "metal/metal-01"
+    }
+  },
+  "rooms": [
+    {
+      "id": "62340ec3-d81f-5ff3-9b1b-c8308478e784",
+      "name": "Entrada",
+      "type": "custom",
+      "role": "start",
+      "position": {
+        "x": 0,
+        "z": 0
+      },
+      "size": {
+        "width": 8,
+        "depth": 8
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": 4,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": true,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "wood/wood-04",
+        "floor": "wood/wood-08",
+        "ceiling": "plaster/plaster-01",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "a4b74793-35b1-5403-895c-35ebf08b0419",
+      "name": "Búfer",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 0,
+        "z": -18
+      },
+      "size": {
+        "width": 18,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": true,
+        "amount": 12,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": []
+            },
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 9
+                  }
+                },
+                {
+                  "windows": {
+                    "normal": 8,
+                    "critical-error": 1
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "a67db27f-4d3e-5f5b-9c2f-588c14115abd",
+      "name": "Pila",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 24,
+        "z": -18
+      },
+      "size": {
+        "width": 20,
+        "depth": 16
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": true,
+        "amount": 12,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 6,
+                    "firewall": 1
+                  }
+                }
+              ]
+            },
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": [
+                {
+                  "windows": {
+                    "custom:soporte": 4
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 6,
+                    "critical-error": 1
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "45778a93-cd05-5ea2-b67e-188accfd9142",
+      "name": "Heap",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 24,
+        "z": -42
+      },
+      "size": {
+        "width": 20,
+        "depth": 18
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": 8,
+      "hasCeiling": false,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": []
+            },
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 10
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": []
+            }
+          }
+        },
+        {
+          "blocks": {
+            "left": {
+              "enabled": true,
+              "movement": "opposite",
+              "movementSpeed": 0.6,
+              "color": "#48c5ff",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 5,
+                    "popup": 1
+                  }
+                }
+              ]
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": []
+            },
+            "right": {
+              "enabled": true,
+              "movement": "opposite",
+              "movementSpeed": 0.6,
+              "color": "#48c5ff",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 5,
+                    "custom:oferta": 1
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "2b2b45e7-7479-5202-9a88-25ea1d8ec082",
+      "name": "Salida",
+      "type": "custom",
+      "role": "exit",
+      "position": {
+        "x": 24,
+        "z": -62
+      },
+      "size": {
+        "width": 8,
+        "depth": 8
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": 5,
+      "hasCeiling": false,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": true,
+        "corner": "sw"
+      },
+      "textures": {
+        "walls": "bricks/brick-02",
+        "floor": "grass/grass-03",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#48c5ff",
+              "layers": []
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "1eaefdad-e5e3-5152-9b10-235f5cf0c254",
+      "fromRoomId": "62340ec3-d81f-5ff3-9b1b-c8308478e784",
+      "toRoomId": "a4b74793-35b1-5403-895c-35ebf08b0419",
+      "fromWall": "north",
+      "toWall": "south",
+      "width": 3.5,
+      "waypoints": []
+    },
+    {
+      "id": "dd360bd6-0df7-53ce-b6ae-3729f1299f67",
+      "fromRoomId": "a4b74793-35b1-5403-895c-35ebf08b0419",
+      "toRoomId": "a67db27f-4d3e-5f5b-9c2f-588c14115abd",
+      "fromWall": "east",
+      "toWall": "west",
+      "width": 3.5,
+      "waypoints": []
+    },
+    {
+      "id": "d27e567e-4cb4-5f3b-b79a-66e9518ae145",
+      "fromRoomId": "a67db27f-4d3e-5f5b-9c2f-588c14115abd",
+      "toRoomId": "45778a93-cd05-5ea2-b67e-188accfd9142",
+      "fromWall": "north",
+      "toWall": "south",
+      "width": 4.5,
+      "waypoints": []
+    },
+    {
+      "id": "6396e029-52ba-5260-90c3-162bc22f25e9",
+      "fromRoomId": "45778a93-cd05-5ea2-b67e-188accfd9142",
+      "toRoomId": "2b2b45e7-7479-5202-9a88-25ea1d8ec082",
+      "fromWall": "north",
+      "toWall": "south",
+      "width": 3,
+      "waypoints": []
+    }
+  ]
+}

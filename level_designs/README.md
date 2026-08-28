@@ -33,7 +33,7 @@ El formato usa `schemaVersion: 10`.
 - `entry.wall`: **valor derivado**. La herramienta lo recalcula recorriendo el nivel desde la sala de inicio: se entra por la pared del pasillo que trajo al jugador, y en la sala de inicio por la pared que le queda a la espalda. No conviene editarlo a mano; el editor lo pisa en el próximo guardado.
 - `wallHeight`: altura propia en metros, o `null` para heredar la del nivel.
 - `hasCeiling`: `true` cerrada, `false` a cielo abierto, `null` para heredar.
-- `ammoReward`: `{ enabled, amount, color }`. Con `enabled` en `true`, al destruir el último bloque de la sala aparece un bloque con `amount` balas.
+- `ammoReward`: `{ enabled, amount, color }`. Con `enabled` en `true`, al destruir el último bloque de la sala flota una burbuja con `amount` balas que se toma tocándola o disparándole.
 - `radio`: `{ enabled, corner }`. Con `enabled` en `true`, una radio con música en loop aparece en la esquina `corner` (`ne`, `nw`, `se`, `sw`; norte es -Z, este es +X), apoyada contra las dos paredes y mirando al centro. Se rompe de un disparo.
 - `textures`: identificadores del catálogo `texture-catalog.json`, por superficie. Una cadena vacía hereda la del nivel; si el nivel tampoco define una, se usa el material de color plano. El juego aplica hoy `walls`, `floor` y `ceiling`; `door` y `block` se guardan pero todavía no se dibujan.
 - `blocks`: cada bloque define color, velocidad y una lista ordenada de oleadas. Los lados `left`, `front` y `right` son relativos a `entry.wall`: con una entrada `south`, el bloque `front` cae sobre la pared `north`. Cada bloque cubre el ancho completo de su pared y se levanta desde el piso hasta `defaults.maxBlockHeight`, o hasta el techo si la sala es más baja.

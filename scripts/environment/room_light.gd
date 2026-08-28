@@ -5,6 +5,8 @@ extends Node3D
 @export var warm_color := Color(1.0, 0.76, 0.52, 1.0)
 @export var min_range := 8.0
 @export var max_range := 18.0
+## Cuanto baja el panel respecto del techo, para que no lo tape la losa.
+const FIXTURE_DROP := 0.04
 
 @onready var light: OmniLight3D = $OmniLight3D
 @onready var fixture: MeshInstance3D = $Fixture
@@ -28,9 +30,13 @@ func _ready() -> void:
 	set_dim(dim_factor)
 
 
-func configure_for_room(room_size: Vector3) -> void:
+## Ajusta el alcance a la sala y pega la luminaria al techo. Una sala a cielo
+## abierto no tiene de donde colgarla: la luz queda, el artefacto no.
+func configure_for_room(room_size: Vector3, has_ceiling := true) -> void:
 	var horizontal_extent := maxf(room_size.x, room_size.z)
 	light.omni_range = clampf(horizontal_extent * 0.72, min_range, max_range)
+	fixture.visible = has_ceiling
+	fixture.position.y = maxf(room_size.y - position.y - FIXTURE_DROP, 0.0)
 
 
 ## Aplica una fraccion de la energia nominal al instante. Escala sobre el

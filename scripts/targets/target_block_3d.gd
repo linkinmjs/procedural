@@ -37,23 +37,32 @@ signal crashed(block: TargetBlock3D)
 @export var target_separation := Vector2(2.0, 1.0)
 @export var target_padding := Vector2(0.2, 0.2)
 ## Zumbido de pantalla del bloque. De lejos apenas se siente; de cerca sube de
-## volumen y se desafina un poco, que es lo que inquieta.
+## volumen, baja de tono y se le suma un gruñido grave que late: intimida a
+## quien se acerca y no molesta a quien esta lejos.
 @export_group("Hum")
 @export var hum_enabled := true
-@export_range(-40.0, 0.0, 0.5) var hum_volume_db := -14.0
-@export_range(-40.0, 0.0, 0.5) var hum_near_volume_db := -4.0
+@export_range(-40.0, 0.0, 0.5) var hum_volume_db := -16.0
+@export_range(-40.0, 0.0, 0.5) var hum_near_volume_db := -2.0
 ## Distancia a la camara desde la que el zumbido esta a pleno.
-@export_range(0.5, 20.0, 0.5) var hum_near_distance := 3.0
+@export_range(0.5, 20.0, 0.5) var hum_near_distance := 4.0
 ## Variacion de tono entre bloques, para que no suenen clonados.
 @export_range(0.0, 0.5, 0.01) var hum_pitch_jitter := 0.04
-## Cuanto sube el tono al acercarse.
-@export_range(0.0, 0.5, 0.01) var hum_near_detune := 0.08
+## Cuanto baja el tono al acercarse.
+@export_range(0.0, 0.5, 0.01) var hum_near_detune := 0.07
+## Volumen del gruñido pegado al bloque y desde que distancia esta a pleno; mas
+## lejos que el max_distance de su emisor no se oye nada.
+@export_range(-40.0, 0.0, 0.5) var growl_near_volume_db := -3.0
+@export_range(0.5, 20.0, 0.5) var growl_near_distance := 2.0
 @export_group("")
 
 @onready var block_mesh: MeshInstance3D = $BlockMesh
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var spawn_volume: TargetSpawnVolume3D = $TargetSpawnVolume3D
 @onready var hum_player: AudioStreamPlayer3D = get_node_or_null("HumPlayer")
+@onready var growl_player: AudioStreamPlayer3D = get_node_or_null("GrowlPlayer")
+## Volumen del gruñido cuando no hay nadie cerca: inaudible, no apagado, para
+## que entre sin click.
+const GROWL_SILENT_DB := -60.0
 
 const BLUE_SCREEN_SCENE := preload("res://scenes/targets/blue_screen.tscn")
 ## Cuanto se adelanta la pantalla de error respecto de la cara del bloque, para
@@ -72,6 +81,7 @@ var _current_layer_index := 0
 var _hum_base_pitch := 1.0
 ## Cercania actual (0 lejos, 1 encima), suavizada para que no salte.
 var _hum_closeness := 0.0
+var _growl_closeness := 0.0
 var _hum_accumulator := 0.0
 const HUM_UPDATE_SECONDS := 0.1
 
@@ -272,15 +282,23 @@ func _start_hum() -> void:
 	hum_player.pitch_scale = _hum_base_pitch
 	hum_player.volume_db = hum_volume_db
 	hum_player.play(randf() * LedHumSynth.LOOP_SECONDS)
+	if growl_player != null:
+		growl_player.stream = LedHumSynth.get_growl_stream()
+		growl_player.pitch_scale = _hum_base_pitch
+		growl_player.volume_db = GROWL_SILENT_DB
+		growl_player.play(randf() * LedHumSynth.LOOP_SECONDS)
 
 
 func _stop_hum() -> void:
 	if hum_player != null:
 		hum_player.stop()
+	if growl_player != null:
+		growl_player.stop()
 
 
-## Cuanto mas cerca la camara, mas fuerte y mas agudo. Se mide cada decima de
-## segundo y se suaviza: la distancia cambia a saltos con el jugador corriendo.
+## Cuanto mas cerca la camara, mas fuerte y mas grave, y el gruñido asoma
+## recien en los ultimos metros. Se mide cada decima de segundo y se suaviza:
+## la distancia cambia a saltos con el jugador corriendo.
 func _update_hum(delta: float) -> void:
 	if hum_player == null or not hum_player.playing:
 		return
@@ -295,8 +313,14 @@ func _update_hum(delta: float) -> void:
 	var far := maxf(hum_player.max_distance, hum_near_distance + 0.01)
 	var target := 1.0 - clampf((distance - hum_near_distance) / (far - hum_near_distance), 0.0, 1.0)
 	_hum_closeness = lerpf(_hum_closeness, target, 0.35)
+	var squared := _hum_closeness * _hum_closeness
 	hum_player.volume_db = lerpf(hum_volume_db, hum_near_volume_db, _hum_closeness)
-	hum_player.pitch_scale = _hum_base_pitch * (1.0 + hum_near_detune * _hum_closeness * _hum_closeness)
+	hum_player.pitch_scale = _hum_base_pitch * (1.0 - hum_near_detune * squared)
+	if growl_player != null and growl_player.playing:
+		var growl_far := maxf(growl_player.max_distance, growl_near_distance + 0.01)
+		var growl_target := 1.0 - clampf((distance - growl_near_distance) / (growl_far - growl_near_distance), 0.0, 1.0)
+		_growl_closeness = lerpf(_growl_closeness, growl_target, 0.35)
+		growl_player.volume_db = lerpf(GROWL_SILENT_DB, growl_near_volume_db, _growl_closeness * _growl_closeness)
 
 
 func _get_round_controller() -> RoundController:

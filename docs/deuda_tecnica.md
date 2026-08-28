@@ -130,7 +130,7 @@ Mejoras señaladas en el code review y dejadas como deuda a propósito:
 
 Nada de esto se midió con el Profiler todavía: son hallazgos por lectura de
 código. Antes de atacar los puntos grandes conviene tomar una línea base en
-`nivel-10` (el más cargado: 6 salas, 70 ventanas) con **Debugger > Monitors**
+`nivel-30` (el más cargado: 6 salas, 73 ventanas) con **Debugger > Monitors**
 (`Time > Process`, `Render > Total Draw Calls`, `Physics 3D > Active Bodies`)
 y repetir después de cada cambio. Lo que ya está bien y no hay que tocar:
 Jolt, capas segmentadas, audio pooleado en `Sfx`, materiales cacheados en

@@ -1,0 +1,467 @@
+{
+  "schemaVersion": 10,
+  "id": "nivel-22",
+  "name": "Inyección",
+  "description": "Infectadas protegidas por firewall y popups alrededor, con paneles que avanzan. Prioridad bajo dos relojes.",
+  "timeLimitSeconds": 160,
+  "gridSize": 1,
+  "startingAmmo": {
+    "magazine": 10,
+    "reserve": 40
+  },
+  "sky": "sunset",
+  "defaults": {
+    "wallHeight": 6,
+    "maxBlockHeight": 6,
+    "hasCeiling": true,
+    "corridorWidth": 3.5,
+    "textures": {
+      "walls": "bricks/bricks-22",
+      "floor": "floor/horror-floor-03",
+      "ceiling": "plaster/plaster-13",
+      "door": "wood/wood-01",
+      "block": "metal/metal-01"
+    }
+  },
+  "rooms": [
+    {
+      "id": "16a2846c-0ee8-5d49-a8dc-71ffa66d7f69",
+      "name": "Formulario",
+      "type": "custom",
+      "role": "start",
+      "position": {
+        "x": 0,
+        "z": 0
+      },
+      "size": {
+        "width": 8,
+        "depth": 8
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": 4,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": true,
+        "corner": "se"
+      },
+      "textures": {
+        "walls": "wood/wood-04",
+        "floor": "wood/wood-08",
+        "ceiling": "plaster/plaster-01",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "abef79bc-5fd3-53ea-961e-42b9533c941d",
+      "name": "Payload",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 0,
+        "z": -18
+      },
+      "size": {
+        "width": 14,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": true,
+        "amount": 10,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": []
+            },
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "firewall": 1,
+                    "custom:rescate": 1
+                  }
+                },
+                {
+                  "windows": {
+                    "normal": 3,
+                    "popup": 2
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "162ca4c5-c159-5803-88df-6e7dacfa67fa",
+      "name": "Vector",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 22,
+        "z": -18
+      },
+      "size": {
+        "width": 18,
+        "depth": 14
+      },
+      "entry": {
+        "wall": "west",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": null,
+      "hasCeiling": null,
+      "ammoReward": {
+        "enabled": true,
+        "amount": 10,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": true,
+              "movement": "opposite",
+              "movementSpeed": 0.5,
+              "color": "#6ee7a8",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "custom:rescate": 1
+                  }
+                }
+              ]
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": []
+            },
+            "right": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": [
+                {
+                  "windows": {
+                    "firewall": 1,
+                    "custom:oferta": 3
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "138c4360-6fd8-53c2-a4fb-6769c3a84704",
+      "name": "Exploit",
+      "type": "custom",
+      "role": "transition",
+      "position": {
+        "x": 22,
+        "z": -40
+      },
+      "size": {
+        "width": 18,
+        "depth": 16
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": 8,
+      "hasCeiling": false,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": false,
+        "corner": "ne"
+      },
+      "textures": {
+        "walls": "",
+        "floor": "",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": [
+                {
+                  "windows": {
+                    "popup": 2
+                  }
+                }
+              ]
+            },
+            "front": {
+              "enabled": true,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "custom:rescate": 1,
+                    "custom:vpn": 1
+                  }
+                }
+              ]
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": []
+            }
+          }
+        },
+        {
+          "blocks": {
+            "left": {
+              "enabled": true,
+              "movement": "opposite",
+              "movementSpeed": 0.55,
+              "color": "#6ee7a8",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "infected-download": 1
+                  }
+                }
+              ]
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": []
+            },
+            "right": {
+              "enabled": true,
+              "movement": "opposite",
+              "movementSpeed": 0.55,
+              "color": "#6ee7a8",
+              "layers": [
+                {
+                  "windows": {
+                    "normal": 3,
+                    "custom:factura": 1
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "0513b220-26bd-56b3-b675-4434013e5bec",
+      "name": "Salida",
+      "type": "custom",
+      "role": "exit",
+      "position": {
+        "x": 22,
+        "z": -58
+      },
+      "size": {
+        "width": 8,
+        "depth": 8
+      },
+      "entry": {
+        "wall": "south",
+        "offset": 0
+      },
+      "facing": 0,
+      "wallHeight": 5,
+      "hasCeiling": false,
+      "ammoReward": {
+        "enabled": false,
+        "amount": 30,
+        "color": "#f4bc59"
+      },
+      "radio": {
+        "enabled": true,
+        "corner": "nw"
+      },
+      "textures": {
+        "walls": "bricks/brick-02",
+        "floor": "grass/grass-03",
+        "ceiling": "",
+        "door": "",
+        "block": ""
+      },
+      "waves": [
+        {
+          "blocks": {
+            "left": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": []
+            },
+            "front": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": []
+            },
+            "right": {
+              "enabled": false,
+              "movement": "static",
+              "movementSpeed": 0.65,
+              "color": "#6ee7a8",
+              "layers": []
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "04778b06-5a0f-5233-a5c2-0012a682db3c",
+      "fromRoomId": "16a2846c-0ee8-5d49-a8dc-71ffa66d7f69",
+      "toRoomId": "abef79bc-5fd3-53ea-961e-42b9533c941d",
+      "fromWall": "north",
+      "toWall": "south",
+      "width": 3.5,
+      "waypoints": []
+    },
+    {
+      "id": "fccd77e2-3c86-501e-a798-282551f3f624",
+      "fromRoomId": "abef79bc-5fd3-53ea-961e-42b9533c941d",
+      "toRoomId": "162ca4c5-c159-5803-88df-6e7dacfa67fa",
+      "fromWall": "east",
+      "toWall": "west",
+      "width": 3.5,
+      "waypoints": []
+    },
+    {
+      "id": "b4e3f100-34c5-534d-b4c2-94dd1a703e20",
+      "fromRoomId": "162ca4c5-c159-5803-88df-6e7dacfa67fa",
+      "toRoomId": "138c4360-6fd8-53c2-a4fb-6769c3a84704",
+      "fromWall": "north",
+      "toWall": "south",
+      "width": 4.5,
+      "waypoints": []
+    },
+    {
+      "id": "683c914a-041e-5cd1-995c-7b0aacefea1e",
+      "fromRoomId": "138c4360-6fd8-53c2-a4fb-6769c3a84704",
+      "toRoomId": "0513b220-26bd-56b3-b675-4434013e5bec",
+      "fromWall": "north",
+      "toWall": "south",
+      "width": 3,
+      "waypoints": []
+    }
+  ]
+}

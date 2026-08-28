@@ -39,10 +39,13 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | `loop` | `assets/audio/music/human_tetris_fade.mp3.import` | on | Repetición de la canción (opción de importación del mp3). |
 | Buses `Master` / `Music` / `SFX` | `resources/audio/default_bus_layout.tres` | — | Volúmenes base; los del usuario los maneja `Settings`. |
 | `BASE_HZ` / `WHINE_HZ` / ganancias | `scripts/audio/led_hum_synth.gd` | 60 Hz / 9900 Hz / 0.55·0.18·0.06·0.04 | Timbre del zumbido de pantalla de los bloques (hum de red, octava, silbido, ruido). Se sintetiza una vez y se comparte. |
+| `GROWL_HZ` / `THROB_HZ` / `THROB_DEPTH` | ídem | 42 Hz / 3 Hz / 0.4 | Gruñido grave que late, el segundo loop del bloque. Solo se oye pegado al panel. |
 | `MIX_RATE` / `LOOP_SECONDS` | ídem | 24000 / 1 s | Resolución y largo del loop; mantener frecuencias múltiplos enteros de 1 Hz para que cierre sin click. |
 | `unit_size` / `max_distance` / `attenuation_model` | `scenes/targets/target_block_3d.tscn` → nodo `HumPlayer` | 1.8 m / 11 m / inverso cuadrático | Qué tan rápido se apaga el zumbido con la distancia y desde dónde deja de oírse. |
-| `hum_volume_db` / `hum_near_volume_db` | `scripts/targets/target_block_3d.gd` | -14 / -4 dB | Volumen del zumbido lejos y pegado a la pantalla. |
-| `hum_near_distance` / `hum_near_detune` / `hum_pitch_jitter` | ídem | 3 m / 0.08 / 0.04 | Desde dónde está a pleno, cuánto se desafina al acercarse y la variación de tono entre bloques. |
+| `max_distance` / `attenuation_filter_cutoff_hz` | ídem → nodo `GrowlPlayer` | 7 m / 900 Hz | Alcance del gruñido grave: más lejos que esto no existe. |
+| `hum_volume_db` / `hum_near_volume_db` | `scripts/targets/target_block_3d.gd` | -16 / -2 dB | Volumen del zumbido lejos y pegado a la pantalla. |
+| `hum_near_distance` / `hum_near_detune` / `hum_pitch_jitter` | ídem | 4 m / 0.07 / 0.04 | Desde dónde está a pleno, cuánto baja el tono al acercarse y la variación de tono entre bloques. |
+| `growl_near_volume_db` / `growl_near_distance` | ídem | -3 dB / 2 m | Volumen del gruñido pegado al bloque y desde dónde está a pleno (entre 7 m y 2 m sube en curva cuadrática). |
 
 ## Cámara y feedback del jugador
 

@@ -37,7 +37,12 @@ func _ready() -> void:
 	if not _save_viewport("res://.godot/playable-level-sala-one.png"):
 		return
 	# Media vuelta para mirar el vano por el que se entro: al activarse el
-	# encuentro la sala queda sellada por detras.
+	# encuentro la sala queda sellada por detras, con su cartel encima. En el
+	# medio flota una burbuja de municion como la que deja una sala limpiada.
+	var bubble := AmmoBubble.new()
+	bubble.amount = 10
+	bubble.position = center + Vector3(0.0, level.AMMO_BUBBLE_HEIGHT, 0.0)
+	level.add_child(bubble)
 	_place_player(level, center + forward * 3.0, -forward)
 	await get_tree().process_frame
 	await get_tree().physics_frame

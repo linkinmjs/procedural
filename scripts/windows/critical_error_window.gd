@@ -57,6 +57,7 @@ func _on_zone(zone_id: String, _window: WindowPanel3D) -> void:
 ## Destello rojo de la ventana entera: el castigo del trap se ve, no solo se
 ## descuenta en el puntaje.
 func _flash_error() -> void:
+	request_screen_redraw(0.6)
 	var material := _screen_material()
 	if material == null or shielded:
 		return
@@ -70,6 +71,7 @@ func _flash_error() -> void:
 ## botones se deslizan a su lugar en vez de teletransportarse: sin la
 ## transicion, el reordenamiento parecia un glitch y no un castigo.
 func _shuffle() -> void:
+	request_screen_redraw()
 	if _buttons.size() < 2:
 		return
 	var order: Array[int] = []

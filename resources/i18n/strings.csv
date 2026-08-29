@@ -46,6 +46,7 @@ START_PLAY,Jugar,Jogar,Play
 START_SELECT_LEVEL,Seleccionar nivel,Selecionar nível,Select level
 START_OPTIONS,Opciones,Opções,Options
 INTRO_LEVEL,NIVEL {number},NÍVEL {number},LEVEL {number}
+LOADING_LEVEL,PREPARANDO NIVEL...,PREPARANDO NÍVEL...,PREPARING LEVEL...
 HUD_EVENT_LOG,// REGISTRO,// REGISTRO,// EVENT LOG
 HUD_SYSTEM_ONLINE,SISTEMA EN LINEA,SISTEMA ONLINE,SYSTEM ONLINE
 HUD_HP,HP,HP,HP
@@ -116,6 +117,7 @@ LOG_NO_PREVIOUS_LEVEL,NO HAY NIVEL ANTERIOR,NÃO HÁ NÍVEL ANTERIOR,NO PREVIOUS
 LOG_ROOM_SEALED,{room} SELLADA,{room} SELADA,{room} SEALED
 LOG_ROOM_CLEAR,{room} LIMPIA // PUERTAS ABIERTAS,{room} LIMPA // PORTAS ABERTAS,{room} CLEAR // DOORS OPEN
 LOG_AMMO_REWARD,{room} // +{amount} BALAS,{room} // +{amount} BALAS,{room} // +{amount} ROUNDS
+LOG_AMMO_FULL,RESERVA LLENA // {amount} BALAS ESPERAN EN LA BURBUJA,RESERVA CHEIA // {amount} BALAS ESPERAM NA BOLHA,RESERVE FULL // {amount} ROUNDS WAIT IN THE BUBBLE
 LOG_LAYER,{block} // CAPA {layer}/{total} // {targets} OBJETIVOS,{block} // CAMADA {layer}/{total} // {targets} ALVOS,{block} // LAYER {layer}/{total} // {targets} TARGETS
 LOG_ROOM_WAVE,{room} // OLEADA {wave}/{total},{room} // ONDA {wave}/{total},{room} // WAVE {wave}/{total}
 LOG_BLOCK_CLOSED,{block} CERRADO,{block} FECHADO,{block} CLOSED

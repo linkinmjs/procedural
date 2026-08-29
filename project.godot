@@ -146,8 +146,11 @@ locale/fallback="es"
 [physics]
 
 3d/physics_engine="Jolt Physics"
-jolt_physics_3d/simulation/areas_detect_static_bodies=true
+jolt_physics_3d/simulation/areas_detect_static_bodies=false
 
 [rendering]
 
+renderer/rendering_method="forward_plus"
+; El export a Web solo soporta el renderer Compatibility (WebGL2).
+renderer/rendering_method.web="gl_compatibility"
 rendering_device/driver.windows="d3d12"

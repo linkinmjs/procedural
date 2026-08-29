@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/props/radio_prop.gd" id="1_radio"]
 [ext_resource type="Mesh" path="res://assets/models/props/radio/radio.obj" id="2_mesh"]
 [ext_resource type="Script" path="res://addons/spatial_audio_3d/spatial_audio_3d.gd" id="3_spatial"]
-[ext_resource type="AudioStream" path="res://assets/audio/music/human_tetris_fade.mp3" id="4_song"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/human_tetris_fade.ogg" id="4_song"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_body"]
 size = Vector3(0.34, 0.5, 0.14)

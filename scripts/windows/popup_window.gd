@@ -80,10 +80,12 @@ func arrive_without_countdown() -> void:
 ## SKIP pero no saltea se lee como que está roto.
 func _refresh_skip() -> void:
 	if _skip_button != null:
-		if _remaining > 0.0:
-			_skip_button.text = tr("AD_WAIT").format({"seconds": ceili(_remaining)})
-		else:
-			_skip_button.text = tr("AD_SKIP")
+		var label := tr("AD_WAIT").format({"seconds": ceili(_remaining)}) if _remaining > 0.0 else tr("AD_SKIP")
+		# El texto cambia una vez por segundo; solo entonces vale redibujar la
+		# pantalla y reformar el boton.
+		if label != _skip_button.text:
+			_skip_button.text = label
+			request_screen_redraw()
 	if _skip_zone != null:
 		_skip_zone.closes_window = _remaining <= 0.0
 		_skip_zone.scores = _remaining <= 0.0
@@ -97,6 +99,7 @@ func _refresh_skip() -> void:
 ## El SKIP paso de pedir espera a estar disponible: el boton pulsa un par de
 ## veces para avisar sin que haga falta leerlo.
 func _announce_skip_ready() -> void:
+	request_screen_redraw(1.0)
 	Sfx.play_at("ad_skip_ready", global_position)
 	if _skip_button == null:
 		return

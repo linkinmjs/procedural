@@ -32,6 +32,8 @@ func _ready() -> void:
 	sequence.consume_announcement()
 	var level_scene := preload("res://scenes/levels/playable_level.tscn").instantiate() as PlayableLevel
 	add_child(level_scene)
+	while not level_scene.is_built:
+		await get_tree().process_frame
 	await get_tree().process_frame
 	await get_tree().physics_frame
 	var room := _room_by_id(level_scene.level_data.rooms, str(found.room_id))

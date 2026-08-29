@@ -60,15 +60,48 @@ func _check_starting_ammo(level: PlayableLevel, manager: Node) -> bool:
 
 
 ## Cada sala levanta sus paredes a la altura configurada, tapa arriba salvo que
-## este a cielo abierto, y abre sus vanos dejando dintel sobre la puerta.
+## este a cielo abierto, y abre sus vanos dejando dintel sobre la puerta. El
+## nivel ya construido hornea su CSG a malla y colision estaticas un frame
+## despues de nacer, asi que las cajas se inspeccionan en una instancia recien
+## creada, antes de su primer frame, y lo horneado en el nivel en curso.
 func _check_room_volumes(level: PlayableLevel) -> bool:
-	var shell := level.get_node_or_null("RoomGeometry/LevelShell") as CSGCombiner3D
+	if not _check_baked_shell(level):
+		return false
+	var fresh := preload("res://scenes/levels/playable_level.tscn").instantiate() as PlayableLevel
+	root.add_child(fresh)
+	var shell := fresh.get_node_or_null("RoomGeometry/LevelShellCSG") as CSGCombiner3D
+	var volumes_ok := shell != null and _check_csg_boxes(fresh, shell)
 	if shell == null:
-		_fail("The level geometry should live in a single CSG shell.")
+		_fail("A freshly built level should keep its CSG shell until it is baked.")
+	# Se libera al final del frame: el audio espacial del jugador deja trabajo
+	# diferido que no puede correr sobre nodos ya borrados.
+	fresh.queue_free()
+	return volumes_ok
+
+
+## Lo que queda despues del horneado: una malla estatica con superficies y una
+## colision concava con caras, sin ningun nodo CSG vivo.
+func _check_baked_shell(level: PlayableLevel) -> bool:
+	var geometry := level.get_node_or_null("RoomGeometry") as Node3D
+	if geometry == null or not geometry.find_children("*", "CSGShape3D", true, false).is_empty():
+		_fail("A built level should not keep any live CSG node.")
 		return false
-	if not shell.use_collision:
-		_fail("The level shell should generate its collision from the combined result.")
+	var mesh_instance := geometry.get_node_or_null("LevelShellMesh") as MeshInstance3D
+	if mesh_instance == null or mesh_instance.mesh == null or mesh_instance.mesh.get_surface_count() == 0:
+		_fail("The level shell should be baked into a static mesh.")
 		return false
+	var body := geometry.get_node_or_null("LevelShell") as StaticBody3D
+	if body == null or body.collision_layer != 1 or body.get_child_count() == 0:
+		_fail("The level shell should be baked into a static body on the World layer.")
+		return false
+	var shape := (body.get_child(0) as CollisionShape3D).shape as ConcavePolygonShape3D
+	if shape == null or shape.get_faces().is_empty():
+		_fail("The baked shell should carry a concave collision shape with faces.")
+		return false
+	return true
+
+
+func _check_csg_boxes(level: PlayableLevel, shell: CSGCombiner3D) -> bool:
 	for room_variant in level.level_data.rooms:
 		var room := room_variant as Dictionary
 		var safe_name: String = str(room.name).validate_node_name().replace(" ", "")

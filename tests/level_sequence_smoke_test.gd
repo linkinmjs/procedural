@@ -114,9 +114,15 @@ func _send_key(keycode: Key) -> void:
 	Input.parse_input_event(event)
 
 
+## Entrar a un nivel pasa por el velo y la precarga, asi que la cantidad de
+## frames varia: se espera hasta que el nivel este construido.
 func _wait_for_scene() -> void:
-	for _frame in 5:
+	var previous := current_scene
+	for _frame in 40:
 		await process_frame
+		var level := current_scene as PlayableLevel
+		if level != null and level != previous and level.is_built:
+			return
 
 
 func _fail(message: String) -> void:

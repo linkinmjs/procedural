@@ -25,6 +25,11 @@ const DOOR_SIGN_RISE := 0.32
 const DOOR_SIGN_COLOR := Color(0.36, 0.92, 1.0)
 ## A que altura flota la burbuja de municion en el centro de la sala limpiada.
 const AMMO_BUBBLE_HEIGHT := 1.55
+## Distancia minima entre el jugador y el punto donde se queda la burbuja: mas
+## cerca, nace encima de el y se toma sin que se entienda que paso.
+const AMMO_BUBBLE_CLEARANCE := 3.0
+## Cuanto se aleja de las paredes el punto de reposo si hubo que correrlo.
+const AMMO_BUBBLE_WALL_MARGIN := 1.2
 ## Lo que puede rodear al numero en el nombre de un nivel sin volverlo un nombre
 ## propio: separadores y digitos.
 const GENERIC_NAME_FILLER := " -_.0123456789"
@@ -85,6 +90,15 @@ var _shell: CSGCombiner3D
 ## Recortes de los vanos. Se aplican al final para que resten sobre el conjunto
 ## ya unido, no solo sobre la caja anterior.
 var _openings: Array[CSGBox3D] = []
+## Frames dibujados que el velo de carga sigue tapando el nivel ya construido:
+## ahi se evalua la geometria y se compilan los shaders, el tiron que en Web se
+## sentia al entrar.
+const VEIL_RELEASE_FRAMES := 2
+
+## Se emite cuando el nivel termino de construirse: geometria horneada, jugador,
+## ronda y radios en su lugar. Hasta entonces `is_built` es falso.
+signal built
+var is_built := false
 
 
 func _ready() -> void:
@@ -92,6 +106,7 @@ func _ready() -> void:
 	_wall_material = _make_material(Color(0.10, 0.27, 0.34), 0.74)
 	_corridor_material = _make_material(Color(0.09, 0.17, 0.21), 0.86)
 	_ceiling_material = _make_material(Color(0.06, 0.09, 0.12), 0.95)
+	Quality.apply_to_viewport(get_viewport())
 	load_and_build_level()
 
 
@@ -125,7 +140,14 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_navigate_level(false)
 
 
+## Construye el nivel en dos tiempos. Primero, sincronico, todo lo que el resto
+## del juego espera encontrar al frame siguiente: definicion, geometria CSG (en
+## un arbol suelto, para que se evalue una sola vez al colgarlo), jugador y
+## ronda. Un frame despues, con la CSG ya evaluada, se hornea a malla y colision
+## estaticas y se suelta el arbol CSG; recien entonces llegan las radios y la
+## presentacion, y el velo de carga se retira.
 func load_and_build_level() -> void:
+	var started := Time.get_ticks_msec()
 	var sequence := _level_sequence()
 	var sequence_path: String = sequence.get_current_level_path()
 	var active_level_path := sequence_path if not sequence_path.is_empty() else level_definition_path
@@ -144,6 +166,9 @@ func load_and_build_level() -> void:
 	_build_rooms()
 	_build_connections()
 	_carve_openings()
+	# Todas las cajas ya estan: colgar el arbol ahora dispara una unica
+	# evaluacion CSG, diferida al final de este frame.
+	room_geometry.add_child(_shell)
 	_spawn_player()
 	round_controller.round_duration = float(level_data.timeLimitSeconds)
 	round_controller.register_player(player)
@@ -153,6 +178,14 @@ func load_and_build_level() -> void:
 	score_controller.level_scored.connect(_on_level_scored)
 	round_controller.arm_round()
 	_wire_round_triggers()
+	var sync_msec := Time.get_ticks_msec() - started
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	var csg_frame_msec := int(get_process_delta_time() * 1000.0)
+	started = Time.get_ticks_msec()
+	_bake_shell()
+	var bake_msec := Time.get_ticks_msec() - started
 	_spawn_radios()
 	# El conteo de salas/conexiones es informacion de construccion, no de juego:
 	# va al log de eventos y no al panel del nivel, que ahora muestra el estado
@@ -161,7 +194,74 @@ func load_and_build_level() -> void:
 		"rooms": level_data.rooms.size(),
 		"connections": level_data.connections.size(),
 	}), "info")
+	print("[perf] %s build=%d ms csg_frame=%d ms bake=%d ms" % [str(level_data.get("id", "?")), sync_msec, csg_frame_msec, bake_msec])
+	is_built = true
+	built.emit()
 	_announce_level(sequence)
+	_release_loading_veil()
+
+
+## Donde se queda a flotar la recompensa: el centro de la sala, salvo que el
+## jugador este ahi. Entonces se corre AMMO_BUBBLE_CLEARANCE metros lejos de
+## el (hacia el centro, o hacia donde mira si esta justo en el centro), sin
+## salirse de la sala.
+func _ammo_rest_point(room: Dictionary) -> Vector3:
+	var center := _room_center(room)
+	var rest := center
+	if is_instance_valid(player):
+		var player_flat := Vector3(player.global_position.x, 0.0, player.global_position.z)
+		var away := center - player_flat
+		if away.length() < AMMO_BUBBLE_CLEARANCE:
+			var direction := away.normalized() if away.length() > 0.25 else -player.global_transform.basis.z
+			direction.y = 0.0
+			if direction.length_squared() < 0.001:
+				direction = Vector3.FORWARD
+			rest = player_flat + direction.normalized() * AMMO_BUBBLE_CLEARANCE
+			var half_width := float(room.size.width) * 0.5 - AMMO_BUBBLE_WALL_MARGIN
+			var half_depth := float(room.size.depth) * 0.5 - AMMO_BUBBLE_WALL_MARGIN
+			rest.x = clampf(rest.x, center.x - half_width, center.x + half_width)
+			rest.z = clampf(rest.z, center.z - half_depth, center.z + half_depth)
+	rest.y = AMMO_BUBBLE_HEIGHT
+	return rest
+
+
+## El velo de carga (si la secuencia puso uno) se queda un par de frames mas:
+## el nivel recien colgado todavia tiene que compilar sus shaders.
+func _release_loading_veil() -> void:
+	var veil := LoadingVeil.current(get_tree())
+	if veil != null:
+		veil.release_after_frames(VEIL_RELEASE_FRAMES)
+
+
+## Reemplaza el arbol CSG, ya evaluado, por una malla y una colision estaticas:
+## el mismo resultado sin el combinador vivo (que reevaluaria ante cualquier
+## cambio y guarda todas las cajas en memoria). Si el horneado no devuelve
+## nada, el combinador se queda y trae su propia colision.
+func _bake_shell() -> void:
+	if _shell == null or not is_instance_valid(_shell):
+		return
+	var mesh := _shell.bake_static_mesh()
+	var shape := _shell.bake_collision_shape()
+	if mesh == null or shape == null or mesh.get_surface_count() == 0:
+		push_warning("PlayableLevel could not bake the level shell; keeping the live CSG tree.")
+		_shell.use_collision = true
+		return
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "LevelShellMesh"
+	mesh_instance.mesh = mesh
+	room_geometry.add_child(mesh_instance)
+	var body := StaticBody3D.new()
+	body.name = "LevelShell"
+	body.collision_layer = 1
+	body.collision_mask = 0
+	var collision := CollisionShape3D.new()
+	collision.shape = shape
+	body.add_child(collision)
+	room_geometry.add_child(body)
+	_openings.clear()
+	room_geometry.remove_child(_shell)
+	_shell.queue_free()
+	_shell = null
 
 
 ## Presenta el nivel al entrar. La secuencia decide si toca: reintentar recarga
@@ -379,9 +479,11 @@ func _navigate_level(forward: bool) -> void:
 func _build_shell() -> void:
 	_openings.clear()
 	_shell = CSGCombiner3D.new()
-	_shell.name = "LevelShell"
-	_shell.use_collision = true
-	room_geometry.add_child(_shell)
+	_shell.name = "LevelShellCSG"
+	# La colision la aporta el horneado (_bake_shell); el combinador no arma la
+	# suya para no construir el mismo trimesh dos veces. Se cuelga del arbol
+	# recien cuando tiene todas las cajas.
+	_shell.use_collision = false
 
 
 func _build_rooms() -> void:
@@ -576,7 +678,7 @@ func _on_encounter_cleared(encounter: ConfiguredRoomEncounter3D) -> void:
 	# La recompensa se gana limpiando: una sala sin bloques no suelta nada aunque
 	# declare ammoReward (si no, caeria a los pies del jugador al entrar).
 	if encounter.deployed_blocks:
-		_spawn_ammo_reward(encounter.room_id)
+		_spawn_ammo_reward(encounter.room_id, encounter)
 		# La sala limpia baja la luz: invita a seguir. La de salida espera a la
 		# camara lenta para apagarse a su ritmo.
 		if encounter != _exit_encounter:
@@ -623,9 +725,10 @@ func _spawn_radios() -> void:
 		director.register(radio)
 
 
-## Limpiar una sala configurada como recompensa hace flotar en su centro una
-## burbuja con las balas: se toma tocandola o disparandole.
-func _spawn_ammo_reward(room_id: String) -> void:
+## Limpiar una sala configurada como recompensa suelta una burbuja con las
+## balas: sale del ultimo bloque que cayo y viaja hasta un punto de reposo que
+## nunca es donde esta parado el jugador, asi siempre se ve de donde vino.
+func _spawn_ammo_reward(room_id: String, encounter: ConfiguredRoomEncounter3D = null) -> void:
 	var room := _room_by_id(room_id)
 	if room.is_empty():
 		return
@@ -636,8 +739,13 @@ func _spawn_ammo_reward(room_id: String) -> void:
 	bubble.name = "%sAmmoReward" % _safe_node_name(str(room.name))
 	bubble.amount = int(reward.amount)
 	bubble.tint = reward.color
-	bubble.position = _room_center(room) + Vector3(0.0, AMMO_BUBBLE_HEIGHT, 0.0)
+	var rest := _ammo_rest_point(room)
+	bubble.position = rest
 	add_child(bubble)
+	if encounter != null and encounter.has_last_block_position:
+		var origin := encounter.last_block_position
+		origin.y = clampf(origin.y, 1.2, 3.0)
+		bubble.travel_from(origin, rest)
 	round_controller.add_log(tr("LOG_AMMO_REWARD").format({
 		"room": str(room.name).to_upper(),
 		"amount": int(reward.amount),

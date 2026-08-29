@@ -15,6 +15,8 @@ extends WindowPanel3D
 
 ## Zona que abre la confirmación en vez de cerrar.
 const CANCEL_ZONE := "cancel"
+## Fraccion de la barra que tiene que avanzar para redibujar la pantalla.
+const PROGRESS_REDRAW_STEP := 0.02
 ## Zona de la confirmación. Es la que cierra por la via rapida y la que paga.
 const CONFIRM_ZONE := "close"
 ## Zona que aparece cuando la descarga llego al final. Cierra, pero paga menos.
@@ -53,7 +55,12 @@ func _process(delta: float) -> void:
 		return
 	_progress += delta / maxf(download_seconds, 0.1)
 	if _progress_bar != null:
-		_progress_bar.value = clampf(_progress, 0.0, 1.0) * _progress_bar.max_value
+		var value := clampf(_progress, 0.0, 1.0) * _progress_bar.max_value
+		# La barra avanza de a pasos de un 2 %: alcanza para que se vea correr
+		# y evita redibujar la pantalla en cada frame.
+		if absf(value - _progress_bar.value) >= _progress_bar.max_value * PROGRESS_REDRAW_STEP or value >= _progress_bar.max_value:
+			_progress_bar.value = value
+			request_screen_redraw()
 	if _progress >= 1.0:
 		_complete()
 
@@ -66,6 +73,7 @@ func _on_zone(zone_id: String, _window: WindowPanel3D) -> void:
 	_confirming = true
 	if _confirm_dialog != null:
 		_confirm_dialog.visible = true
+	request_screen_redraw()
 	# El dialogo aparecio recien: sus zonas todavia no tienen cuerpo disparable.
 	await get_tree().process_frame
 	rebuild_hit_zones()
@@ -94,6 +102,7 @@ func _show_finish() -> void:
 		zone.visible = zone == _finish_button
 	if _finish_button != null:
 		_finish_button.visible = true
+	request_screen_redraw()
 	await get_tree().process_frame
 	rebuild_hit_zones()
 

@@ -12,6 +12,8 @@ var _current_index := 0
 ## true para que abrir el nivel a mano desde el editor tambien lo muestre; lo
 ## unico que lo apaga es reintentar.
 var _announce_next := true
+## Recursos precargados para el nivel en curso. Se sueltan al salir de el.
+var _preloaded: LevelPreloader
 
 
 func _ready() -> void:
@@ -192,7 +194,26 @@ func _change_scene(path: String) -> void:
 	if profile != null:
 		profile.flush()
 	get_tree().paused = false
+	if path == LEVEL_SCENE:
+		_load_level_scene()
+		return
+	_preloaded = null
 	get_tree().call_deferred("change_scene_to_file", path)
+
+
+## Entrar a un nivel pasa por el velo de carga: se muestra, se precarga lo que
+## el nivel va a pedir (repartido en frames, con la barra avanzando) y recien
+## entonces se cambia de escena. El nivel retira el velo cuando termina de
+## construirse. El precargador se retiene para que la cache no suelte lo que
+## cargo antes de que el nivel lo use.
+func _load_level_scene() -> void:
+	var veil := LoadingVeil.acquire(get_tree())
+	# Un frame para que el velo se dibuje antes de la primera carga bloqueante.
+	await get_tree().process_frame
+	var level := LevelDefinitionLoader.load_level(get_current_level_path())
+	_preloaded = LevelPreloader.new()
+	await _preloaded.run(get_tree(), level, veil)
+	get_tree().change_scene_to_file(LEVEL_SCENE)
 
 
 func _set_index(index: int) -> void:

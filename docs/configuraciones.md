@@ -36,7 +36,7 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | `volume_db` / `unit_size` / `max_db` | `scenes/props/radio.tscn` → nodos `Speaker` y `PlainSpeaker` | -4 / 3 m / 0 | Volumen de la radio y qué tan rápido se atenúa con la distancia. |
 | `reverb_volume_db` / `roomsize_multiplicator` / `occlusion_lp_cutoff` | ídem | -10 / 4.0 / 500 Hz | Reverb de sala y cuánto se apaga la música tras una pared. |
 | `output_bus` | ídem | `Music` | La radio responde al volumen de música de las opciones aunque sea 3D. |
-| `loop` | `assets/audio/music/human_tetris_fade.mp3.import` | on | Repetición de la canción (opción de importación del mp3). |
+| `loop` | `assets/audio/music/human_tetris_fade.ogg.import` | on | Repetición de la canción (opción de importación del ogg; ~96 kbps, el original mp3 queda en `assets/_raw/`). |
 | Buses `Master` / `Music` / `SFX` | `resources/audio/default_bus_layout.tres` | — | Volúmenes base; los del usuario los maneja `Settings`. |
 | `BASE_HZ` / `WHINE_HZ` / ganancias | `scripts/audio/led_hum_synth.gd` | 60 Hz / 9900 Hz / 0.55·0.18·0.06·0.04 | Timbre del zumbido de pantalla de los bloques (hum de red, octava, silbido, ruido). Se sintetiza una vez y se comparte. |
 | `GROWL_HZ` / `THROB_HZ` / `THROB_DEPTH` | ídem | 42 Hz / 3 Hz / 0.4 | Gruñido grave que late, el segundo loop del bloque. Solo se oye pegado al panel. |

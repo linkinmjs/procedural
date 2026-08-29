@@ -155,3 +155,4 @@ static func apply(id: String, world_environment: WorldEnvironment, sun: Directio
 		sun.rotation_degrees = preset.light_rotation
 		sun.light_color = preset.light_color
 		sun.light_energy = preset.light_energy
+		Quality.apply_to_sun(sun)

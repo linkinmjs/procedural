@@ -340,5 +340,8 @@ El workflow [`.github/workflows/deploy-to-itch.yml`](.github/workflows/deploy-to
 
 - El proyecto corre en **Forward+** en escritorio, pero el export a Web solo soporta el renderer **Compatibility (WebGL2)**. Por eso `project.godot` define `renderer/rendering_method.web="gl_compatibility"`. Los efectos exclusivos de Forward+ (SDFGI, niebla volumetrica, SSAO/SSIL) no se ven en el build web.
 - `export_presets.cfg` usa `include_filter="*.json"` porque los niveles de `level_designs/` se leen en runtime con `FileAccess` y no son recursos importados: sin ese filtro no viajarian dentro del `.pck`.
-- El preset exporta sin soporte de hilos (`variant/thread_support=false`), que es la variante mas compatible con itch.io.
+- El preset exporta sin soporte de hilos (`variant/thread_support=false`), que es la variante mas compatible con itch.io. Sin hilos, la precarga del nivel (`LevelPreloader`) reparte las cargas por presupuesto de frame en vez de en paralelo; el velo de carga (`LoadingVeil`) tapa ese tramo y el primer frame del nivel.
+- El `exclude_filter` del preset lo escribe `node tools/generate_export_filters.mjs` a partir de los niveles de la campaña: deja fuera las texturas del catalogo que ningun nivel usa (el Workshop sigue ofreciendolas todas), mas `tests/` y `docs/`. Si un nivel adopta una textura nueva, `tests/export_filter_parity_smoke_test.gd` falla y dice que comando correr.
+- Las texturas de nivel se importan VRAM comprimidas con mipmaps (`python tools/set_texture_import_params.py` seguido de `--headless --import`); `tests/texture_import_smoke_test.gd` lo verifica para todo el catalogo.
+- `Quality` (`scripts/environment/quality.gd`) decide por plataforma lo que la Web no puede pagar: sin sombra del sol y render 3D al 80 %. En escritorio la sombra es ortogonal y llega hasta 40 m.
 - La version de Godot del pipeline se controla con `GODOT_VERSION` / `GODOT_STATUS` en el workflow y debe coincidir con la del editor (hoy `4.7-stable`).

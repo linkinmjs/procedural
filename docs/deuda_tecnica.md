@@ -128,6 +128,43 @@ Mejoras señaladas en el code review y dejadas como deuda a propósito:
 
 ## Rendimiento (auditoría del 2026-08-22 con la skill godot-optimization)
 
+> **Pase del 2026-08-28 (build Web lenta en itch.io).** Se atacaron los tres
+> frentes que explicaban "tarda en cargar al pulsar Jugar y va lento":
+>
+> - **Peso del PCK**: las 345 texturas de `assets/textures/packs/` estaban
+>   importadas lossless y sin mipmaps (se cargan por código y el editor nunca
+>   las "detectó en 3D"); ahora van VRAM comprimidas con mipmaps
+>   (`tools/set_texture_import_params.py`, contrato en
+>   `tests/texture_import_smoke_test.gd`). El preset Web excluye las 262 que
+>   ningún nivel usa, más `tests/` y `docs/` (`tools/generate_export_filters.mjs`
+>   escribe el `exclude_filter`; `tests/export_filter_parity_smoke_test.gd`
+>   avisa cuando un nivel adopta una textura nueva). La música pasó de un MP3
+>   de 7,8 MB a OGG de 2,9 MB. `docs/.gdignore` deja los PDF fuera de un export
+>   local. `project.godot` vuelve a declarar `rendering_method.web`.
+> - **Carga del nivel**: `LevelSequence._change_scene` levanta un
+>   `LoadingVeil` (velo opaco con barra) antes de cambiar de escena, precarga
+>   con `LevelPreloader` (escenas del nivel, texturas de sus salas y la
+>   síntesis del zumbido) repartido por presupuesto de frame, y
+>   `PlayableLevel.load_and_build_level()` es una corrutina: arma la CSG en un
+>   árbol suelto (una sola evaluación), un frame después la **hornea** a
+>   `MeshInstance3D` + `StaticBody3D` (`bake_static_mesh` /
+>   `bake_collision_shape`) y libera el combinador; el velo se retira dos
+>   frames después de `built`, tapando la compilación de shaders. Línea base
+>   headless: construcción 10-20 ms, frame de evaluación CSG 75-150 ms
+>   (`[perf]` en consola), horneado ~1 ms. `tests/level_build_smoke_test.gd`
+>   y `tests/loading_veil_smoke_test.gd` fijan el contrato.
+> - **Fluidez**: SubViewports de ventana en `UPDATE_ONCE` con
+>   `request_screen_redraw()` bajo demanda; SubViewport legado del viewmodel
+>   eliminado; `Quality` (perfil por plataforma: Web = sombra del sol apagada
+>   y render 3D al 80 %; escritorio = sombra ortogonal acotada a 40 m);
+>   ventanas entran al árbol de a cuatro por frame; `areas_detect_static_bodies`
+>   apagado; controlador de ronda cacheado; `lean_collision` con guard.
+>
+> Sigue pendiente lo marcado abajo que no se tocó (impactos sin pool, proyectil
+> con timer, audio espacial — decisión del usuario: se deja como está — y los
+> `_process` medios). Todavía no hay medición con Profiler en la build Web:
+> exportar localmente requiere instalar los export templates 4.7.
+
 Nada de esto se midió con el Profiler todavía: son hallazgos por lectura de
 código. Antes de atacar los puntos grandes conviene tomar una línea base en
 `nivel-30` (el más cargado: 6 salas, 73 ventanas) con **Debugger > Monitors**
@@ -139,7 +176,8 @@ Jolt, capas segmentadas, audio pooleado en `Sfx`, materiales cacheados en
 
 ### Alto impacto
 
-- [ ] **SubViewports de ventana en `UPDATE_ALWAYS`.** Las 12 escenas de
+- [x] **SubViewports de ventana en `UPDATE_ALWAYS`.** (resuelto 2026-08-28:
+  `UPDATE_ONCE` + `WindowPanel3D.request_screen_redraw()`) Las 12 escenas de
   `scenes/windows/` y `scenes/targets/blue_screen.tscn` tienen
   `render_target_update_mode = 4`. Con ~20 ventanas vivas por capa, cada una
   redibuja su canvas y cambia de render target todos los frames aunque el
@@ -147,7 +185,9 @@ Jolt, capas segmentadas, audio pooleado en `Sfx`, materiales cacheados en
   (contador) animan algo, y ambas ya apagan su `_process` al terminar.
   **Fix:** `WHEN_VISIBLE` (3) como mínimo; `ONCE` (1) en las estáticas,
   re-disparándolo cuando cambie el Control. Trivial.
-- [ ] **Nivel entero en CSG vivo + colisión trimesh única.**
+- [x] **Nivel entero en CSG vivo + colisión trimesh única.** (resuelto
+  2026-08-28: horneado en `PlayableLevel._bake_shell`; la colisión sigue
+  siendo un trimesh, la variante por cajas queda como opcional)
   `scripts/levels/playable_level.gd:348` mete ~50-65 `CSGBox3D` en un
   `CSGCombiner3D` con `use_collision`, evaluado entero y sincrónico en el
   primer frame tras `_ready()` (hitch al entrar y en cada restart/F3/F6). El
@@ -159,7 +199,8 @@ Jolt, capas segmentadas, audio pooleado en `Sfx`, materiales cacheados en
   `MeshInstance3D`, un único `StaticBody3D` con `BoxShape3D` por caja, y
   liberar el combiner. Es el cambio más grande: hacerlo último, después de
   medir.
-- [ ] **`popup_window._refresh_skip()` corre cada frame por cada ad viva**
+- [x] **`popup_window._refresh_skip()` corre cada frame por cada ad viva**
+  (resuelto 2026-08-28: el texto y el redibujo solo cuando cambia el segundo)
   (hasta `MAX_LIVE_ADS = 7`). `scripts/windows/popup_window.gd:84` hace
   `tr().format({...})` + asigna `Button.text` (re-shape del SubViewport) y
   `:90` recorre `get_hit_bodies()`, que aloca 2 Arrays, para un valor que

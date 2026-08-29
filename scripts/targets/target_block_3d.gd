@@ -323,8 +323,14 @@ func _update_hum(delta: float) -> void:
 		growl_player.volume_db = lerpf(GROWL_SILENT_DB, growl_near_volume_db, _growl_closeness * _growl_closeness)
 
 
+## El controlador de ronda se busca una vez por escena; los bloques lo piden
+## en cada cierre y cada cruce.
+static var _cached_round_controller: RoundController
+
+
 func _get_round_controller() -> RoundController:
+	if is_instance_valid(_cached_round_controller) and _cached_round_controller.is_inside_tree():
+		return _cached_round_controller
 	var controllers := get_tree().get_nodes_in_group("round_controller")
-	if controllers.is_empty():
-		return null
-	return controllers[0] as RoundController
+	_cached_round_controller = controllers[0] as RoundController if not controllers.is_empty() else null
+	return _cached_round_controller

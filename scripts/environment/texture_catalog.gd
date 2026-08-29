@@ -62,6 +62,31 @@ static func has_texture(id: String) -> bool:
 	return _entries.has(id)
 
 
+## Ruta del archivo de una textura del catalogo, o vacio si no existe.
+static func get_texture_path(id: String) -> String:
+	_ensure_loaded()
+	if not _entries.has(id):
+		return ""
+	return str((_entries[id] as Dictionary).get("path", ""))
+
+
+## Rutas de las texturas que un nivel va a pedir al construirse (paredes, piso
+## y techo de cada sala, con el respaldo del nivel), sin repetir. Es lo que se
+## precarga antes de entrar, para que get_material las encuentre en cache.
+static func paths_for_level(level: Dictionary) -> PackedStringArray:
+	_ensure_loaded()
+	var paths := PackedStringArray()
+	for room_variant in level.get("rooms", []):
+		if not room_variant is Dictionary:
+			continue
+		for slot in ["walls", "floor", "ceiling"]:
+			var id := LevelDefinitionLoader.get_room_texture(level, room_variant as Dictionary, slot)
+			var path := get_texture_path(id)
+			if not path.is_empty() and not paths.has(path):
+				paths.append(path)
+	return paths
+
+
 ## Material con la textura pedida, o null si el identificador no esta en el
 ## catalogo. Los materiales se comparten entre las salas que usan la misma
 ## textura, asi que el nivel no crea uno por pared.

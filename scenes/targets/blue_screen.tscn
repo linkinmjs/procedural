@@ -28,7 +28,7 @@ script = ExtResource("1_screen")
 disable_3d = true
 handle_input_locally = false
 size = Vector2i(640, 256)
-render_target_update_mode = 4
+render_target_update_mode = 1
 
 [node name="Screen" type="Control" parent="SubViewport"]
 layout_mode = 3

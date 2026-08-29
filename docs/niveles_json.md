@@ -20,7 +20,7 @@ La escena inicial `scenes/levels/playable_level.tscn` construye el nivel activo 
 - Un trigger por sala que despliega sus bloques al ingresar.
 - Bloques izquierdo, frontal y derecho relativos a la pared de entrada, cubriendo su pared completa de piso a techo.
 - El jugador dentro de la sala marcada como `start`, orientado según su `facing`, con la munición de `startingAmmo`.
-- Una burbuja de munición flotando en el centro de las salas que declaran `ammoReward`, al caer su último bloque. Se toma tocándola o disparándole, entrega sólo lo que entra en la reserva y se queda con el resto; las que nadie tomó revientan al terminar el nivel.
+- Una burbuja de munición en las salas que declaran `ammoReward`: sale del último bloque que cayó y viaja hasta el centro de la sala (o, si el jugador está ahí, a 3 m de él, dentro de la sala), y recién asentada se puede tomar tocándola o disparándole. Entrega sólo lo que entra en la reserva y se queda con el resto; el HUD flota un `+N` junto al contador; las que nadie tomó revientan al terminar el nivel.
 - Un cartel sobre cada vano, del lado de adentro, con el nombre de la sala a la que lleva. Es la señalización del nivel: no hay etiquetas flotando en el aire.
 - Una radio con música en loop en la esquina de las salas que declaran `radio`, apoyada contra las dos paredes y mirando al centro. Se rompe de un disparo; entre varias, solo la más cercana lleva la acústica de sala (`RadioDirector`).
 - La luz de una sala baja al limpiarla (`cleared_light_factor`); la de salida se apaga junto con la cámara lenta del cierre.
@@ -29,7 +29,7 @@ La escena inicial `scenes/levels/playable_level.tscn` construye el nivel activo 
 
 ## Geometría sólida
 
-Todo el volumen del nivel — pisos, paredes, techos y pasillos — se construye dentro de un único `CSGCombiner3D` llamado `LevelShell`. La unión CSG funde las cajas que se tocan y descarta las caras internas, que es lo que antes se veía como costuras y parpadeos donde una sala y un pasillo se solapaban. La colisión sale del resultado ya combinado, así que la física ve exactamente la misma forma que se dibuja.
+Todo el volumen del nivel — pisos, paredes, techos y pasillos — se construye dentro de un único `CSGCombiner3D` (`LevelShellCSG`), que se arma suelto del árbol y se cuelga con todas sus cajas para que la CSG se evalúe una sola vez. Un frame después el nivel lo **hornea**: `bake_static_mesh()` pasa a un `MeshInstance3D` (`LevelShellMesh`) y `bake_collision_shape()` a un `StaticBody3D` (`LevelShell`), y el combinador se libera. Hasta ese momento `PlayableLevel.is_built` es falso; la señal `built` avisa cuando el nivel está entero (`tests/level_build_smoke_test.gd`). La unión CSG funde las cajas que se tocan y descarta las caras internas, que es lo que antes se veía como costuras y parpadeos donde una sala y un pasillo se solapaban. La colisión sale del resultado ya combinado, así que la física ve exactamente la misma forma que se dibuja.
 
 Las paredes se levantan enteras y los vanos se **restan** después, con cajas en modo `OPERATION_SUBTRACTION` que se agregan al final del árbol para que resten sobre el conjunto ya unido. Antes cada pared con puerta se armaba con dos medios tramos, y sus cantos quedaban a la vista a los lados del hueco.
 

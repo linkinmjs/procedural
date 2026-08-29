@@ -6,7 +6,6 @@ extends CharacterBody3D
 ## impulso, con el control justo para hacer strafe y encadenar saltos.
 
 @onready var camera = %Camera
-@export var subviewport_camera: Camera3D
 @export var main_camera:Camera3D
 @export var animation_tree: AnimationTree
 ## El rig del arma (Weapons_Manager). Avisa con aim_changed cuanto se esta
@@ -194,6 +193,8 @@ func lean(blend_amount: int) -> void:
 		lean_tween.tween_property(animation_tree,"parameters/lean_blend/blend_amount", blend_amount, lean_speed)
 
 func lean_collision() -> void:
+	if not enable_lean:
+		return
 	animation_tree["parameters/left_collision_blend/blend_amount"] = lerp(
 		float(animation_tree["parameters/left_collision_blend/blend_amount"]),float(left_lean_collision.is_colliding()),lean_speed
 	)
@@ -278,8 +279,6 @@ func update_recoil(delta: float) -> void:
 func _process(_delta: float) -> void:
 	update_recoil(_delta)
 	update_shake(_delta)
-	if subviewport_camera:
-		subviewport_camera.global_transform = main_camera.global_transform
 
 
 func _physics_process(delta: float) -> void:

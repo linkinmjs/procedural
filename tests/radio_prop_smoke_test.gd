@@ -28,8 +28,8 @@ func _run() -> void:
 		if speaker == null or speaker.stream == null:
 			_fail("The radio should carry a %s with a song." % speaker_name)
 			return
-		if not (speaker.stream is AudioStreamMP3) or not (speaker.stream as AudioStreamMP3).loop:
-			_fail("The radio song should be an MP3 imported with loop enabled.")
+		if not (speaker.stream is AudioStreamOggVorbis) or not (speaker.stream as AudioStreamOggVorbis).loop:
+			_fail("The radio song should be an OGG imported with loop enabled.")
 			return
 		if speaker.bus != &"Music":
 			_fail("%s should play through the Music bus so the options volume applies." % speaker_name)

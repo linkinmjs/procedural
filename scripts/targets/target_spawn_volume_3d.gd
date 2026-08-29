@@ -32,6 +32,8 @@ const RESOLVE_SIGNALS: Array[String] = ["destroyed", "left", "closed"]
 ## suficientemente separados en horizontal o en vertical, asi que este valor se
 ## corresponde con el tamaño del objetivo.
 @export var minimum_separation := Vector2(1.0, 1.0)
+## Cuantos objetivos entran al arbol por frame al repartir una tanda.
+const SPAWN_BATCH_SIZE := 4
 @export var edge_padding := Vector3(0.4, 0.4, 0.0)
 ## Separacion en profundidad entre objetivos consecutivos. Los apila como
 ## ventanas en un escritorio: se pueden superponer sin pelear por el mismo plano.
@@ -72,6 +74,7 @@ func spawn_targets() -> void:
 	var scenes := _usable_target_scenes()
 	var positions := _build_spawn_positions(rng)
 	var penalty_indices := _pick_penalty_indices(positions.size(), rng)
+	var pending: Array[Dictionary] = []
 	for index in positions.size():
 		var is_penalty := penalty_indices.has(index)
 		var scene_to_spawn := penalty_target_scene if is_penalty else _scene_for_index(index, scenes, rng)
@@ -85,10 +88,29 @@ func spawn_targets() -> void:
 			ball.use_custom_display_color = true
 		if not is_penalty and index < scripted_configs.size() and not scripted_configs[index].is_empty():
 			target.set("variant_config", scripted_configs[index])
-		targets_container.add_child(target)
-		target.position = _place_target(target, positions[index], index)
 		_connect_target(target)
 		active_targets.append(target)
+		pending.append({"target": target, "position": positions[index], "index": index})
+	_add_staggered(pending)
+
+
+## Los objetivos ya estan instanciados y contados; entrar al arbol es lo caro
+## (cada ventana levanta su SubViewport y, un frame despues, sus cuerpos), asi
+## que se cuelgan de a tandas por frame. Los primeros aparecen ya mismo.
+func _add_staggered(pending: Array[Dictionary]) -> void:
+	var added := 0
+	while not pending.is_empty():
+		var entry: Dictionary = pending.pop_front()
+		var target := entry.target as Node3D
+		if is_instance_valid(target):
+			targets_container.add_child(target)
+			# Se ubica ya en el arbol: la ventana mide su pantalla recien ahi.
+			target.position = _place_target(target, entry.position, int(entry.index))
+		added += 1
+		if added % SPAWN_BATCH_SIZE == 0 and not pending.is_empty():
+			await get_tree().process_frame
+			if not is_inside_tree():
+				return
 	targets_spawned.emit(active_targets.duplicate())
 
 

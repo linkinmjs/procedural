@@ -130,7 +130,10 @@ func _run() -> void:
 
 ## Espera a que el nodo se libere solo, con margen para la animacion de cierre.
 ## El plazo es de tiempo real: los tweens corren con delta, no con frames.
-func _wait_until_freed(node: Node, seconds := 1.5) -> bool:
+## Acepta una referencia ya liberada: el primer paso de fisica de Jolt en
+## headless dura casi un segundo y, si cae justo despues del disparo, el tween
+## de cierre salta al final en ese mismo frame.
+func _wait_until_freed(node: Variant, seconds := 1.5) -> bool:
 	var deadline := Time.get_ticks_msec() + int(seconds * 1000.0)
 	while is_instance_valid(node):
 		if Time.get_ticks_msec() > deadline:

@@ -84,6 +84,9 @@ var _tint_tween: Tween
 var _screen_shake_tween: Tween
 var _open_tween: Tween
 var _screen_base_position := Vector3.ZERO
+## Redibujos con duracion en curso: la pantalla vuelve a quedarse quieta cuando
+## termina el ultimo.
+var _live_redraws := 0
 
 
 func _ready() -> void:
@@ -101,6 +104,31 @@ func _ready() -> void:
 	_play_open_animation()
 	await get_tree().process_frame
 	rebuild_hit_zones()
+	request_screen_redraw()
+
+
+## El SubViewport se dibuja una sola vez (UPDATE_ONCE) y despues queda quieto:
+## el contenido de una ventana es estatico casi siempre, y redibujar veinte
+## pantallas por frame era el mayor gasto de GPU en la Web. Quien cambie un
+## texto, una barra o la visibilidad de un control pide el redibujo; con
+## `seconds` la pantalla se queda viva ese tiempo, para una animacion, y
+## despues se apaga sola.
+func request_screen_redraw(seconds := 0.0) -> void:
+	if sub_viewport == null or not is_instance_valid(sub_viewport):
+		return
+	if seconds <= 0.0:
+		if sub_viewport.render_target_update_mode != SubViewport.UPDATE_ALWAYS:
+			sub_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+		return
+	sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	_live_redraws += 1
+	get_tree().create_timer(seconds, false).timeout.connect(_on_live_redraw_over)
+
+
+func _on_live_redraw_over() -> void:
+	_live_redraws = maxi(_live_redraws - 1, 0)
+	if _live_redraws == 0 and is_instance_valid(sub_viewport):
+		sub_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 
 
 ## Aparicion estilo XP: la ventana crece desde chica en un parpadeo. Es solo
@@ -309,11 +337,17 @@ func _add_hit_body(zone: WindowHitZone, order: int) -> void:
 	body.hit.connect(_on_zone_hit)
 
 
+## El controlador de ronda se busca una vez por escena: cada impacto lo pide y
+## recorrer el grupo en caliente era gratis solo en escritorio.
+static var _cached_round_controller: RoundController
+
+
 func _get_round_controller() -> RoundController:
+	if is_instance_valid(_cached_round_controller) and _cached_round_controller.is_inside_tree():
+		return _cached_round_controller
 	var controllers := get_tree().get_nodes_in_group("round_controller")
-	if controllers.is_empty():
-		return null
-	return controllers[0] as RoundController
+	_cached_round_controller = controllers[0] as RoundController if not controllers.is_empty() else null
+	return _cached_round_controller
 
 
 func _viewport_to_local(point: Vector2, order := 0) -> Vector3:
@@ -407,6 +441,7 @@ func _update_screen_size() -> void:
 
 
 func _on_zone_hit(body: WindowHitBody3D) -> void:
+	request_screen_redraw(0.3)
 	if _closed:
 		return
 	_shake_screen()

@@ -3,6 +3,9 @@ extends Node
 
 func _ready() -> void:
 	var level := $PlayableLevel as PlayableLevel
+	# El nivel se termina de armar un frame despues de nacer.
+	while not level.is_built:
+		await get_tree().process_frame
 
 	# El nivel se presenta antes de dejarse ver. Se congela el titulo a la vista
 	# para retratarlo y despues se saltea, asi las demas vistas muestran el

@@ -51,6 +51,21 @@ func _ready() -> void:
 		return
 	if not _save("res://.godot/menu-crt.png"):
 		return
+	# El filtro no puede comerse el borde de abajo (ahi vive la barra de
+	# tareas): el centro del borde inferior queda visible, y la esquina del
+	# tubo si es redondeada y oscura.
+	var shot := Image.load_from_file(ProjectSettings.globalize_path("res://.godot/menu-crt.png"))
+	if shot == null:
+		_fail("The captured preview should be readable back.")
+		return
+	var bottom := shot.get_pixel(shot.get_width() / 2, shot.get_height() - 3)
+	if bottom.get_luminance() < 0.05:
+		_fail("The bottom edge of the screen should stay visible under the CRT filter.")
+		return
+	var corner := shot.get_pixel(4, 4)
+	if corner.get_luminance() > 0.2:
+		_fail("The tube corners should stay rounded and dark.")
+		return
 	print("Boot visual smoke test passed.")
 	get_tree().quit()
 

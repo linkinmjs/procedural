@@ -79,9 +79,12 @@ void fragment() {
 	// --- Viñeta y esquinas ---------------------------------------------------
 	float radial = length(centered * vec2(1.0, 0.85)) * 2.0;
 	color *= 1.0 - vignette_strength * smoothstep(vignette_start, 1.3, radial);
+	// Distancia con signo a un rectangulo redondeado: negativa adentro. Sin el
+	// "- corner_radius" la mascara oscurecia todo el borde recto (se comia una
+	// franja abajo y a los costados), no solo las esquinas.
 	vec2 corner = max(abs(centered) - (0.5 - corner_radius), 0.0);
-	float corner_mask = 1.0 - smoothstep(corner_radius - 0.01, corner_radius, length(corner));
-	color *= corner_mask;
+	float corner_distance = length(corner) - corner_radius;
+	color *= 1.0 - smoothstep(-0.004, 0.0, corner_distance);
 
 	color *= brightness * (1.0 + glow);
 	COLOR = outside ? bezel_color : vec4(color, 1.0);

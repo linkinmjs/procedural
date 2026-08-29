@@ -372,7 +372,7 @@ El workflow [`.github/workflows/deploy-to-itch.yml`](.github/workflows/deploy-to
 
 ### Notas tecnicas del export Web
 
-- El proyecto corre en **Forward+** en escritorio, pero el export a Web solo soporta el renderer **Compatibility (WebGL2)**. Por eso `project.godot` define `renderer/rendering_method.web="gl_compatibility"`. Los efectos exclusivos de Forward+ (SDFGI, niebla volumetrica, SSAO/SSIL) no se ven en el build web.
+- El proyecto corre en **Forward+** en escritorio y el export a Web usa el renderer **Compatibility (WebGL2)**. Son los valores por defecto del motor (`renderer/rendering_method` y `renderer/rendering_method.web`): el editor borra de `project.godot` toda clave igual al default cada vez que guarda, asi que no figuran explicitas y no hay que restaurarlas. Los efectos exclusivos de Forward+ (SDFGI, niebla volumetrica, SSAO/SSIL) no se ven en el build web.
 - `export_presets.cfg` usa `include_filter="*.json"` porque los niveles de `level_designs/` se leen en runtime con `FileAccess` y no son recursos importados: sin ese filtro no viajarian dentro del `.pck`.
 - El preset exporta sin soporte de hilos (`variant/thread_support=false`), que es la variante mas compatible con itch.io. Sin hilos, la precarga del nivel (`LevelPreloader`) reparte las cargas por presupuesto de frame en vez de en paralelo; el velo de carga (`LoadingVeil`) tapa ese tramo y el primer frame del nivel.
 - El `exclude_filter` del preset lo escribe `node tools/generate_export_filters.mjs` a partir de los niveles de la campaña: deja fuera las texturas del catalogo que ningun nivel usa (el Workshop sigue ofreciendolas todas), mas `tests/` y `docs/`. Si un nivel adopta una textura nueva, `tests/export_filter_parity_smoke_test.gd` falla y dice que comando correr.

@@ -89,6 +89,35 @@ func _check_room_settings() -> bool:
 	if not LevelDefinitionLoader.get_room_texture(example, arena, "walls").is_empty():
 		_fail("Textures are still unassigned in the versioned example.")
 		return false
+	return _check_crossing_damage(example)
+
+
+## El daño por cruce es una constante del juego salvo que el nivel lo declare;
+## declarado fuera de rango, el nivel no carga.
+func _check_crossing_damage(example: Dictionary) -> bool:
+	if not is_equal_approx(LevelDefinitionLoader.get_crossing_damage(example), LevelDefinitionLoader.DEFAULT_CROSSING_DAMAGE):
+		_fail("A level without crossingDamage should use the game constant.")
+		return false
+	var declared := example.duplicate(true)
+	declared["crossingDamage"] = 60
+	if not is_equal_approx(LevelDefinitionLoader.get_crossing_damage(declared), 60.0):
+		_fail("A declared crossingDamage should be honoured.")
+		return false
+	var path := "user://crossing-damage-test.json"
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(declared))
+	file.close()
+	if LevelDefinitionLoader.load_level(path).is_empty():
+		_fail("A level with a valid crossingDamage should load.")
+		return false
+	declared["crossingDamage"] = 500
+	file = FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(declared))
+	file.close()
+	if not LevelDefinitionLoader.load_level(path).is_empty():
+		_fail("A crossingDamage outside 1-100 should be rejected.")
+		return false
+	DirAccess.remove_absolute(path)
 	return true
 
 

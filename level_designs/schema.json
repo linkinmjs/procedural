@@ -41,6 +41,12 @@
       "type": "number",
       "exclusiveMinimum": 0
     },
+    "crossingDamage": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "description": "Vida que cuesta que un bloque atraviese al jugador. Opcional: sin declarar, el juego usa 40."
+    },
     "startingAmmo": {
       "$ref": "#/$defs/startingAmmo",
       "description": "Munición con la que el jugador arranca el nivel."

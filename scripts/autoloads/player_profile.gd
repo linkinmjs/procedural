@@ -231,6 +231,8 @@ func record_run(level_id: String, summary: Dictionary) -> Dictionary:
 				increment_stat("runs_failed_health")
 			"time_expired":
 				increment_stat("runs_failed_time")
+			"ammo_depleted":
+				increment_stat("runs_failed_ammo")
 		award("level_failed", context)
 	raise_stat("best_score", float(summary.get("total", 0)))
 	raise_stat("best_chain", float(summary.get("best_chain", 0)))

@@ -17,12 +17,24 @@ signal shot_resolved(hit: bool)
 ## pelotas, que no tienen zonas.
 signal target_resolved(kind: String, label: String, zone_id: String, closed: bool)
 signal damage_taken(amount: float)
+## No quedan balas, ni disparos en el aire, ni burbujas que las traigan, y
+## todavia hay ventanas que cerrar: la ronda cae en `seconds` si nada cambia.
+signal ammo_depleted_warning(seconds: float)
+## Aparecieron balas (o una burbuja) durante la gracia: el aviso se retira.
+signal ammo_depleted_cleared
 signal room_entered(room_id: String, room_label: String)
 signal room_cleared(room_id: String, room_label: String)
 
 @export_range(1.0, 1000.0, 1.0) var max_health := 100.0
 @export_range(1.0, 3600.0, 1.0) var round_duration := 90.0
 @export var auto_start := true
+
+## Gracia entre quedarse sin balas y perder la ronda: lo justo para leer el
+## aviso y para que una burbuja en viaje llegue a destino.
+const AMMO_GRACE_SECONDS := 2.5
+## Grupo de las burbujas de municion (AmmoBubble.GROUP); se consulta por
+## nombre para no depender de la clase.
+const AMMO_BUBBLE_GROUP := "ammo_bubble"
 
 var current_health := 100.0
 var time_remaining := 90.0
@@ -38,6 +50,14 @@ var _weapon_manager: Node
 ## final del cuadro es un fallo.
 var _unresolved_shots := 0
 var _shot_resolution_queued := false
+## Quien sabe si todavia hay algo que disparar (lo fija el nivel). Sin
+## consulta se asume que si.
+var remaining_targets_query: Callable
+## El arma ya informo su municion alguna vez: sin ese dato, cero balas no
+## significa nada (un controlador suelto arranca en cero).
+var _ammo_known := false
+var _ammo_empty_seconds := 0.0
+var _ammo_warning_active := false
 
 
 func _ready() -> void:
@@ -53,6 +73,8 @@ func _process(delta: float) -> void:
 	time_changed.emit(time_remaining)
 	if is_zero_approx(time_remaining):
 		_finish_round("time_expired")
+		return
+	_tick_ammo_depletion(delta)
 
 
 ## Deja la ronda lista pero con el cronometro detenido. El nivel la arranca
@@ -85,6 +107,8 @@ func _reset_counters() -> void:
 	hits = 0
 	attacks = 0
 	_unresolved_shots = 0
+	_ammo_empty_seconds = 0.0
+	_ammo_warning_active = false
 
 
 func _emit_round_state() -> void:
@@ -127,6 +151,7 @@ func report_ammo_changed(ammo: Array) -> void:
 		return
 	magazine_ammo = maxi(int(ammo[0]), 0)
 	reserve_ammo = maxi(int(ammo[1]), 0)
+	_ammo_known = true
 	ammo_changed.emit(magazine_ammo, reserve_ammo)
 
 
@@ -200,6 +225,44 @@ func report_block_crossed(block_label: String, damage: float) -> void:
 		apply_damage(damage)
 
 
+## Sin balas en el arma, sin disparos por resolver, sin burbujas que las
+## traigan y con ventanas por cerrar, la ronda esta perdida: se avisa, se
+## espera la gracia y se corta. Cualquier bala que aparezca en el medio
+## cancela el aviso.
+func _tick_ammo_depletion(delta: float) -> void:
+	if not is_out_of_ammo():
+		_clear_ammo_depletion()
+		return
+	if not _ammo_warning_active:
+		_ammo_warning_active = true
+		_ammo_empty_seconds = 0.0
+		add_log(tr("LOG_AMMO_OUT"), "danger")
+		ammo_depleted_warning.emit(AMMO_GRACE_SECONDS)
+	_ammo_empty_seconds += delta
+	if _ammo_empty_seconds >= AMMO_GRACE_SECONDS:
+		_finish_round("ammo_depleted")
+
+
+## Si el jugador no tiene con que seguir: ni balas, ni disparos en el aire,
+## ni burbujas con balas, y todavia queda algo que disparar.
+func is_out_of_ammo() -> bool:
+	if not _ammo_known or magazine_ammo + reserve_ammo > 0 or _unresolved_shots > 0:
+		return false
+	if remaining_targets_query.is_valid() and not bool(remaining_targets_query.call()):
+		return false
+	for bubble in get_tree().get_nodes_in_group(AMMO_BUBBLE_GROUP):
+		if is_instance_valid(bubble) and int(bubble.get("amount")) > 0:
+			return false
+	return true
+
+
+func _clear_ammo_depletion() -> void:
+	_ammo_empty_seconds = 0.0
+	if _ammo_warning_active:
+		_ammo_warning_active = false
+		ammo_depleted_cleared.emit()
+
+
 func apply_damage(amount: float) -> void:
 	if not is_running or amount <= 0.0:
 		return
@@ -228,13 +291,16 @@ func _finish_round(reason: String) -> void:
 	if not is_running:
 		return
 	is_running = false
+	_clear_ammo_depletion()
 	match reason:
 		"health_depleted":
 			add_log(tr("LOG_ROUND_FAILED"), "danger")
+		"ammo_depleted":
+			add_log(tr("LOG_ROUND_FAILED_AMMO"), "danger")
 		"exit_reached":
 			add_log(tr("LOG_ROUND_COMPLETE_EXIT"), "system")
 		_:
-			add_log(tr("LOG_ROUND_COMPLETE_TIME"), "system")
+			add_log(tr("LOG_ROUND_FAILED_TIME"), "danger")
 	round_ended.emit(reason)
 
 

@@ -44,9 +44,14 @@ func _run() -> void:
 	if target_material.albedo_color.to_html(false) != "d84cff":
 		_fail("The configured color should be applied to the target material.")
 		return
+	# Un bloque quieto es una pared de ventanas: rozarlo no cuesta vida ni lo
+	# apaga, asi que no se lo puede "comprar" chocandolo.
 	target_block._on_body_entered(player)
-	if not is_equal_approx(controller.current_health, 85.0):
-		_fail("Crossing a target block should remove configured HP.")
+	if not is_equal_approx(controller.current_health, 100.0):
+		_fail("Touching a static block must not cost HP.")
+		return
+	if target_block.spawn_volume.active_targets.size() != 2:
+		_fail("Touching a static block must not discharge it.")
 		return
 	for target in target_block.spawn_volume.active_targets.duplicate():
 		target.Hit_Successful(1.0)
@@ -120,10 +125,56 @@ func _run() -> void:
 	if is_instance_valid(window_block):
 		_fail("Destroying every window should close the block.")
 		return
+	if not await _check_crossing(controller, player):
+		return
 	print("Target block smoke test passed.")
 	quit()
 
 
-func _fail(message: String) -> void:
+## Un bloque que avanza y alcanza al jugador lo atraviesa: cobra la vida
+## configurada y se descarga —avisa que quedo resuelto, pierde sus ventanas y
+## las capas que faltaban, y se va— sin cerrar ninguna ventana.
+func _check_crossing(controller: RoundController, player: CharacterBody3D) -> bool:
+	var block := BLOCK_SCENE.instantiate() as TargetBlock3D
+	block.target_count = 0
+	block.layers.assign([
+		PackedStringArray(["normal", "normal"]),
+		PackedStringArray(["normal"]),
+	])
+	block.moves_to_opposite_side = true
+	block.movement_direction = Vector3.FORWARD
+	block.movement_speed = 0.5
+	block.travel_distance = 10.0
+	block.crossing_damage = 40.0
+	root.add_child(block)
+	var counts := {"closed": 0, "resolved": 0}
+	block.closed.connect(func(_block: TargetBlock3D) -> void: counts.closed += 1)
+	controller.target_resolved.connect(func(_kind: String, _label: String, _zone: String, _closed: bool) -> void: counts.resolved += 1)
+	var health_before := controller.current_health
+	block._on_body_entered(player)
+	if not is_equal_approx(controller.current_health, health_before - 40.0):
+		return _fail("A moving block running through the player should cost its crossing damage.")
+	if counts.closed != 1:
+		return _fail("A discharged block should report itself resolved exactly once, got %d." % counts.closed)
+	if not block.spawn_volume.active_targets.is_empty():
+		return _fail("A discharged block should drop its windows.")
+	# Un segundo cruce (salir y volver a entrar) no cobra dos veces.
+	block._on_body_exited(player)
+	block._on_body_entered(player)
+	if not is_equal_approx(controller.current_health, health_before - 40.0):
+		return _fail("A discharged block must not charge again.")
+	await create_timer(TargetBlock3D.DISCHARGE_FLATTEN_SECONDS + TargetBlock3D.DISCHARGE_CLOSE_SECONDS + 0.2, true, false, true).timeout
+	await process_frame
+	if is_instance_valid(block):
+		return _fail("A discharged block should switch off and leave.")
+	if counts.resolved != 0:
+		return _fail("Discharging must not count any window as resolved (no points).")
+	if counts.closed != 1:
+		return _fail("Leaving must not report a second close.")
+	return true
+
+
+func _fail(message: String) -> bool:
 	push_error(message)
 	quit(1)
+	return false

@@ -37,7 +37,9 @@ const GENERIC_NAME_FILLER := " -_.0123456789"
 
 @export_file("*.json") var level_definition_path := "res://level_designs/levels/nivel-01.json"
 @export_range(0.05, 5.0, 0.05) var moving_block_speed := 0.65
-@export_range(0.0, 100.0, 1.0) var block_crossing_damage := 15.0
+## Solo para escenas armadas a mano: un nivel de la campaña usa la constante
+## del juego o su propio `crossingDamage` (LevelDefinitionLoader).
+@export_range(0.0, 100.0, 1.0) var block_crossing_damage := LevelDefinitionLoader.DEFAULT_CROSSING_DAMAGE
 ## Segundos entre el cierre del nivel y la pantalla de resultados. El cobro de
 ## la ultima cadena sigue a la vista durante ese rato.
 @export_range(0.0, 30.0, 0.1) var results_delay := 3.0
@@ -172,6 +174,7 @@ func load_and_build_level() -> void:
 	_spawn_player()
 	round_controller.round_duration = float(level_data.timeLimitSeconds)
 	round_controller.register_player(player)
+	round_controller.remaining_targets_query = _has_pending_targets
 	# El techo de puntaje y el par salen del contenido del nivel, asi que el
 	# puntaje necesita su definicion antes de que arranque la ronda.
 	score_controller.prepare_level(str(level_data.get("id", "")), level_data)
@@ -363,18 +366,45 @@ const SLOWMO_FADE_IN_SECONDS := 0.8
 ## Cerrar el nivel ya no arrastra al siguiente: el puntaje se resuelve, se
 ## muestra el resultado y el jugador decide si reintenta, avanza o se va.
 func _on_level_scored(summary: Dictionary) -> void:
-	_start_slow_motion()
 	# Las burbujas que nadie tomo revientan con el cierre: ya no hay a quien
 	# darle balas.
 	for bubble in get_tree().get_nodes_in_group(AmmoBubble.GROUP):
 		(bubble as AmmoBubble).burst()
-	# La sala final se apaga con la misma curva y duracion que el time_scale.
-	if _exit_encounter != null:
-		_dim_room_light(_exit_encounter.room_id, exit_light_factor, SLOWMO_FADE_IN_SECONDS, true)
+	if bool(summary.get("completed", false)):
+		_start_slow_motion()
+		# La sala final se apaga con la misma curva y duracion que el time_scale.
+		if _exit_encounter != null:
+			_dim_room_light(_exit_encounter.room_id, exit_light_factor, SLOWMO_FADE_IN_SECONDS, true)
+	else:
+		_fail_level(str(summary.get("reason", "")))
 	round_controller.add_log(tr("LOG_RESULTS_IN").format({"seconds": "%.0f" % results_delay}), "system")
 	# El timer ignora el time_scale: la camara lenta no puede estirar la espera
 	# de la pantalla de resultados.
 	get_tree().create_timer(results_delay, true, false, true).timeout.connect(_show_results.bind(summary))
+
+
+## La derrota no se celebra en camara lenta: el jugador pierde el control en
+## seco y la pantalla se apaga con el motivo a la vista, hasta que lleguen los
+## resultados. La pantalla cuelga del nivel y se va con el.
+func _fail_level(reason: String) -> void:
+	if player != null:
+		player.set("controls_enabled", false)
+		var manager := player.get_node_or_null("Camera/LeanPivot/MainCamera/Weapons_Manager")
+		if manager != null:
+			manager.set_process_input(false)
+	var screen := FailureScreen.new()
+	screen.name = "FailureScreen"
+	add_child(screen)
+	screen.show_reason(reason)
+
+
+## Si a alguna sala le queda algo que disparar. Sin esto, quedarse sin balas
+## en un nivel ya limpio, a pasos de la salida, contaria como derrota.
+func _has_pending_targets() -> bool:
+	for encounter_variant in room_encounters.values():
+		if (encounter_variant as ConfiguredRoomEncounter3D).has_pending_targets():
+			return true
+	return false
 
 
 ## El final de la partida se hunde gradualmente en camara lenta y se queda
@@ -533,7 +563,7 @@ func _build_rooms() -> void:
 		encounter.name = "%sEncounter" % safe_name
 		encounter.position = center
 		encounter.movement_speed = moving_block_speed
-		encounter.crossing_damage = block_crossing_damage
+		encounter.crossing_damage = LevelDefinitionLoader.get_crossing_damage(level_data)
 		encounter.wall_height = wall_height
 		encounter.max_block_height = LevelDefinitionLoader.get_max_block_height(level_data)
 		encounter.configure(room)

@@ -35,6 +35,13 @@ const DEFAULT_CORRIDOR_WIDTH := 3.5
 const MIN_BLOCK_HEIGHT := 2.0
 const MAX_BLOCK_HEIGHT := 12.0
 const DEFAULT_MAX_BLOCK_HEIGHT := 6.0
+## Vida que cuesta que un bloque atraviese al jugador. Es una constante del
+## juego (100 HP: dos cruces dejan en critico, el tercero mata); un nivel puede
+## declarar `crossingDamage` para endurecerse. Tiene que coincidir con
+## LIMITS.crossingDamage en tools/level-editor/level-format.js.
+const MIN_CROSSING_DAMAGE := 1.0
+const MAX_CROSSING_DAMAGE := 100.0
+const DEFAULT_CROSSING_DAMAGE := 40.0
 const MIN_WALL_HEIGHT := 2.0
 const MAX_WALL_HEIGHT := 20.0
 const DEFAULT_WALL_HEIGHT := 6.0
@@ -139,6 +146,12 @@ static func get_corridor_width(level: Dictionary, connection: Dictionary) -> flo
 	return clampf(float(connection.get("width", fallback)), MIN_CORRIDOR_WIDTH, MAX_CORRIDOR_WIDTH)
 
 
+## Vida que cuesta cada cruce de bloque en este nivel: la que declara, o la
+## constante del juego.
+static func get_crossing_damage(level: Dictionary) -> float:
+	return clampf(float(level.get("crossingDamage", DEFAULT_CROSSING_DAMAGE)), MIN_CROSSING_DAMAGE, MAX_CROSSING_DAMAGE)
+
+
 ## Municion con la que el jugador arranca el nivel.
 static func get_starting_ammo(level: Dictionary) -> Dictionary:
 	var ammo: Dictionary = level.get("startingAmmo", {}) as Dictionary
@@ -221,6 +234,11 @@ static func _validate_level(level: Dictionary, path: String) -> bool:
 		return false
 	if not _validate_starting_ammo(level, path):
 		return false
+	if level.has("crossingDamage"):
+		var crossing: Variant = level.crossingDamage
+		if not (crossing is float or crossing is int) or float(crossing) < MIN_CROSSING_DAMAGE or float(crossing) > MAX_CROSSING_DAMAGE:
+			push_error("Level crossingDamage must be between %d and %d: %s" % [int(MIN_CROSSING_DAMAGE), int(MAX_CROSSING_DAMAGE), path])
+			return false
 	if not _validate_defaults(level, path):
 		return false
 	if not SkyCatalog.has_sky(str(level.get("sky", ""))):

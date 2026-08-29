@@ -30,14 +30,15 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | Pitch de `land` | `player_character.gd` → `_physics_process` | 0.7–0.8 | Grave del aterrizaje respecto del paso. |
 | `radio` por sala | `level_designs/levels/*.json` → `rooms[].radio` | `{ enabled, corner }` | Qué salas tienen radio y en qué esquina (`ne`/`nw`/`se`/`sw`); se edita en el Level Workshop. |
 | `RADIO_CORNER_MARGIN` | `scripts/levels/playable_level.gd` | 0.5 m | Distancia de la radio a la cara interior de cada pared de su esquina. Mira al centro en diagonal. |
-| `poll_seconds` / `switch_hysteresis` | `scripts/props/radio_director.gd` | 0.5 s / 1.5 m | Cada cuánto se elige la radio más cercana y cuánto tiene que ganarle a la activa para quitarle la acústica de sala. |
-| `crossfade_seconds` | `scripts/props/radio_prop.gd` | 0.25 s | Fundido entre el reproductor común y el espacial al cambiar de radio activa. |
+| `poll_seconds` / `switch_hysteresis` | `scripts/props/radio_director.gd` | 0.5 s / 4 m | Cada cuánto se elige la radio más cercana y cuánto tiene que ganarle a la activa para quitarle la acústica de sala. Cada cambio calla la radio un instante: mejor pocos. En el perfil sin audio espacial (Web) no activa ninguna. |
+| `crossfade_seconds` | `scripts/props/radio_prop.gd` | 0.25 s | Cruce **en serie** entre el reproductor común y el espacial: el plain se calla y recién entonces arranca el espacial (y al revés). Dos copias a la vez recortaban y, desfasadas, sonaban a flanger. |
+| `spatial_audio_enabled()` | `scripts/environment/quality.gd` | alto: sí / medio (Web): no | Si las radios llevan `Speaker` espacial. Sin hilos, el addon (20 buses con delay+reverb+filtro por radio) dejaba sin buffer al audio de la Web. |
 | Rotura de la radio | `radio_prop.gd` → `break_radio` | `target_destroyed` a pitch 0.7 | Un disparo la calla, suelta esquirlas y la deja gris. |
 | `volume_db` / `unit_size` / `max_db` | `scenes/props/radio.tscn` → nodos `Speaker` y `PlainSpeaker` | -4 / 3 m / 0 | Volumen de la radio y qué tan rápido se atenúa con la distancia. |
 | `reverb_volume_db` / `roomsize_multiplicator` / `occlusion_lp_cutoff` | ídem | -10 / 4.0 / 500 Hz | Reverb de sala y cuánto se apaga la música tras una pared. |
 | `output_bus` | ídem | `Music` | La radio responde al volumen de música de las opciones aunque sea 3D. |
 | `loop` | `assets/audio/music/human_tetris_fade.ogg.import` | on | Repetición de la canción (opción de importación del ogg; ~96 kbps, el original mp3 queda en `assets/_raw/`). |
-| Buses `Master` / `Music` / `SFX` | `resources/audio/default_bus_layout.tres` | — | Volúmenes base; los del usuario los maneja `Settings`. |
+| Buses `Master` / `Music` / `SFX` | `resources/audio/default_bus_layout.tres` | — | Volúmenes base; los del usuario los maneja `Settings`. `Master` lleva un `AudioEffectHardLimiter` (`ceiling_db` -0.5): techo para la suma de radios y disparos, en vez de recortar en seco. |
 | `BASE_HZ` / `WHINE_HZ` / ganancias | `scripts/audio/led_hum_synth.gd` | 60 Hz / 9900 Hz / 0.55·0.18·0.06·0.04 | Timbre del zumbido de pantalla de los bloques (hum de red, octava, silbido, ruido). Se sintetiza una vez y se comparte. |
 | `GROWL_HZ` / `THROB_HZ` / `THROB_DEPTH` | ídem | 42 Hz / 3 Hz / 0.4 | Gruñido grave que late, el segundo loop del bloque. Solo se oye pegado al panel. |
 | `MIX_RATE` / `LOOP_SECONDS` | ídem | 24000 / 1 s | Resolución y largo del loop; mantener frecuencias múltiplos enteros de 1 Hz para que cierre sin click. |
@@ -107,7 +108,9 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | Pop de bola | `scripts/targets/target_ball.gd` → `_play_destruction` | 1.22x, 0.05 + 0.11 s | Inflado y colapso al destruirse. |
 | Esquirlas de bola | → `_spawn_burst` | 14 partículas, 0.55 s | Cantidad, velocidad y vida de las esquirlas. |
 | `barrier_color` / `safe_close_distance` | `scripts/levels/room_door_3d.gd` | rojo / 2 m | Color de la puerta sellada y distancia para cerrarse. |
-| `moving_block_speed` / `block_crossing_damage` | `scripts/levels/playable_level.gd` | 0.65 / 15 | Velocidad de bloques móviles y daño al cruzarlos. |
+| `moving_block_speed` / `block_crossing_damage` | `scripts/levels/playable_level.gd` | 0.65 / 40 | Velocidad de bloques móviles y daño al cruzarlos en escenas armadas a mano; un nivel de la campaña usa `DEFAULT_CROSSING_DAMAGE` (40) o su propio `crossingDamage` (`level_definition_loader.gd`, 1–100). |
+| `DISCHARGE_FLATTEN_SECONDS` / `DISCHARGE_CLOSE_SECONDS` | `scripts/targets/target_block_3d.gd` | 0.16 / 0.12 s | Apagado del bloque que atravesó al jugador: el panel se aplasta a una línea y la línea se cierra. |
+| `melee_enabled` | `scripts/weapons/weapon_state_machine.gd` | false | Golpe cuerpo a cuerpo del template. Apagado: cerraría ventanas sin gastar balas. |
 
 ## Puntaje y combos
 
@@ -149,6 +152,8 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | Parámetro | Dónde | Valor | Qué modifica |
 |---|---|---|---|
 | `max_health` / `round_duration` | `scripts/gameplay/round_controller.gd` | 100 / 90 s | Vida del jugador y tiempo de la ronda. |
+| `AMMO_GRACE_SECONDS` | ídem | 2.5 s | Gracia entre quedarse sin balas (sin disparos por resolver, sin burbujas con balas, con salas de combate abiertas) y perder la ronda por `ammo_depleted`. El HUD parpadea `SIN MUNICION` mientras tanto. |
+| `FADE_SECONDS` / `LINE_SECONDS` / `TEXT_FADE_SECONDS` | `scripts/ui/failure_screen.gd` | 0.45 / 0.35 / 0.3 s | Pantalla de derrota: fundido a oscuro, cierre de la línea "monitor apagado" y aparición del motivo. Sin cámara lenta; el jugador queda sin control (`controls_enabled`). |
 | `results_delay` | `scripts/levels/playable_level.gd` | 3 s | Espera entre el cierre del nivel y la pantalla de resultados. |
 | `SLOWMO_SCALE` / `SLOWMO_FADE_IN_SECONDS` | ídem | 0.25 / 0.8 s | Qué tan lenta queda la cámara lenta del final y cuánto tarda en hundirse. |
 | `cleared_light_factor` / `cleared_light_fade_seconds` | ídem | 0.3 / 1.2 s | A cuánto baja la luz de una sala al limpiarla y cuánto tarda. Invita a salir: el pasillo queda más brillante. No bajar de ~0.2 o no se ve la recompensa. |

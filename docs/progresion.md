@@ -231,5 +231,21 @@ Objetivos por tramo (intentos hasta completar, jugadores nuevos):
 Si un nivel queda fuera de rango, el orden de retoque es: cantidad de
 ventanas de **una** sala → velocidad de **un** bloque → recompensa de **una**
 sala → límite de tiempo. Las constantes de las ventanas (segundos de
-descarga, SKIP, daño por cruzar) no se tocan por un nivel: cambiarlas mueve
-los treinta.
+descarga, SKIP) no se tocan por un nivel: cambiarlas mueve los treinta. El
+daño por cruzar tampoco, salvo excepción declarada: es una constante del juego
+(`crossingDamage`, 40 sobre 100 HP) que un nivel sólo sobreescribe en su JSON
+si quiere ser explícitamente más duro que el resto.
+
+### Cómo se pierde
+
+Las tres derrotas son legibles y todas se anuncian antes de cortar:
+
+| Motivo | Cuándo | Qué lo enseña |
+|---|---|---|
+| `health_depleted` | tres cruces de bloque móvil (40 HP cada uno: 100 → 60 → 20 → 0) | el bloque que atraviesa al jugador **se descarga** —se apaga y desaparece sin pagar puntos— así que el cruce se ve, se paga y no deja un bloque pegado a la pared de atrás |
+| `time_expired` | `timeLimitSeconds` en cero | el reloj del HUD marca los últimos diez segundos |
+| `ammo_depleted` | sin balas, sin disparos en el aire, sin burbujas con balas y con alguna sala de combate abierta | el HUD parpadea `SIN MUNICION` y la ronda cae 2,5 s después; un nivel ya limpio nunca falla por esto |
+
+Con esos números la vida decide partidas (antes hacían falta siete cruces de
+15 HP) sin que un solo error sea fatal: el primer cruce avisa, el segundo pone
+el HUD en rojo.

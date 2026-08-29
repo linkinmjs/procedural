@@ -22,9 +22,10 @@ La escena inicial `scenes/levels/playable_level.tscn` construye el nivel activo 
 - El jugador dentro de la sala marcada como `start`, orientado según su `facing`, con la munición de `startingAmmo`.
 - Una burbuja de munición en las salas que declaran `ammoReward`: sale del último bloque que cayó y viaja hasta el centro de la sala (o, si el jugador está ahí, a 3 m de él, dentro de la sala), y recién asentada se puede tomar tocándola o disparándole. Entrega sólo lo que entra en la reserva y se queda con el resto; el HUD flota un `+N` junto al contador; las que nadie tomó revientan al terminar el nivel.
 - Un cartel sobre cada vano, del lado de adentro, con el nombre de la sala a la que lleva. Es la señalización del nivel: no hay etiquetas flotando en el aire.
-- Una radio con música en loop en la esquina de las salas que declaran `radio`, apoyada contra las dos paredes y mirando al centro. Se rompe de un disparo; entre varias, solo la más cercana lleva la acústica de sala (`RadioDirector`).
+- Una radio con música en loop en la esquina de las salas que declaran `radio`, apoyada contra las dos paredes y mirando al centro. Se rompe de un disparo; entre varias, solo la más cercana lleva la acústica de sala (`RadioDirector`); en Web ninguna (`Quality.spatial_audio_enabled()`), suenan con su reproductor 3D común.
 - La luz de una sala baja al limpiarla (`cleared_light_factor`); la de salida se apaga junto con la cámara lenta del cierre.
 - El HUD y el tiempo de ronda de `timeLimitSeconds`.
+- El daño por cruce de los bloques móviles: 40 HP salvo que el nivel declare `crossingDamage` (1–100, opcional; la tool lo deja vacío para usar el del juego). Un bloque que atraviesa al jugador se descarga: se apaga, pierde ventanas y capas, resuelve su pared sin puntos y desaparece. Sin balas, sin disparos por resolver, sin burbujas con balas y con salas de combate sin limpiar, la ronda cae por `ammo_depleted` tras una gracia de 2,5 s.
 - El cielo declarado por `sky`, que además coloca el sol.
 
 ## Geometría sólida

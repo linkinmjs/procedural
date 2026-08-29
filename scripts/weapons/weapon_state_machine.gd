@@ -18,6 +18,10 @@ signal aim_changed(blend: float)
 
 @export var animation_player: AnimationPlayer
 @export var melee_hitbox: ShapeCast3D
+## El golpe cuerpo a cuerpo del template. Apagado a proposito: el juego se
+## juega con el presupuesto de balas, y un golpe gratis que cierra ventanas
+## dejaria sin sentido quedarse sin municion.
+@export var melee_enabled := false
 @export var max_weapons: int
 @export var enable_weapon_spread := true
 ## Reproductor del sonido de disparo del arma activa.
@@ -129,7 +133,7 @@ func _input(event: InputEvent) -> void:
 		if check_valid_weapon_slot():
 			drop(current_weapon_slot)
 		
-	if event.is_action_pressed("Melee"):
+	if event.is_action_pressed("Melee") and melee_enabled:
 		if check_valid_weapon_slot():
 			melee()
 

@@ -36,7 +36,7 @@ var entry_wall := "south"
 ## aparecen juntos; la siguiente no llega hasta que se limpia la anterior.
 var waves: Array[Dictionary] = []
 var movement_speed := 0.65
-var crossing_damage := 15.0
+var crossing_damage := 40.0
 var activated := false
 var cleared := false
 ## Si la sala llego a desplegar algun bloque. Una sala vacia se limpia al entrar
@@ -95,6 +95,12 @@ func activate() -> void:
 		return
 	encounter_started.emit(self)
 	_start_next_wave()
+
+
+## Si a la sala todavia le queda algo que disparar: no se limpio y declara
+## bloques. Es lo que decide si quedarse sin balas es fallar o solo caminar.
+func has_pending_targets() -> bool:
+	return not cleared and _has_any_block()
 
 
 ## Si alguna oleada trae al menos un bloque habilitado. Una sala declarada pero

@@ -62,7 +62,7 @@
   // 0 grados mira al norte y los grados crecen hacia el este, igual que una brújula.
   const WALL_DEGREES = { north: 0, east: 90, south: 180, west: 270 };
 
-  const LEVEL_KEYS = ["schemaVersion", "id", "name", "description", "timeLimitSeconds", "gridSize", "startingAmmo", "sky", "defaults", "rooms", "connections"];
+  const LEVEL_KEYS = ["schemaVersion", "id", "name", "description", "timeLimitSeconds", "gridSize", "startingAmmo", "crossingDamage", "sky", "defaults", "rooms", "connections"];
   const ROOM_KEYS = ["id", "name", "type", "role", "position", "size", "entry", "facing", "wallHeight", "hasCeiling", "ammoReward", "radio", "textures", "waves"];
   const CONNECTION_KEYS = ["id", "fromRoomId", "toRoomId", "fromWall", "toWall", "width", "waypoints"];
 
@@ -74,6 +74,10 @@
     maxBlockHeight: { min: 2, max: 12, fallback: 6 },
     corridorWidth: { min: 1.5, max: 12, fallback: 3.5 },
     magazine: { min: 0, max: 200, fallback: 17 },
+    // Vida que cuesta que un bloque atraviese al jugador. Es una constante del
+    // juego; un nivel solo la declara para endurecerse. Tiene que coincidir
+    // con *_CROSSING_DAMAGE en scripts/levels/level_definition_loader.gd.
+    crossingDamage: { min: 1, max: 100, fallback: 40 },
     reserve: { min: 0, max: 999, fallback: 51 },
     ammoReward: { min: 1, max: 999, fallback: 30 },
     movementSpeed: { min: 0.05, max: 5, fallback: 0.65 },
@@ -533,6 +537,12 @@
       magazine: clampInt(level.startingAmmo?.magazine, LIMITS.magazine),
       reserve: clampInt(level.startingAmmo?.reserve, LIMITS.reserve)
     };
+    // Sin declarar, el nivel usa la constante del juego: no se escribe nada.
+    if (level.crossingDamage === undefined || level.crossingDamage === null || level.crossingDamage === "") {
+      delete level.crossingDamage;
+    } else {
+      level.crossingDamage = clampInt(level.crossingDamage, LIMITS.crossingDamage);
+    }
     level.sky = SKY_LABELS[level.sky] ? level.sky : DEFAULT_SKY;
     level.defaults = {
       wallHeight: clamp(level.defaults?.wallHeight, LIMITS.wallHeight),

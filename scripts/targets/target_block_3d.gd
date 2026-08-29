@@ -15,7 +15,9 @@ signal crashed(block: TargetBlock3D)
 @export var moves_to_opposite_side := false
 @export_range(0.05, 5.0, 0.05) var movement_speed := 0.65
 @export_range(0.0, 100.0, 0.1) var travel_distance := 10.0
-@export_range(0.0, 100.0, 1.0) var crossing_damage := 15.0
+## Vida que cuesta que el bloque atraviese al jugador. Despues del cruce el
+## bloque se descarga: ya no existe para el encuentro ni paga puntos.
+@export_range(0.0, 100.0, 1.0) var crossing_damage := 40.0
 @export var movement_direction := Vector3.ZERO
 @export var block_size := Vector2(8.0, 4.0)
 ## Si las capas nombran familias de ventana y el catalogo resuelve cual va en
@@ -68,13 +70,20 @@ const BLUE_SCREEN_SCENE := preload("res://scenes/targets/blue_screen.tscn")
 ## Cuanto se adelanta la pantalla de error respecto de la cara del bloque, para
 ## que no pelee con ella por el mismo plano.
 const CRASH_SCREEN_OFFSET := 0.2
+## Duracion del apagado al descargarse: el panel se aplasta a una linea y la
+## linea se cierra, como un monitor que se apaga.
+const DISCHARGE_FLATTEN_SECONDS := 0.16
+const DISCHARGE_CLOSE_SECONDS := 0.12
 
 var _distance_travelled := 0.0
 var _closing := false
 ## El bloque se colgo por una descarga infectada. Cuenta como resuelto —abre las
 ## puertas— pero no desaparece: queda en pantalla azul, y si se movia sigue
-## moviendose y sigue lastimando al que lo cruce.
+## moviendose; si alcanza al jugador lo atraviesa y se descarga como cualquiera.
 var _crashed := false
+## El bloque atraveso al jugador y se descargo: cobro la vida, se apago y se
+## fue. Lo que le quedaba (capas, ventanas, pantalla azul) se pierde con el.
+var _discharged := false
 var _bodies_inside: Array[Node3D] = []
 var _layers: Array[PackedStringArray] = []
 var _current_layer_index := 0
@@ -112,7 +121,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_update_hum(delta)
-	if not moves_to_opposite_side or _closing or movement_direction.is_zero_approx():
+	if not moves_to_opposite_side or _closing or _discharged or movement_direction.is_zero_approx():
 		return
 	if _distance_travelled >= travel_distance:
 		return
@@ -163,7 +172,7 @@ func _on_target_crashed(window: Node) -> void:
 ## faltaban no llegan nunca, pero la sala puede seguir, porque para el encuentro
 ## el bloque queda resuelto.
 func crash(source_label: String) -> void:
-	if _crashed or _closing:
+	if _crashed or _closing or _discharged:
 		return
 	_crashed = true
 	# La pantalla se cuelga y el zumbido se corta en seco con ella.
@@ -247,13 +256,52 @@ func _on_close_control_hit(_target: TargetBall) -> void:
 	_close()
 
 
+## Un bloque que avanza y alcanza al jugador lo atraviesa: cobra la vida y se
+## descarga. Un bloque quieto es una pared de ventanas: rozarlo no hace nada,
+## asi que tampoco se lo puede "comprar" chocandolo a cambio de vida.
 func _on_body_entered(body: Node3D) -> void:
 	if not body is CharacterBody3D or _bodies_inside.has(body):
 		return
 	_bodies_inside.append(body)
+	if not moves_to_opposite_side or _closing or _discharged:
+		return
 	var controller := _get_round_controller()
 	if controller != null:
 		controller.report_block_crossed(block_label, crossing_damage)
+	discharge()
+
+
+## El bloque atraveso al jugador: se apaga y desaparece. Para el encuentro
+## queda resuelto (la sala sigue con lo que falte), pero sin pagar puntos:
+## ninguna ventana se cerro. Un bloque colgado tambien se descarga, con su
+## pantalla azul; ya habia avisado que estaba resuelto, asi que no repite.
+func discharge() -> void:
+	if _discharged or _closing:
+		return
+	_discharged = true
+	_stop_hum()
+	# Nadie puede volver a cruzarlo ni dispararle mientras se apaga.
+	set_deferred("monitoring", false)
+	spawn_volume.clear_targets()
+	spawn_volume.visible = false
+	var screen := get_node_or_null("BlueScreen")
+	if screen != null:
+		screen.queue_free()
+	var controller := _get_round_controller()
+	if controller != null:
+		controller.add_log(tr("LOG_BLOCK_DISCHARGED").format({"block": block_label.to_upper()}), "danger")
+	Sfx.play_at("block_discharged", global_position)
+	# Se avisa el cierre ahora y no al final del apagado: la sala no espera a
+	# la animacion para seguir.
+	if not _crashed:
+		closed.emit(self)
+	block_mesh.visible = true
+	var tween := create_tween()
+	tween.tween_property(block_mesh, "scale:y", 0.02, DISCHARGE_FLATTEN_SECONDS) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(block_mesh, "scale:x", 0.0, DISCHARGE_CLOSE_SECONDS) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_callback(queue_free)
 
 
 func _on_body_exited(body: Node3D) -> void:
@@ -261,7 +309,7 @@ func _on_body_exited(body: Node3D) -> void:
 
 
 func _close() -> void:
-	if _closing or _crashed:
+	if _closing or _crashed or _discharged:
 		return
 	_closing = true
 	_stop_hum()

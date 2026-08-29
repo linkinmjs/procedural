@@ -18,6 +18,8 @@ extends Resource
 ##   ad_skip_ready (3D)     - el SKIP de la publicidad quedo disponible
 ##   hitmarker              - acierto confirmado en el HUD
 ##   player_hurt            - danio recibido
+##   block_discharged (3D)  - un bloque atraveso al jugador y se apago
+##   round_failed           - la ronda cayo (sin vida, tiempo o municion)
 ##   footstep               - paso del jugador
 ##   land                   - aterrizaje del jugador
 ##   combo_step_up          - subio el escalon del multiplicador (pitch por escalon)

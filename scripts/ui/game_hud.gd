@@ -42,6 +42,8 @@ var _health_pulse_tween: Tween
 var _shake_tween: Tween
 var _shake_base_x := 0.0
 var _ammo_tween: Tween
+var _ammo_out_tween: Tween
+var _ammo_out_label: Label
 var _time_tween: Tween
 var _health_fill: StyleBoxFlat
 
@@ -59,6 +61,8 @@ func bind(controller: RoundController) -> void:
 	controller.time_changed.connect(_on_time_changed)
 	controller.ammo_changed.connect(_on_ammo_changed)
 	controller.ammo_collected.connect(_on_ammo_collected)
+	controller.ammo_depleted_warning.connect(_on_ammo_depleted_warning)
+	controller.ammo_depleted_cleared.connect(_on_ammo_depleted_cleared)
 	controller.log_added.connect(_on_log_added)
 	_paint_health(controller.current_health, controller.max_health)
 	_paint_time(controller.time_remaining)
@@ -233,6 +237,42 @@ func _on_ammo_collected(amount: int) -> void:
 	_punch_label(ammo_value, 1.14, _ammo_tween, func(tween: Tween) -> void: _ammo_tween = tween)
 
 
+## Sin balas y sin nada que las traiga: el contador se pone en rojo y un
+## "SIN MUNICION" late a su lado hasta que aparezcan balas o caiga la ronda.
+func _on_ammo_depleted_warning(_seconds: float) -> void:
+	_touch_vitals()
+	_shake_vitals()
+	ammo_value.add_theme_color_override("font_color", HudStyle.DANGER)
+	if _ammo_out_label == null:
+		_ammo_out_label = Label.new()
+		_ammo_out_label.name = "AmmoOut"
+		_ammo_out_label.text = tr("HUD_AMMO_OUT")
+		_ammo_out_label.top_level = true
+		_ammo_out_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_ammo_out_label.add_theme_color_override("font_color", HudStyle.DANGER)
+		_ammo_out_label.add_theme_font_override("font", ammo_value.get_theme_font("font"))
+		_ammo_out_label.add_theme_font_size_override("font_size", ammo_value.get_theme_font_size("font_size"))
+		ammo_value.add_child(_ammo_out_label)
+		_ammo_out_label.global_position = ammo_value.global_position + Vector2(ammo_value.size.x + 10.0, 0.0)
+	if _ammo_out_tween != null:
+		_ammo_out_tween.kill()
+	_ammo_out_tween = create_tween().set_loops()
+	_ammo_out_tween.tween_property(_ammo_out_label, "modulate:a", 0.25, 0.35) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_ammo_out_tween.tween_property(_ammo_out_label, "modulate:a", 1.0, 0.35) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func _on_ammo_depleted_cleared() -> void:
+	ammo_value.remove_theme_color_override("font_color")
+	if _ammo_out_tween != null:
+		_ammo_out_tween.kill()
+		_ammo_out_tween = null
+	if _ammo_out_label != null:
+		_ammo_out_label.queue_free()
+		_ammo_out_label = null
+
+
 ## "+N" que nace pegado al contador, sube y se desvanece. Es lo que cuenta que
 ## la burbuja se tomo aunque el jugador no la haya visto reventar.
 func _float_ammo_gain(amount: int) -> void:
@@ -242,6 +282,7 @@ func _float_ammo_gain(amount: int) -> void:
 	gain.top_level = true
 	gain.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	gain.add_theme_color_override("font_color", HudStyle.ACCENT_GOLD)
+	gain.add_theme_font_override("font", ammo_value.get_theme_font("font"))
 	gain.add_theme_font_size_override("font_size", ammo_value.get_theme_font_size("font_size"))
 	ammo_value.add_child(gain)
 	gain.global_position = ammo_value.global_position + Vector2(ammo_value.size.x + 10.0, 0.0)

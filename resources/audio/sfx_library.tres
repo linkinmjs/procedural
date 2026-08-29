@@ -79,6 +79,7 @@ script = ExtResource("1_library")
 streams = {
 "ad_skip_ready": ExtResource("ui_retro_10"),
 "bank": ExtResource("ui_modern_13"),
+"block_discharged": ExtResource("ui_retro_12"),
 "chain_lost": ExtResource("ui_retro_8"),
 "chain_saved": ExtResource("ui_minimalist_13"),
 "chain_tick": ExtResource("ui_minimalist_8"),
@@ -89,6 +90,7 @@ streams = {
 "impact_wall": SubResource("rnd_impact_wall"),
 "land": SubResource("rnd_footstep"),
 "player_hurt": ExtResource("ui_retro_9"),
+"round_failed": ExtResource("ui_retro_8"),
 "shield_blocked": ExtResource("ui_retro_12"),
 "target_destroyed": SubResource("rnd_target_destroyed"),
 "ui_back": ExtResource("ui_modern_11"),
@@ -101,6 +103,7 @@ streams = {
 volumes_db = {
 "ad_skip_ready": 3.0,
 "bank": 5.0,
+"block_discharged": 6.0,
 "chain_lost": 4.0,
 "chain_saved": -3.0,
 "chain_tick": -4.0,
@@ -111,6 +114,7 @@ volumes_db = {
 "impact_wall": -6.0,
 "land": -4.0,
 "player_hurt": 5.0,
+"round_failed": 6.0,
 "shield_blocked": 8.0,
 "target_destroyed": 6.0,
 "ui_back": 2.0,

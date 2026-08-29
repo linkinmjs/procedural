@@ -22,7 +22,7 @@ for (const id of [
   "level-canvas", "rooms-layer", "corridors-layer", "room-dialog", "room-map",
   "wave-tabs", "slot-grid",
   "texture-fields", "room-list", "connection-list", "level-time-minutes", "level-time-seconds",
-  "level-ammo-magazine", "level-ammo-reserve", "level-wall-height", "level-corridor-width",
+  "level-ammo-magazine", "level-ammo-reserve", "level-crossing-damage", "level-wall-height", "level-corridor-width",
   "level-has-ceiling", "room-wall-height", "room-wall-height-mode", "room-ceiling",
   "room-ammo-enabled", "room-ammo-amount", "room-radio-enabled", "room-radio-corner", "template-list", "save-template", "facing-compass", "entry-summary",
   "duplicate-room", "zoom-fit", "import-file", "download-file"
@@ -738,3 +738,25 @@ try {
 }
 
 console.log("LEVEL EDITOR SMOKE TEST PASSED");
+
+// --- Daño por cruce ----------------------------------------------------------
+// Es una constante del juego: un nivel que no lo declara no lo escribe, y uno
+// que lo declara lo guarda recortado al rango que el loader acepta.
+{
+  const loader = fs.readFileSync("scripts/levels/level_definition_loader.gd", "utf8");
+  const gdConst = (name) => Number(loader.match(new RegExp(`const ${name} := ([0-9.]+)`))[1]);
+  assert.equal(gdConst("MIN_CROSSING_DAMAGE"), LevelFormat.LIMITS.crossingDamage.min, "MIN_CROSSING_DAMAGE y LIMITS.crossingDamage.min deben coincidir");
+  assert.equal(gdConst("MAX_CROSSING_DAMAGE"), LevelFormat.LIMITS.crossingDamage.max, "MAX_CROSSING_DAMAGE y LIMITS.crossingDamage.max deben coincidir");
+  assert.equal(gdConst("DEFAULT_CROSSING_DAMAGE"), LevelFormat.LIMITS.crossingDamage.fallback, "DEFAULT_CROSSING_DAMAGE y LIMITS.crossingDamage.fallback deben coincidir");
+  assert.equal(schema.properties.crossingDamage.minimum, LevelFormat.LIMITS.crossingDamage.min);
+  assert.equal(schema.properties.crossingDamage.maximum, LevelFormat.LIMITS.crossingDamage.max);
+  assert.ok(!schema.required.includes("crossingDamage"), "crossingDamage es opcional");
+  const base = LevelFormat.createEmptyLevel();
+  const untouched = LevelFormat.normalizeLevel(JSON.parse(JSON.stringify(base)));
+  assert.ok(!("crossingDamage" in untouched), "Sin declarar, no se escribe crossingDamage");
+  const declared = LevelFormat.normalizeLevel({ ...JSON.parse(JSON.stringify(base)), crossingDamage: 500 });
+  assert.equal(declared.crossingDamage, LevelFormat.LIMITS.crossingDamage.max, "Se recorta al máximo");
+  const cleared = LevelFormat.normalizeLevel({ ...JSON.parse(JSON.stringify(base)), crossingDamage: "" });
+  assert.ok(!("crossingDamage" in cleared), "Vacío borra la clave");
+  assert.ok(LevelFormat.LEVEL_KEYS.includes("crossingDamage"), "crossingDamage tiene su lugar en el orden de claves");
+}

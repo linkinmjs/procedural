@@ -77,7 +77,7 @@ func _on_round_started() -> void:
 
 
 func _on_round_ended(reason: String) -> void:
-	status_label.text = "HUD_ROUND_FAILED" if reason == "health_depleted" else "HUD_ROUND_COMPLETE"
+	status_label.text = "HUD_ROUND_COMPLETE" if reason == "exit_reached" else "HUD_ROUND_FAILED"
 	_show_for(HudStyle.LEVEL_PANEL_PEEK)
 
 

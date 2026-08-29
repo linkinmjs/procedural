@@ -23,6 +23,7 @@ const DEFAULT_STATS := {
 	"runs_failed": 0,
 	"runs_failed_health": 0,
 	"runs_failed_time": 0,
+	"runs_failed_ammo": 0,
 	"retries": 0,
 	"zone_hits": 0,
 	"windows_closed": 0,

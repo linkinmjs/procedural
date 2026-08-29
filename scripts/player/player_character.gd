@@ -21,6 +21,9 @@ var mouse_sensitivity: float = 0.001
 ## desplazamiento de mouse recorre la misma porcion de pantalla con y sin zoom.
 var _aim_sensitivity_scale: float = 1.0
 var crouched: bool = false
+## Con el control apagado el jugador no mira, no camina ni salta: la ronda
+## termino y la escena esta contando lo que paso. La gravedad sigue.
+var controls_enabled: bool = true
 var crouch_blocked: bool = false
 
 # Retroceso de la vista. recoil_target acumula lo que empujan los disparos y
@@ -158,6 +161,8 @@ func update_camera_rotation() -> void:
 ## este abierto. Alternarlo desde el jugador producia menus con el mouse
 ## capturado y partidas con el mouse suelto.
 func _input(event: InputEvent) -> void:
+	if not controls_enabled:
+		return
 	if event is InputEventMouseMotion:
 		var MouseEvent = event.relative * mouse_sensitivity * _aim_sensitivity_scale
 		camera_look(MouseEvent)
@@ -344,6 +349,8 @@ func apply_landing_dip(fall_speed: float) -> void:
 
 ## Direccion pedida por el jugador, sobre el plano del suelo.
 func wish_move_direction() -> Vector3:
+	if not controls_enabled:
+		return Vector3.ZERO
 	var input_dir := Input.get_vector("left", "right", "up", "down")
 	return (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
 
@@ -404,6 +411,8 @@ func update_jump_timers(delta: float) -> void:
 
 ## Decide si este frame sale un salto, gastando el buffer y el coyote time.
 func consume_jump() -> bool:
+	if not controls_enabled:
+		return false
 	var wants_jump := _jump_buffer > 0.0 or (auto_bhop and Input.is_action_pressed("ui_accept"))
 	if not wants_jump:
 		return false

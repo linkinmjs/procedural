@@ -195,6 +195,10 @@
           <label>Reserva<input id="level-ammo-reserve" type="number" min="0" max="999" step="1"></label>
         </div>
         <p class="hint">El cargador se recorta a la capacidad del arma.</p>
+        <div class="field-row">
+          <label>Daño por cruce<input id="level-crossing-damage" type="number" min="1" max="100" step="1" placeholder="40"></label>
+        </div>
+        <p class="hint">Vida (de 100) que cuesta que un bloque atraviese al jugador; el bloque se descarga y no paga puntos. Vacío usa el valor del juego (40: dos cruces dejan en crítico, el tercero mata). Sin balas ni forma de conseguirlas, la ronda también cae.</p>
       </fieldset>
 
       <fieldset>

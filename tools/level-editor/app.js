@@ -1038,6 +1038,8 @@
     $("#level-time-seconds").value = level.timeLimitSeconds % 60;
     $("#level-ammo-magazine").value = level.startingAmmo.magazine;
     $("#level-ammo-reserve").value = level.startingAmmo.reserve;
+    $("#level-crossing-damage").value = level.crossingDamage ?? "";
+    $("#level-crossing-damage").placeholder = String(LIMITS.crossingDamage.fallback);
     $("#level-wall-height").value = level.defaults.wallHeight;
     $("#level-max-block-height").value = level.defaults.maxBlockHeight;
     $("#level-corridor-width").value = level.defaults.corridorWidth;
@@ -2307,6 +2309,16 @@
     $("#level-ammo-reserve").addEventListener("change", (event) => {
       level.startingAmmo.reserve = clampInt(event.target.value, LIMITS.reserve);
       commit("Munición inicial actualizada");
+    });
+    $("#level-crossing-damage").addEventListener("change", (event) => {
+      if (event.target.value.trim() === "") {
+        delete level.crossingDamage;
+        commit("Daño por cruce: el del juego");
+      } else {
+        level.crossingDamage = clampInt(event.target.value, LIMITS.crossingDamage);
+        commit("Daño por cruce actualizado");
+      }
+      event.target.value = level.crossingDamage ?? "";
     });
     $("#level-wall-height").addEventListener("change", (event) => {
       level.defaults.wallHeight = clamp(event.target.value, LIMITS.wallHeight);

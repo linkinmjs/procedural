@@ -98,6 +98,7 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | Minimizar | → `_animate_minimize` | 0.1 s, caída 0.45 m | Velocidad y recorrido del cierre genérico. |
 | Apagado CRT | → `_animate_crt_off` | 0.1 + 0.09 s | Colapso vertical y apagado de la línea. |
 | `close_style` por familia | `popup_window.gd`, `critical_error_window.gd`, `firewall_window.gd` → `_ready` | `CLOSE_STYLE_CRT` | Qué animación de cierre usa cada familia. |
+| `SHUFFLE_SECONDS` / `SHUFFLE_REDRAW_MARGIN` | `critical_error_window.gd` | 0.16 / 0.1 s | Deslizamiento de los botones del error crítico al barajarse, y cuánto más se mantiene vivo el redibujado de la pantalla (que normalmente es `UPDATE_ONCE`): sin eso quedaba congelada con los botones a mitad de camino, superpuestos. |
 | Sacudida al impacto | → `_shake_screen` | ±0.025 m, 3 golpes | Fuerza y cantidad de sacudidas del panel por tiro. |
 | Botón presionado | → `_press_zone_control` | 1 px, 0.08 s | Hundimiento y duración del efecto de clic. |
 | `SHIELD_TINT` y fundido | `window_panel_3d.gd` | azul, 0.35 s | Color del firewall y velocidad con que se funde al caer. |

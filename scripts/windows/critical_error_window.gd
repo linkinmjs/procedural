@@ -18,6 +18,11 @@ const TRAP_ZONE := "trap"
 
 ## Los controles se guardan como zonas y no como botones: un Button con el
 ## script de zona es, para el tipado, un Control con ese script.
+## Lo que tardan los botones en deslizarse a su lugar nuevo, y cuanto mas se
+## mantiene viva la pantalla para que el ultimo frame del deslizamiento se vea.
+const SHUFFLE_SECONDS := 0.16
+const SHUFFLE_REDRAW_MARGIN := 0.1
+
 var _buttons: Array[WindowHitZone] = []
 var _slots: Array[Vector2] = []
 
@@ -71,9 +76,13 @@ func _flash_error() -> void:
 ## botones se deslizan a su lugar en vez de teletransportarse: sin la
 ## transicion, el reordenamiento parecia un glitch y no un castigo.
 func _shuffle() -> void:
-	request_screen_redraw()
 	if _buttons.size() < 2:
+		request_screen_redraw()
 		return
+	# La pantalla se dibuja una sola vez por pedido: durante el deslizamiento
+	# hay que mantenerla viva, o queda congelada con los botones a mitad de
+	# camino, superpuestos y sin coincidir con las zonas de impacto.
+	request_screen_redraw(SHUFFLE_SECONDS + SHUFFLE_REDRAW_MARGIN)
 	var order: Array[int] = []
 	for index in _slots.size():
 		order.append(index)
@@ -82,9 +91,12 @@ func _shuffle() -> void:
 	tween.set_parallel(true)
 	for index in _buttons.size():
 		var slot := _slots[order[index]]
-		tween.tween_property(_buttons[index], "offset_left", slot.x, 0.16) \
+		tween.tween_property(_buttons[index], "offset_left", slot.x, SHUFFLE_SECONDS) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tween.tween_property(_buttons[index], "offset_right", slot.y, 0.16) \
+		tween.tween_property(_buttons[index], "offset_right", slot.y, SHUFFLE_SECONDS) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	await tween.finished
+	# Un dibujado mas con los botones ya quietos, por si el pedido con duracion
+	# se apago un frame antes de que el tween pusiera el valor final.
+	request_screen_redraw()
 	rebuild_hit_zones()

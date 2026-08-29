@@ -53,6 +53,10 @@ var _shot_resolution_queued := false
 ## Quien sabe si todavia hay algo que disparar (lo fija el nivel). Sin
 ## consulta se asume que si.
 var remaining_targets_query: Callable
+## Si queda alguna burbuja con balas que el jugador pueda ir a buscar. La pone
+## el nivel, que sabe que salas estan selladas; sin consulta cuentan todas las
+## burbujas del arbol.
+var ammo_available_query: Callable
 ## El arma ya informo su municion alguna vez: sin ese dato, cero balas no
 ## significa nada (un controlador suelto arranca en cero).
 var _ammo_known := false
@@ -250,6 +254,8 @@ func is_out_of_ammo() -> bool:
 		return false
 	if remaining_targets_query.is_valid() and not bool(remaining_targets_query.call()):
 		return false
+	if ammo_available_query.is_valid():
+		return not bool(ammo_available_query.call())
 	for bubble in get_tree().get_nodes_in_group(AMMO_BUBBLE_GROUP):
 		if is_instance_valid(bubble) and int(bubble.get("amount")) > 0:
 			return false

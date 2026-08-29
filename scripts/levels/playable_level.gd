@@ -175,6 +175,7 @@ func load_and_build_level() -> void:
 	round_controller.round_duration = float(level_data.timeLimitSeconds)
 	round_controller.register_player(player)
 	round_controller.remaining_targets_query = _has_pending_targets
+	round_controller.ammo_available_query = _has_reachable_ammo
 	# El techo de puntaje y el par salen del contenido del nivel, asi que el
 	# puntaje necesita su definicion antes de que arranque la ronda.
 	score_controller.prepare_level(str(level_data.get("id", "")), level_data)
@@ -405,6 +406,44 @@ func _has_pending_targets() -> bool:
 		if (encounter_variant as ConfiguredRoomEncounter3D).has_pending_targets():
 			return true
 	return false
+
+
+## Burbujas con balas que el jugador puede ir a buscar. Con una sala sellada
+## solo cuentan las que estan adentro de ella: las que quedaron en salas
+## anteriores no se alcanzan hasta limpiar esta, y para limpiarla hacen falta
+## balas. Sin eso, una burbuja olvidada detras de una puerta cerrada dejaba al
+## jugador sin balas y sin derrota.
+func _has_reachable_ammo() -> bool:
+	var sealed := _sealed_rooms()
+	for bubble_variant in get_tree().get_nodes_in_group(AmmoBubble.GROUP):
+		var bubble := bubble_variant as AmmoBubble
+		if bubble == null or not is_instance_valid(bubble) or bubble.amount <= 0:
+			continue
+		if sealed.is_empty():
+			return true
+		for room in sealed:
+			if _room_contains(room, bubble.global_position):
+				return true
+	return false
+
+
+## Las salas con alguna puerta cerrada.
+func _sealed_rooms() -> Array[Dictionary]:
+	var rooms: Array[Dictionary] = []
+	for room_id in room_doors:
+		for door in _doors_for(str(room_id)):
+			if door.is_closed:
+				var room := _room_by_id(str(room_id))
+				if not room.is_empty():
+					rooms.append(room)
+				break
+	return rooms
+
+
+func _room_contains(room: Dictionary, point: Vector3) -> bool:
+	var center := _room_center(room)
+	return absf(point.x - center.x) <= float(room.size.width) * 0.5 \
+		and absf(point.z - center.z) <= float(room.size.depth) * 0.5
 
 
 ## El final de la partida se hunde gradualmente en camara lenta y se queda

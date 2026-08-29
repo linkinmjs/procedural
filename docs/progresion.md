@@ -244,7 +244,7 @@ Las tres derrotas son legibles y todas se anuncian antes de cortar:
 |---|---|---|
 | `health_depleted` | tres cruces de bloque móvil (40 HP cada uno: 100 → 60 → 20 → 0) | el bloque que atraviesa al jugador **se descarga** —se apaga y desaparece sin pagar puntos— así que el cruce se ve, se paga y no deja un bloque pegado a la pared de atrás |
 | `time_expired` | `timeLimitSeconds` en cero | el reloj del HUD marca los últimos diez segundos |
-| `ammo_depleted` | sin balas, sin disparos en el aire, sin burbujas con balas y con alguna sala de combate abierta | el HUD parpadea `SIN MUNICION` y la ronda cae 2,5 s después; un nivel ya limpio nunca falla por esto |
+| `ammo_depleted` | sin balas, sin disparos en el aire, sin burbujas con balas al alcance (con una sala sellada, solo las de adentro) y con alguna sala de combate abierta | el HUD parpadea `SIN MUNICION` y la ronda cae 2,5 s después; un nivel ya limpio nunca falla por esto |
 
 Con esos números la vida decide partidas (antes hacían falta siete cruces de
 15 HP) sin que un solo error sea fatal: el primer cruce avisa, el segundo pone

@@ -11,7 +11,7 @@ var _cleared := 0
 
 
 func _initialize() -> void:
-	create_timer(20.0, true, false, true).timeout.connect(func() -> void: _fail("Ammo depletion smoke test timed out."))
+	create_timer(40.0, true, false, true).timeout.connect(func() -> void: _fail("Ammo depletion smoke test timed out."))
 	_run.call_deferred()
 
 
@@ -21,6 +21,8 @@ func _run() -> void:
 	if not await _check_out_of_ammo_fails_after_grace():
 		return
 	if not await _check_bubble_holds_the_round():
+		return
+	if not await _check_unreachable_bubble_does_not_hold():
 		return
 	if not await _check_pending_shot_holds_the_round():
 		return
@@ -102,6 +104,35 @@ func _check_bubble_holds_the_round() -> bool:
 		return _fail("A bubble holding ammo should keep the round alive.")
 	if not failed_after:
 		return _fail("Once the bubble is gone with no ammo, the round should fail.")
+	return true
+
+
+## Con una consulta de municion alcanzable, manda ella: una burbuja que el
+## nivel declara inalcanzable (detras de una puerta sellada) no sostiene la
+## ronda, y una que declara alcanzable la sostiene aunque no haya ninguna en
+## el arbol.
+func _check_unreachable_bubble_does_not_hold() -> bool:
+	var controller := _make_controller()
+	var bubble := AmmoBubble.new()
+	bubble.amount = 5
+	root.add_child(bubble)
+	controller.ammo_available_query = func() -> bool: return false
+	controller.report_ammo_changed([0, 0])
+	await _wait(RoundController.AMMO_GRACE_SECONDS + 0.3)
+	var failed := _ended_reason == "ammo_depleted"
+	bubble.queue_free()
+	controller.queue_free()
+	if not failed:
+		return _fail("A bubble the level declares unreachable should not hold the round.")
+
+	controller = _make_controller()
+	controller.ammo_available_query = func() -> bool: return true
+	controller.report_ammo_changed([0, 0])
+	await _wait(RoundController.AMMO_GRACE_SECONDS + 0.3)
+	var held := _ended_reason == "" and _warnings == 0
+	controller.queue_free()
+	if not held:
+		return _fail("Ammo the level declares reachable should keep the round alive.")
 	return true
 
 

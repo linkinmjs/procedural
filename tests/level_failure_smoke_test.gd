@@ -20,6 +20,8 @@ func _run() -> void:
 		return
 	if not await _check_ammo_failure():
 		return
+	if not await _check_sealed_room_ignores_far_bubbles():
+		return
 	print("Level failure smoke test passed.")
 	quit()
 
@@ -110,6 +112,49 @@ func _check_ammo_failure() -> bool:
 	var screen := _level.get_node_or_null("FailureScreen") as FailureScreen
 	if screen == null or screen.reason != "ammo_depleted":
 		return _fail("Running dry should show the failure screen with its own reason.")
+	await _unload_level()
+	return true
+
+
+## Una burbuja olvidada en otra sala no cuenta mientras la sala del jugador
+## este sellada: no hay forma de ir a buscarla sin balas. Con las puertas
+## abiertas vuelve a contar, y una burbuja adentro de la sala sellada cuenta
+## siempre.
+func _check_sealed_room_ignores_far_bubbles() -> bool:
+	if not await _load_level():
+		return false
+	var sealed_id := ""
+	for room_id in _level.room_doors:
+		if not _level._doors_for(str(room_id)).is_empty():
+			sealed_id = str(room_id)
+			break
+	if sealed_id.is_empty():
+		return _fail("nivel-01 should have a room with doors to seal.")
+	var room: Dictionary = _level._room_by_id(sealed_id)
+	var far := AmmoBubble.new()
+	far.amount = 8
+	far.position = _level._room_center(room) + Vector3(500.0, 1.5, 500.0)
+	_level.add_child(far)
+	await process_frame
+	if not _level._has_reachable_ammo():
+		return _fail("With every door open, any bubble with ammo is reachable.")
+	for door in _level._doors_for(sealed_id):
+		door.close()
+	if _level._has_reachable_ammo():
+		return _fail("A bubble left in another room is out of reach while this one is sealed.")
+	var near := AmmoBubble.new()
+	near.amount = 8
+	near.position = _level._room_center(room) + Vector3(0.0, 1.5, 0.0)
+	_level.add_child(near)
+	await process_frame
+	if not _level._has_reachable_ammo():
+		return _fail("A bubble inside the sealed room is within reach.")
+	for door in _level._doors_for(sealed_id):
+		door.open()
+	near.queue_free()
+	await process_frame
+	if not _level._has_reachable_ammo():
+		return _fail("Opening the doors puts the far bubble back within reach.")
 	await _unload_level()
 	return true
 

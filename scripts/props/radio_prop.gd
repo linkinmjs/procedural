@@ -5,11 +5,15 @@ extends StaticBody3D
 ##
 ## Lleva dos reproductores con la misma cancion. `PlainSpeaker` es un
 ## AudioStreamPlayer3D comun que suena siempre y marca el tiempo. `Speaker` es
-## el SpatialAudio3D (reverb y oclusion medidas desde la sala), caro en rayos,
-## que el RadioDirector enciende solo en la radio mas cercana al jugador,
-## arrancandolo desde la posicion del plain para que la cancion no salte.
-## Ambos van al bus Music, asi el volumen de musica de las opciones la sigue
-## controlando aunque suene posicionada.
+## el SpatialAudio3D (reverb y oclusion medidas desde la sala), caro en rayos y
+## en buses, que el RadioDirector enciende solo en la radio mas cercana al
+## jugador, arrancandolo desde la posicion del plain para que la cancion no
+## salte. El cruce es en serie: primero se calla uno y recien despues suena el
+## otro, porque dos copias de la misma cancion sumadas recortaban y, con unos
+## milisegundos de desfase, sonaban a flanger. Donde `Quality` apaga el audio
+## espacial (Web) la radio se queda sin `Speaker` antes de entrar al arbol y
+## suena solo con el plain. Ambos van al bus Music, asi el volumen de musica
+## de las opciones la sigue controlando aunque suene posicionada.
 ##
 ## Un disparo la rompe: deja de sonar, suelta esquirlas y queda gris en su
 ## esquina como rastro de lo que paso.
@@ -22,7 +26,8 @@ const WORLD_LAYER := 1
 const SILENT_DB := -80.0
 @export_range(0.0, 1.0, 0.05) var crossfade_seconds := 0.25
 
-@onready var speaker: AudioStreamPlayer3D = $Speaker
+## Nulo cuando el perfil no paga audio espacial.
+@onready var speaker: AudioStreamPlayer3D = get_node_or_null("Speaker")
 @onready var plain_speaker: AudioStreamPlayer3D = $PlainSpeaker
 @onready var model: MeshInstance3D = $Model
 
@@ -30,6 +35,18 @@ var is_broken := false
 var spatial_active := false
 var _plain_volume_db := -4.0
 var _fade_tween: Tween
+
+
+## El addon arma sus veinte reproductores y buses en su propio _ready, que
+## corre antes que el de la radio: la unica forma de no pagarlos es sacar el
+## nodo antes de que entre al arbol.
+func _enter_tree() -> void:
+	if Quality.spatial_audio_enabled():
+		return
+	var spatial := get_node_or_null("Speaker")
+	if spatial != null:
+		remove_child(spatial)
+		spatial.free()
 
 
 func _ready() -> void:
@@ -41,8 +58,26 @@ func _ready() -> void:
 	_set_spatial_ticking(false)
 
 
+## Si la radio puede llevar la acustica de sala en esta plataforma.
+func has_spatial() -> bool:
+	return speaker != null
+
+
+## Si la fuente del addon esta emitiendo. El nodo Speaker en si nunca "suena":
+## delega en los reproductores que crea adentro.
+func is_spatial_playing() -> bool:
+	if speaker == null:
+		return false
+	var source: Variant = speaker.get("soundsource")
+	if source == null:
+		return bool(speaker.playing)
+	var player: Variant = source.get("soundplayer_active")
+	return player != null and bool(player.playing)
+
+
 func _set_spatial_ticking(ticking: bool) -> void:
-	speaker.set_physics_process(ticking)
+	if speaker != null:
+		speaker.set_physics_process(ticking)
 
 
 ## Contrato de los disparos (grupo Target + este metodo). Un impacto alcanza.
@@ -63,30 +98,40 @@ func break_radio() -> void:
 	broken.emit(self)
 
 
-## Enciende o apaga la acustica de sala. Al encender, el espacial arranca desde
-## donde va el plain y el plain se funde; al apagar, vuelve el plain y el
-## espacial se detiene recien cuando termino de volver.
+## Enciende o apaga la acustica de sala, siempre en serie: nunca suenan las
+## dos copias a la vez. Al encender, el plain se hunde y recien callado arranca
+## el espacial desde donde iba; al apagar, el espacial se corta en seco y el
+## plain vuelve. Sin Speaker (perfil sin audio espacial) no hay nada que hacer.
 func set_spatial_active(active: bool) -> void:
-	if is_broken or active == spatial_active:
+	if is_broken or speaker == null or active == spatial_active:
 		return
 	spatial_active = active
 	if _fade_tween != null and _fade_tween.is_valid():
 		_fade_tween.kill()
 	_fade_tween = create_tween()
-	_set_spatial_ticking(active)
 	if active:
-		var from_position := plain_speaker.get_playback_position() + AudioServer.get_time_since_last_mix()
-		if speaker.has_method("do_play"):
-			speaker.call("do_play", from_position)
-		else:
-			speaker.play(from_position)
 		_fade_tween.tween_property(plain_speaker, "volume_db", SILENT_DB, crossfade_seconds)
+		_fade_tween.tween_callback(_start_spatial)
 	else:
+		_set_spatial_ticking(false)
+		_stop_spatial()
 		_fade_tween.tween_property(plain_speaker, "volume_db", _plain_volume_db, crossfade_seconds)
-		_fade_tween.tween_callback(_stop_spatial)
+
+
+func _start_spatial() -> void:
+	if is_broken or not spatial_active or speaker == null:
+		return
+	_set_spatial_ticking(true)
+	var from_position := plain_speaker.get_playback_position() + AudioServer.get_time_since_last_mix()
+	if speaker.has_method("do_play"):
+		speaker.call("do_play", from_position)
+	else:
+		speaker.play(from_position)
 
 
 func _stop_spatial() -> void:
+	if speaker == null:
+		return
 	if speaker.has_method("do_stop"):
 		speaker.call("do_stop")
 	else:

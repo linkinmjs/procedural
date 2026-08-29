@@ -231,6 +231,12 @@ Jolt, capas segmentadas, audio pooleado en `Sfx`, materiales cacheados en
   addon (que mide la sala aunque no suene), así que el costo no escala con la
   cantidad de radios.
   **Fix:** bajar `audiophysics_ticks` a 4-5 en ambos.
+  *2026-08-28:* en Web las radios ya no usan el addon (`Quality.spatial_audio_enabled()`
+  las deja sin `Speaker`), porque sus 20 buses con delay+reverb+filtro por radio
+  dejaban sin buffer al audio mezclado en el hilo principal (crepitación
+  reportada en itch.io). Queda el `FireAudio` del disparo, que en Web sigue
+  pagando lo mismo: si vuelve a crepitar, es el próximo candidato a apagarse
+  ahí. `Master` tiene ahora un `AudioEffectHardLimiter`.
 
 ### Medio
 

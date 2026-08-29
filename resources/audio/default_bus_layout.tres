@@ -1,10 +1,21 @@
-[gd_resource type="AudioBusLayout" format=3]
+[gd_resource type="AudioBusLayout" load_steps=2 format=3]
 
-; Tres buses: el general y dos hijos. Hoy solo suena la Glock, que va por SFX y
-; Music esta vacio, pero el hueco queda hecho: el dia que haya musica no hay que
-; retocar el menu de opciones ni migrar los ajustes ya guardados del jugador.
+; Tres buses: el general y dos hijos (Music para las radios, SFX para el resto).
+; Master lleva un limitador: las radios espaciales suman hasta veinte
+; reproductores y sin techo cualquier pico recorta en seco, sobre todo en Web.
+
+[sub_resource type="AudioEffectHardLimiter" id="limiter_master"]
+ceiling_db = -0.5
 
 [resource]
+bus/0/name = &"Master"
+bus/0/solo = false
+bus/0/mute = false
+bus/0/bypass_fx = false
+bus/0/volume_db = 0.0
+bus/0/send = &""
+bus/0/effect/0/effect = SubResource("limiter_master")
+bus/0/effect/0/enabled = true
 bus/1/name = &"Music"
 bus/1/solo = false
 bus/1/mute = false

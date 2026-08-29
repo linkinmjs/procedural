@@ -33,6 +33,14 @@ static func shadows_enabled() -> bool:
 	return profile() == Profile.HIGH
 
 
+## La acustica de sala del addon spatial_audio_3d (veinte reproductores y
+## veinte buses con delay, reverb y filtro por fuente) corre solo en el perfil
+## alto. En Web, sin hilos, el audio se mezcla en el hilo principal y esos
+## efectos lo dejan sin buffer: se oye como crepitacion y saturacion.
+static func spatial_audio_enabled() -> bool:
+	return profile() == Profile.HIGH
+
+
 ## Factor de resolucion del render 3D respecto de la ventana.
 static func render_scale() -> float:
 	return 1.0 if profile() == Profile.HIGH else MEDIUM_RENDER_SCALE

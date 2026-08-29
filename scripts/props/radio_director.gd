@@ -3,14 +3,16 @@ extends Node
 
 ## Reparte la acustica de sala entre las radios del nivel.
 ##
-## Cada SpatialAudio3D activo cuesta cientos de rayos por segundo, asi que solo
-## la radio mas cercana a la camara lleva reverb y oclusion; el resto suena con
-## su reproductor 3D comun. La histeresis evita que dos radios a distancia
-## parecida se roben el turno a cada paso.
+## Cada SpatialAudio3D activo cuesta cientos de rayos por segundo y veinte
+## buses con efectos, asi que solo la radio mas cercana a la camara lleva reverb
+## y oclusion; el resto suena con su reproductor 3D comun. La histeresis evita
+## que dos radios a distancia parecida se roben el turno a cada paso: cada
+## cambio calla una radio un instante, asi que mejor pocos. Donde Quality apaga
+## el audio espacial (Web) el director no activa ninguna.
 
 @export_range(0.1, 2.0, 0.1) var poll_seconds := 0.5
 ## Metros que la nueva candidata tiene que ganarle a la activa para reemplazarla.
-@export_range(0.0, 20.0, 0.5) var switch_hysteresis := 1.5
+@export_range(0.0, 20.0, 0.5) var switch_hysteresis := 4.0
 
 var radios: Array[RadioProp] = []
 var active: RadioProp
@@ -33,6 +35,8 @@ func _process(delta: float) -> void:
 
 ## Elige la radio sana mas cercana y, si vale la pena, le pasa la acustica.
 func poll() -> void:
+	if not Quality.spatial_audio_enabled():
+		return
 	var camera := get_viewport().get_camera_3d() if is_inside_tree() else null
 	if camera == null:
 		return

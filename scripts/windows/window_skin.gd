@@ -83,7 +83,9 @@ static func apply(content: Control, skin_id: String) -> void:
 		titlebar.offset_bottom = float(skin.titlebar_height)
 	for node in _close_controls(content):
 		if node is TextureRect:
-			(node as TextureRect).texture = skin.close_texture
+			var close_rect := node as TextureRect
+			close_rect.texture = skin.close_texture
+			_style_close_rect(close_rect, bool(skin.close_is_full_button))
 		elif node is Button and (node as Button).icon != null:
 			var button := node as Button
 			button.icon = skin.close_texture
@@ -95,6 +97,48 @@ static func apply(content: Control, skin_id: String) -> void:
 				button.add_theme_constant_override("icon_max_width", 0)
 				for style in ["normal", "hover", "pressed", "focus", "disabled"]:
 					button.add_theme_stylebox_override(style, StyleBoxEmpty.new())
+
+
+## La X de XP es un boton completo dibujado en la textura: llena su recuadro y
+## no necesita nada detras. La retro es solo el glifo, que en las escenas
+## retro de fabrica va sobre un boton gris del theme; sobre la barra azul
+## oscura, el glifo negro pelado desaparecia y la X — que en casi todas las
+## familias es la zona que mejor paga — parecia no existir. Aca se le dibuja
+## ese mismo boton gris detras, y el glifo (10x11) queda centrado en vez de
+## estirado al recuadro.
+static func _style_close_rect(rect: TextureRect, full_button: bool) -> void:
+	var parent := rect.get_parent() as Control
+	if parent == null:
+		return
+	var backing := parent.get_node_or_null(NodePath(rect.name + "SkinBacking")) as NinePatchRect
+	if full_button:
+		rect.stretch_mode = TextureRect.STRETCH_SCALE
+		if backing != null:
+			backing.visible = false
+		return
+	rect.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	if backing == null:
+		backing = NinePatchRect.new()
+		backing.name = rect.name + "SkinBacking"
+		backing.texture = preload("res://assets/textures/ui/retro/button_normal.png")
+		backing.patch_margin_left = 3
+		backing.patch_margin_top = 3
+		backing.patch_margin_right = 3
+		backing.patch_margin_bottom = 3
+		backing.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		parent.add_child(backing)
+	backing.visible = true
+	# Justo detras de la X, con su mismo recuadro (los offsets siguen a la
+	# variante si esta redimensiono la ventana).
+	parent.move_child(backing, rect.get_index())
+	backing.anchor_left = rect.anchor_left
+	backing.anchor_top = rect.anchor_top
+	backing.anchor_right = rect.anchor_right
+	backing.anchor_bottom = rect.anchor_bottom
+	backing.offset_left = rect.offset_left
+	backing.offset_top = rect.offset_top
+	backing.offset_right = rect.offset_right
+	backing.offset_bottom = rect.offset_bottom
 
 
 ## Los controles que dibujan la X. En las escenas XP la de la barra se llama

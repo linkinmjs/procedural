@@ -98,6 +98,7 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | Minimizar | → `_animate_minimize` | 0.1 s, caída 0.45 m | Velocidad y recorrido del cierre genérico. |
 | Apagado CRT | → `_animate_crt_off` | 0.1 + 0.09 s | Colapso vertical y apagado de la línea. |
 | `close_style` por familia | `popup_window.gd`, `critical_error_window.gd`, `firewall_window.gd` → `_ready` | `CLOSE_STYLE_CRT` | Qué animación de cierre usa cada familia. |
+| X con skin retro sobre escena XP | `window_skin.gd` → `_style_close_rect` | `button_normal.png` detrás del glifo | La X retro es solo el glifo negro y sobre la barra azul oscura desaparecía (y es la zona que mejor paga): se le dibuja detrás el botón gris de las escenas retro de fábrica, con el glifo centrado. |
 | `SHUFFLE_SECONDS` / `SHUFFLE_REDRAW_MARGIN` | `critical_error_window.gd` | 0.16 / 0.1 s | Deslizamiento de los botones del error crítico al barajarse, y cuánto más se mantiene vivo el redibujado de la pantalla (que normalmente es `UPDATE_ONCE`): sin eso quedaba congelada con los botones a mitad de camino, superpuestos. |
 | Sacudida al impacto | → `_shake_screen` | ±0.025 m, 3 golpes | Fuerza y cantidad de sacudidas del panel por tiro. |
 | Botón presionado | → `_press_zone_control` | 1 px, 0.08 s | Hundimiento y duración del efecto de clic. |

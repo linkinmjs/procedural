@@ -177,7 +177,7 @@ les dispara, asi que un menu que se viera igual seria ambiguo. La piel se elige
 con `skin` antes de llamar a `build_window()`.
 
 - Escritorio: iconos de `procedural.exe`, niveles, opciones, mi pc y papelera. Un clic selecciona, y solo uno queda seleccionado a la vez; el doble clic ejecuta. `procedural.exe` abre la ventana del juego, `niveles` el selector de niveles y `mi pc` la vitrina del jugador; la papelera hace parpadear el boton de la ventana en la barra, como un aviso pendiente, para devolver al jugador al juego.
-- Barra de tareas: boton de inicio con su menu, boton de la ventana abierta, el nivel del jugador y el reloj. Cerrar la ventana la deja en la barra; su boton la vuelve a abrir. Si la ventana esta cerrada, el aviso queda encendido hasta que la abran.
+- Barra de tareas: boton de inicio con su menu, boton de la ventana abierta, el nivel del jugador y el reloj. La ventana del juego no lleva X (una X que solo manda a la barra parece minimizar): se oculta y se recupera desde su boton de la barra. Si la ventana esta oculta, el aviso queda encendido hasta que la abran.
 - Menu principal: el nivel del jugador con su barra de XP (abre Mi PC), jugar el nivel actual de la campania, seleccionar nivel, opciones y salir. La campania sigue donde quedo la ultima vez.
 - Seleccion de nivel: una fila por nivel con rango, porcentaje del techo, record, mejor tiempo e intentos. Completar un nivel abre el siguiente; los bloqueados se ven con su motivo.
 - Mi PC: nivel y barra de XP, estadisticas acumuladas, los 24 logros (ganados en color, por ganar en gris, ocultos como `???`) y los ultimos eventos de XP.

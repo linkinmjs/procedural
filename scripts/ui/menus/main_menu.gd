@@ -57,7 +57,10 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	_build_wallpaper()
 	_build_desktop_icons()
-	build_window(GAME_NAME, true, Color(0, 0, 0, 0))
+	# Sin X: la ventana del juego solo se ocultaba a la barra, y una X que
+	# minimiza confunde. Se abre y se cierra desde su boton de la barra de
+	# tareas y desde el ejecutable del escritorio.
+	build_window(GAME_NAME, false, Color(0, 0, 0, 0))
 	_fill_window()
 	_build_taskbar()
 	_build_start_menu()
@@ -67,9 +70,9 @@ func _ready() -> void:
 	crt.power_on()
 
 
-## La ventana del menu no se cierra del todo: cerrarla deja el escritorio a la
-## vista y su boton de la barra de tareas la vuelve a abrir, como en cualquier
-## sistema operativo.
+## La ventana del menu no se cierra del todo: ocultarla deja el escritorio a
+## la vista y su boton de la barra de tareas la vuelve a abrir. No tiene X:
+## una X que solo manda a la barra parece minimizar, no cerrar.
 func close() -> void:
 	_set_window_visible(false)
 

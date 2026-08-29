@@ -47,6 +47,8 @@ func _run() -> void:
 		return
 	if not await _check_touch():
 		return
+	if not await _check_travel():
+		return
 	print("Ammo bubble smoke test passed.")
 	quit()
 
@@ -63,14 +65,16 @@ func _check_shot() -> bool:
 		return _fail("The bubble must be a shootable target on the target layer.")
 	if not bubble.is_in_group(AmmoBubble.GROUP):
 		return _fail("The bubble must join its own group so the level can burst it.")
-	var label := bubble.get_node_or_null("Amount") as Label3D
-	if label == null or label.text != "+12":
+	var label := bubble.get_node_or_null("Face/Amount") as Label3D
+	if label == null or label.text != "12":
 		return _fail("The bubble should show its amount.")
+	if bubble.get_node_or_null("Face/Bullet") == null:
+		return _fail("The bubble should show a bullet next to the amount.")
 	bubble.Hit_Successful(25.0)
 	await process_frame
 	if int(_manager.granted) != 10:
 		return _fail("The bubble should hand over only what fits in the reserve, got %d." % int(_manager.granted))
-	if not is_instance_valid(bubble) or bubble.amount != 2 or label.text != "+2":
+	if not is_instance_valid(bubble) or bubble.amount != 2 or label.text != "2":
 		return _fail("A bubble with leftovers should stay with the remainder.")
 	_manager.current_weapon_slot.reserve_ammo = 30
 	bubble.Hit_Successful(25.0)
@@ -120,6 +124,30 @@ func _check_touch() -> bool:
 	await process_frame
 	if int(_manager.granted) != before + 5:
 		return _fail("Touching the bubble should hand over its ammo, got %d." % (int(_manager.granted) - before))
+	return true
+
+
+## Mientras viaja desde el bloque hasta su reposo no se puede tomar; al llegar
+## queda quieta en el punto pedido y recien entonces se entrega.
+func _check_travel() -> bool:
+	var bubble := AmmoBubble.new()
+	bubble.amount = 5
+	root.add_child(bubble)
+	bubble.travel_from(Vector3(6.0, 2.5, 0.0), Vector3(0.0, 1.5, 0.0), 0.2)
+	if bubble.settled:
+		return _fail("A travelling bubble should not count as settled.")
+	var before := int(_manager.granted)
+	bubble.Hit_Successful(25.0)
+	await process_frame
+	if int(_manager.granted) != before:
+		return _fail("A travelling bubble must not hand over ammo yet.")
+	await create_timer(0.6, true, false, true).timeout
+	if not bubble.settled or bubble.global_position.distance_to(Vector3(0.0, 1.5, 0.0)) > 0.3:
+		return _fail("The bubble should settle at its rest point, got %s." % str(bubble.global_position))
+	bubble.Hit_Successful(25.0)
+	await process_frame
+	if int(_manager.granted) != before + 5:
+		return _fail("A settled bubble should hand over its ammo.")
 	return true
 
 

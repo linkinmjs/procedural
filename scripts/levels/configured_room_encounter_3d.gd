@@ -44,6 +44,9 @@ var cleared := false
 var deployed_blocks := false
 
 var _pending_blocks: Array[TargetBlock3D] = []
+## Donde estaba el ultimo bloque que se cerro: de ahi sale la recompensa.
+var last_block_position := Vector3.ZERO
+var has_last_block_position := false
 var _current_wave_index := -1
 ## Paredes con un bloque colgado por una descarga infectada. Esa pared queda
 ## ocupada por la pantalla de error, asi que las oleadas siguientes no ponen nada
@@ -193,6 +196,9 @@ func _slot_appears_later(slot: String) -> bool:
 ## Cerrar el ultimo bloque de la oleada no limpia la sala: descubre la siguiente.
 ## La sala se limpia cuando ya no quedan oleadas.
 func _on_block_closed(block: TargetBlock3D) -> void:
+	if is_instance_valid(block) and block.is_inside_tree():
+		last_block_position = block.global_position
+		has_last_block_position = true
 	_pending_blocks.erase(block)
 	if _pending_blocks.is_empty():
 		call_deferred("_start_next_wave")

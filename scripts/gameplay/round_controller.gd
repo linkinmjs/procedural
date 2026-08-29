@@ -5,6 +5,8 @@ signal health_changed(current_health: float, max_health: float)
 signal time_changed(time_remaining: float)
 signal accuracy_changed(hits: int, attacks: int, accuracy_percent: float)
 signal ammo_changed(magazine_ammo: int, reserve_ammo: int)
+## Balas que entraron a la reserva al tomar una recompensa.
+signal ammo_collected(amount: int)
 signal log_added(message: String, event_kind: String)
 signal round_armed
 signal round_started
@@ -111,6 +113,12 @@ func register_player(player: Node) -> void:
 	var current_slot: Variant = manager.get("current_weapon_slot")
 	if current_slot != null:
 		report_ammo_changed([current_slot.current_ammo, current_slot.reserve_ammo])
+
+
+## Una burbuja de municion se tomo: `amount` es lo que entro en la reserva.
+func report_ammo_collected(amount: int) -> void:
+	if amount > 0:
+		ammo_collected.emit(amount)
 
 
 func report_ammo_changed(ammo: Array) -> void:

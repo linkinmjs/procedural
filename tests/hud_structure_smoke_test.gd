@@ -47,6 +47,16 @@ func _run() -> void:
 		return _fail("The live HUD should not carry an accuracy panel any more.")
 	if hud.ammo_value.text != "07 / 24":
 		return _fail("Ammo label should show magazine and reserve: got %s." % hud.ammo_value.text)
+	# Tomar municion hace flotar un "+N" junto al contador; disparar o recargar
+	# solo mueven el contador.
+	controller.report_ammo_changed([6, 24])
+	if hud.ammo_value.get_child_count() != 0:
+		return _fail("Firing must not float an ammo gain.")
+	controller.report_ammo_changed([7, 34])
+	controller.report_ammo_collected(10)
+	var gain := hud.ammo_value.get_node_or_null("AmmoGain") as Label
+	if gain == null or gain.text != "+10":
+		return _fail("Picking up ammo should float a +N next to the counter.")
 	if hud.health_value.text != "100 / 100":
 		return _fail("Health label should show current and max HP: got %s." % hud.health_value.text)
 

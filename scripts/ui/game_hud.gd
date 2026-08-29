@@ -10,6 +10,9 @@ extends CanvasLayer
 ## borde de la pantalla queda limpio cuando no pasa nada.
 
 const MAX_LOG_LINES := 5
+## Recorrido y duracion del "+N" que flota al tomar municion.
+const AMMO_GAIN_RISE := 22.0
+const AMMO_GAIN_SECONDS := 0.9
 
 ## Los slots son columnas ancladas que abrazan a su panel contra el borde
 ## inferior; las animaciones de posicion (entrada, sacudida) mueven al slot,
@@ -55,6 +58,7 @@ func bind(controller: RoundController) -> void:
 	controller.health_changed.connect(_on_health_changed)
 	controller.time_changed.connect(_on_time_changed)
 	controller.ammo_changed.connect(_on_ammo_changed)
+	controller.ammo_collected.connect(_on_ammo_collected)
 	controller.log_added.connect(_on_log_added)
 	_paint_health(controller.current_health, controller.max_health)
 	_paint_time(controller.time_remaining)
@@ -217,6 +221,37 @@ func _on_ammo_changed(magazine: int, reserve: int) -> void:
 	_touch_vitals()
 	if fired:
 		_punch_label(ammo_value, 1.08, _ammo_tween, func(tween: Tween) -> void: _ammo_tween = tween)
+
+
+## Tomar municion merece un aviso propio, distinto del contador que cambia:
+## el "+N" cuenta que la burbuja se tomo aunque no se la haya visto reventar.
+func _on_ammo_collected(amount: int) -> void:
+	if amount <= 0:
+		return
+	_float_ammo_gain(amount)
+	_touch_vitals()
+	_punch_label(ammo_value, 1.14, _ammo_tween, func(tween: Tween) -> void: _ammo_tween = tween)
+
+
+## "+N" que nace pegado al contador, sube y se desvanece. Es lo que cuenta que
+## la burbuja se tomo aunque el jugador no la haya visto reventar.
+func _float_ammo_gain(amount: int) -> void:
+	var gain := Label.new()
+	gain.name = "AmmoGain"
+	gain.text = "+%d" % amount
+	gain.top_level = true
+	gain.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gain.add_theme_color_override("font_color", HudStyle.ACCENT_GOLD)
+	gain.add_theme_font_size_override("font_size", ammo_value.get_theme_font_size("font_size"))
+	ammo_value.add_child(gain)
+	gain.global_position = ammo_value.global_position + Vector2(ammo_value.size.x + 10.0, 0.0)
+	var tween := gain.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(gain, "position:y", gain.position.y - AMMO_GAIN_RISE, AMMO_GAIN_SECONDS) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(gain, "modulate:a", 0.0, AMMO_GAIN_SECONDS).set_delay(AMMO_GAIN_SECONDS * 0.4)
+	tween.set_parallel(false)
+	tween.tween_callback(gain.queue_free)
 
 
 func _paint_ammo(magazine: int, reserve: int) -> void:

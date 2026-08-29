@@ -58,6 +58,13 @@ func _run() -> void:
 		_fail("The results should open over the level instead of replacing it.")
 		return
 	results.reveal_all()
+	# Completado, la tecla apurada avanza: el foco por defecto es el boton de
+	# siguiente nivel si lo hay, y reintentar recien cuando no hay siguiente.
+	var focused := results._default_focus as Button
+	var expected_focus := "MENU_NEXT_LEVEL" if expects_next else "MENU_RETRY"
+	if focused == null or focused.text != expected_focus:
+		_fail("The default focus should be %s, got %s." % [expected_focus, focused.text if focused != null else "nothing"])
+		return
 	if not expects_next:
 		menus.close_all()
 		print("Level transition smoke test passed.")

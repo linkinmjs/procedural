@@ -116,13 +116,18 @@ func _build_actions() -> void:
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
 	content.add_child(actions)
-	_add_action(actions, "MENU_RETRY", retry)
+	var retry_button := _add_action(actions, "MENU_RETRY", retry)
+	var next_button: Button = null
 	if _has_next and bool(_summary.get("completed", false)):
-		_add_action(actions, "MENU_NEXT_LEVEL", advance)
+		next_button = _add_action(actions, "MENU_NEXT_LEVEL", advance)
 	_add_action(actions, "MENU_MAIN_MENU", to_main_menu)
+	# La tecla apurada tiene que llevar adonde va la partida: al siguiente
+	# nivel si este quedo completado, a reintentar si no. Con el foco en
+	# reintentar, la barra que "apuraba" el desglose reiniciaba un nivel ganado.
+	set_default_focus(next_button if next_button != null else retry_button)
 
 
-func _add_action(row: HBoxContainer, text: String, on_pressed: Callable) -> void:
+func _add_action(row: HBoxContainer, text: String, on_pressed: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.custom_minimum_size = Vector2(130.0, 30.0)
@@ -130,8 +135,7 @@ func _add_action(row: HBoxContainer, text: String, on_pressed: Callable) -> void
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.pressed.connect(on_pressed)
 	row.add_child(button)
-	if row.get_child_count() == 1:
-		set_default_focus(button)
+	return button
 
 
 func _reveal_next() -> void:

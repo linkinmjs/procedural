@@ -184,7 +184,7 @@ con `skin` antes de llamar a `build_window()`.
 - Opciones: volumen general, musica y efectos; sensibilidad del mouse; idioma; ventana o pantalla completa, resolucion y filtro de monitor. Se abre desde el escritorio y desde la pausa.
 - Entrada al nivel: un velo con el numero del nivel que entra y se va en poco mas de dos segundos. Cualquier tecla lo saltea y reintentar no lo muestra.
 - Pausa: reanudar, reintentar y abandonar el nivel, que pide confirmacion.
-- Resultados: unica pantalla de cierre del nivel. Desglose animado del puntaje, rango y record, con reintentar, avanzar y volver al menu. El HUD no repite el desglose: durante la espera deja a la vista el cobro de la ultima cadena.
+- Resultados: unica pantalla de cierre del nivel. Desglose animado del puntaje, rango y record, con reintentar, avanzar y volver al menu; con el nivel completado el foco por defecto queda en avanzar, asi la tecla apurada no reinicia un nivel ganado. El HUD no repite el desglose: durante la espera deja a la vista el cobro de la ultima cadena.
 
 Reintentar nunca pide confirmacion ni pasa por un menu: tiene la tecla Retroceso
 durante la partida.

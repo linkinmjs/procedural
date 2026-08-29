@@ -14,6 +14,9 @@ func _ready() -> void:
 
 	var main_menu := MAIN_MENU_SCENE.instantiate() as MainMenu
 	add_child(main_menu)
+	# El monitor encendido del todo: las capturas no dependen del reloj del
+	# encendido.
+	main_menu.crt.settle()
 	await _drawn()
 	if not _inside_viewport(main_menu.window):
 		_fail("The main menu window should sit inside the reference viewport.")

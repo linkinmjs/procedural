@@ -30,7 +30,8 @@ campania.
 
 ## Escenas
 
-- `scenes/ui/menus/main_menu.tscn`: escena inicial del proyecto. Escritorio con la ventana del menu principal.
+- `scenes/ui/boot_sequence.tscn`: escena inicial del proyecto. Splash de Godot y firma del estudio, tipeada en una terminal; termina en el menu principal.
+- `scenes/ui/menus/main_menu.tscn`: escritorio con la ventana del menu principal, visto a traves de un monitor de tubo (`CrtOverlay`).
 - `scenes/levels/playable_level.tscn`: nivel jugable construido desde el JSON del nivel actual de la campania.
 - `scenes/sandbox/dungeon_test.tscn`: genera un dungeon recorrible y coloca al jugador en la sala de entrada.
 - `scenes/sandbox/weapon_test.tscn`: poligono con cajas de municion y blancos reutilizables.
@@ -138,10 +139,29 @@ Vista del HUD de puntaje, en `.godot/score-hud-chain.png` (cadena viva), `.godot
 
 ## Menus
 
-El juego arranca en un escritorio de Windows: fondo, iconos, barra de tareas con
+El juego arranca con dos tarjetas (`BootSequence`,
+[`scenes/ui/boot_sequence.tscn`](scenes/ui/boot_sequence.tscn)): el splash
+«Made with Godot» del pack de Kenney, que es la misma imagen y el mismo fondo
+que el boot splash del motor en `project.godot` (asi del splash a la escena no
+hay corte), y la firma del estudio: una terminal negra donde `OMINOSO` se
+tipea letra por letra con el cursor `_` titilando. Cualquier tecla o clic
+saltea la tarjeta en curso; dos, el arranque entero. Dura unos cuatro segundos.
+Volver al menu desde un nivel no las repite.
+
+Despues viene un escritorio de Windows: fondo, iconos, barra de tareas con
 boton de inicio y una ventana abierta. `MenuStack` es un autoload que apila los
 menus sobre la escena en curso y es el unico que decide si el arbol esta pausado
 y como esta el mouse.
+
+El escritorio se ve a traves de un monitor de tubo (`CrtOverlay`, shader
+[`assets/shaders/crt_monitor.gdshader`](assets/shaders/crt_monitor.gdshader)):
+al llegar se enciende como un tubo (una linea que se abre a lo ancho y se
+despliega a lo alto) y despues quedan lineas de barrido, viñeta, esquinas
+redondeadas y un parpadeo minimo, calibrados para que el menu se siga leyendo
+sin cansar. No hay curvatura a proposito: correria el dibujo respecto de donde
+el mouse hace clic. El vidrio cubre tambien las ventanas que se abren sobre el
+escritorio (opciones, niveles, Mi PC) y no al nivel, que es el mundo de adentro
+de la PC. Se apaga desde Opciones («Filtro de monitor»).
 
 Los menus se dibujan con una de dos pieles, y cada una dice donde esta parado el
 jugador:
@@ -161,7 +181,7 @@ con `skin` antes de llamar a `build_window()`.
 - Menu principal: el nivel del jugador con su barra de XP (abre Mi PC), jugar el nivel actual de la campania, seleccionar nivel, opciones y salir. La campania sigue donde quedo la ultima vez.
 - Seleccion de nivel: una fila por nivel con rango, porcentaje del techo, record, mejor tiempo e intentos. Completar un nivel abre el siguiente; los bloqueados se ven con su motivo.
 - Mi PC: nivel y barra de XP, estadisticas acumuladas, los 24 logros (ganados en color, por ganar en gris, ocultos como `???`) y los ultimos eventos de XP.
-- Opciones: volumen general, musica y efectos; sensibilidad del mouse; idioma; ventana o pantalla completa y resolucion. Se abre desde el escritorio y desde la pausa.
+- Opciones: volumen general, musica y efectos; sensibilidad del mouse; idioma; ventana o pantalla completa, resolucion y filtro de monitor. Se abre desde el escritorio y desde la pausa.
 - Entrada al nivel: un velo con el numero del nivel que entra y se va en poco mas de dos segundos. Cualquier tecla lo saltea y reintentar no lo muestra.
 - Pausa: reanudar, reintentar y abandonar el nivel, que pide confirmacion.
 - Resultados: unica pantalla de cierre del nivel. Desglose animado del puntaje, rango y record, con reintentar, avanzar y volver al menu. El HUD no repite el desglose: durante la espera deja a la vista el cobro de la ultima cadena.
@@ -181,6 +201,18 @@ Pruebas de las oleadas de sala y de las familias de ventana:
 Vista de las familias, en `.godot/window-families.png` y `.godot/window-download-confirm.png`:
 
 `Godot_v4.7-stable_win64_console.exe --path . res://tests/window_families_visual_smoke_test.tscn`
+
+Prueba del arranque (tarjetas, salteo por tecla, llegada al menu con el monitor encendiendose, y que el boot splash del motor sea la misma imagen que la primera tarjeta):
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/boot_sequence_smoke_test.gd`
+
+Prueba del monitor (capa por encima de los menus, clics que pasan, encendido y apagado desde las opciones):
+
+`Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/crt_overlay_smoke_test.gd`
+
+Vista del arranque y del monitor, en `.godot/boot-godot.png`, `.godot/boot-ominoso.png`, `.godot/menu-crt-power-on.png` y `.godot/menu-crt.png`:
+
+`Godot_v4.7-stable_win64_console.exe --path . res://tests/boot_visual_smoke_test.tscn`
 
 Prueba del flujo de menus:
 

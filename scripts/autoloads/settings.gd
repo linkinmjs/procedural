@@ -1,7 +1,8 @@
 class_name GameSettings
 extends Node
 
-## Ajustes del jugador: audio, idioma, pantalla y sensibilidad.
+## Ajustes del jugador: audio, idioma, pantalla, sensibilidad y el filtro de
+## monitor del menu.
 ##
 ## El nodo se busca por su nombre de autoload, como el resto de los autoloads
 ## del proyecto; el `class_name` esta para poder leer sus constantes con tipado.
@@ -17,6 +18,7 @@ extends Node
 
 signal locale_changed(locale: String)
 signal sensitivity_changed(value: float)
+signal crt_changed(enabled: bool)
 
 const SETTINGS_PATH := "user://settings.cfg"
 
@@ -52,6 +54,9 @@ var _volumes: Dictionary = {}
 var _sensitivity := DEFAULT_SENSITIVITY
 var _fullscreen := false
 var _resolution := RESOLUTIONS[3]
+## El monitor de tubo del menu principal (CrtOverlay). Se puede apagar: un
+## filtro que cansa la vista no es un filtro que valga la pena.
+var _crt := true
 ## Mientras se esta cargando no se guarda: si no, aplicar cada valor leido
 ## reescribiria el archivo una vez por linea.
 var _loading := false
@@ -195,6 +200,18 @@ func _apply_screen() -> void:
 	DisplayServer.window_set_position((screen - _resolution) / 2)
 
 
+# --- Monitor -----------------------------------------------------------------
+
+func is_crt_enabled() -> bool:
+	return _crt
+
+
+func set_crt_enabled(value: bool) -> void:
+	_crt = value
+	_save()
+	crt_changed.emit(_crt)
+
+
 # --- Persistencia ------------------------------------------------------------
 
 func _load() -> void:
@@ -213,6 +230,7 @@ func _load() -> void:
 			_resolution = saved_resolution
 		else:
 			_resolution = _current_window_resolution()
+		_crt = bool(config.get_value("screen", "crt", true))
 		_apply_screen()
 	else:
 		# Primera partida: los volumenes ya estan al maximo y el idioma es el que
@@ -255,4 +273,5 @@ func _write() -> void:
 	config.set_value("input", "sensitivity", _sensitivity)
 	config.set_value("screen", "fullscreen", _fullscreen)
 	config.set_value("screen", "resolution", _resolution)
+	config.set_value("screen", "crt", _crt)
 	config.save(SETTINGS_PATH)

@@ -6,6 +6,8 @@
 - Cielo: shader de cielo procedural con nubes, sol, luna y estrellas, en `assets/skies/`.
 - UI de Windows XP: pack de NullTale (`assets/_raw/WinXp.zip`). De ahi salen el theme de ventana, la barra de tareas, el boton de inicio, los iconos del escritorio y el fondo de pantalla.
 - UI retro gris: RetroWindowsGUI (`assets/_raw/RetroWindowsGUI.zip`), usado por el theme retro de las ventanas disparables.
+- Splash de Godot: pack Godot-SplashScreens de Kenney (`Screen/Pixel logo/original-large-dark.png`, reducido a 1920x1080 en `assets/textures/ui/splash/`). El logo de Godot es de Andrea Calabro, CC-BY-4.0; la composicion y los logos derivados del pack son CC0 de Kenney. Detalle en `assets/textures/ui/splash/LICENSE.txt`.
+- Fuente de la terminal del arranque: `Withheld Data` (`assets/fonts/boot/`), copiada del paquete de fuentes de `assets/fonts/` (carpetas con `.gdignore`: solo se importa la que se usa).
 
 De los packs de UI, igual que con las texturas, solo se versiona el recorte en
 uso bajo `assets/textures/ui/<estilo>/`. Los packs completos quedan comprimidos

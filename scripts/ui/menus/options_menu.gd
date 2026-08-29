@@ -1,7 +1,7 @@
 class_name OptionsMenu
 extends MenuScreen
 
-## Opciones: audio, idioma, pantalla y sensibilidad.
+## Opciones: audio, idioma, pantalla, sensibilidad y el filtro de monitor.
 ##
 ## Se abre desde el escritorio y desde la pausa, asi que se dibuja con la piel
 ## que le pasen: de Windows en el menu principal, del juego durante la partida.
@@ -41,6 +41,7 @@ var _sensitivity_value: Label
 var _locale_value: Label
 var _screen_value: Label
 var _resolution_value: Label
+var _crt_value: Label
 var _resolution_arrows: Array[Button] = []
 ## El primer control que puede recibir foco, para que el teclado entre al menu
 ## por arriba y no por donde haya quedado.
@@ -121,6 +122,10 @@ func _add_screen_rows() -> void:
 	_add_row("OPTIONS_RESOLUTION", controls)
 	_refresh_resolution()
 
+	_crt_value = _make_value_label()
+	_add_row("OPTIONS_CRT", _make_chooser(_crt_value, _cycle_crt))
+	_refresh_crt()
+
 
 # --- Cambios -----------------------------------------------------------------
 
@@ -134,6 +139,7 @@ func _cycle_locale(step: int) -> void:
 	_refresh_locale()
 	_refresh_screen()
 	_refresh_resolution()
+	_refresh_crt()
 	set_window_title(tr("MENU_OPTIONS"))
 
 
@@ -156,6 +162,17 @@ func _refresh_locale() -> void:
 
 func _refresh_screen() -> void:
 	_screen_value.text = tr("OPTIONS_SCREEN_FULL" if _config.is_fullscreen() else "OPTIONS_SCREEN_WINDOW")
+
+
+## Encendido o apagado: las dos flechas hacen lo mismo. El monitor del menu
+## esta detras de esta misma ventana, asi que el cambio se ve en el acto.
+func _cycle_crt(_step: int) -> void:
+	_config.set_crt_enabled(not _config.is_crt_enabled())
+	_refresh_crt()
+
+
+func _refresh_crt() -> void:
+	_crt_value.text = tr("OPTIONS_ON" if _config.is_crt_enabled() else "OPTIONS_OFF")
 
 
 ## En el navegador el tamaño del lienzo lo decide la pagina, y en pantalla

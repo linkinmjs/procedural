@@ -10,8 +10,12 @@ config_version=5
 
 [application]
 
+; El boot splash del motor es la misma imagen y el mismo fondo que la primera
+; tarjeta de boot_sequence.tscn, asi que del splash a la escena no hay corte.
+boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 1)
+boot_splash/image="res://assets/textures/ui/splash/godot_splash.png"
 config/name="procedural"
-run/main_scene="res://scenes/ui/menus/main_menu.tscn"
+run/main_scene="res://scenes/ui/boot_sequence.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 

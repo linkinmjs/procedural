@@ -8,6 +8,10 @@ extends MenuScreen
 ## una ventana abierta. Todo sale de los packs de UI que ya usan las ventanas
 ## disparables, asi que el menu y el juego hablan el mismo idioma visual.
 ##
+## Todo se ve a traves de un monitor de tubo (CrtOverlay) que se enciende al
+## llegar: el arranque termina en negro y el escritorio aparece como una
+## pantalla que se prende.
+##
 ## El escritorio es ademas el ensayo del lobby del eje 4: cuando exista la
 ## pantalla gigante, puede mostrar esto mismo.
 
@@ -37,6 +41,8 @@ var task_button: Button
 ## ventana, y el nombre del nivel en la bandeja de la barra.
 var profile_header: ProfileHeader
 var level_chip: Label
+## El vidrio del monitor, por encima de todo lo que se abra sobre el escritorio.
+var crt: CrtOverlay
 
 var _icons: VBoxContainer
 
@@ -56,6 +62,9 @@ func _ready() -> void:
 	_build_taskbar()
 	_build_start_menu()
 	focus_default()
+	crt = CrtOverlay.create()
+	add_child(crt)
+	crt.power_on()
 
 
 ## La ventana del menu no se cierra del todo: cerrarla deja el escritorio a la

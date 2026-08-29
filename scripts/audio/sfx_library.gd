@@ -31,6 +31,8 @@ extends Resource
 ##   badge_unlocked         - globo de logro desbloqueado (Notices)
 ##   level_up               - globo de subida de nivel del jugador (Notices)
 ##   ui_hover / ui_click / ui_back - botones de los menus
+##   boot_key / boot_enter  - letras y enter de la terminal del arranque (BootSequence)
+##   desktop_boot           - el monitor del menu se enciende (CrtOverlay); sin sample todavia
 ##
 ## El disparo del arma no pasa por aca: va por el SpatialAudio3D del arma.
 

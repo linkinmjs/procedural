@@ -35,6 +35,9 @@ OPTIONS_RESOLUTION,Resolución,Resolução,Resolution
 OPTIONS_RESOLUTION_VALUE,{width} x {height},{width} x {height},{width} x {height}
 OPTIONS_RESOLUTION_NATIVE,Del monitor,Do monitor,Native
 OPTIONS_RESOLUTION_CANVAS,La define el navegador,Definida pelo navegador,Set by the browser
+OPTIONS_CRT,Filtro de monitor,Filtro de monitor,Monitor filter
+OPTIONS_ON,Encendido,Ligado,On
+OPTIONS_OFF,Apagado,Desligado,Off
 OPTIONS_PERCENT,{percent}%,{percent}%,{percent}%
 DESKTOP_START,inicio,iniciar,start
 DESKTOP_SHUTDOWN,Apagar,Desligar,Shut down

@@ -158,6 +158,7 @@ func _check_sensitivity() -> bool:
 func _check_persistence() -> bool:
 	_settings.set_volume("Music", 0.35)
 	_settings.set_sensitivity(0.002)
+	_settings.set_crt_enabled(false)
 	_settings.flush()
 	var config := ConfigFile.new()
 	if config.load(GameSettings.SETTINGS_PATH) != OK:
@@ -172,6 +173,10 @@ func _check_persistence() -> bool:
 	if str(config.get_value("game", "locale", "")) != "es":
 		_fail("The saved file should carry the chosen language.")
 		return false
+	if bool(config.get_value("screen", "crt", true)):
+		_fail("The saved file should carry the monitor filter switch.")
+		return false
+	_settings.set_crt_enabled(true)
 	return true
 
 

@@ -160,3 +160,22 @@ Convención de "dónde": `archivo → nodo/sección/función`.
 | `exit_light_factor` | ídem | 0.15 | A cuánto baja la luz de la sala de salida; se funde junto con la cámara lenta (`SLOWMO_FADE_IN_SECONDS`). |
 | Reintento de resultados | → `_show_results` | 0.5 s | Cada cuánto reintenta abrir resultados si otro menú está abierto. |
 | Intertítulo de nivel | `scripts/ui/level_intro.gd` | 0.5 / 1.15 / 0.55 s | Fade-in, sostén y fade-out del título del nivel. |
+
+## Arranque y monitor del menú
+
+| Parámetro | Dónde | Valor | Qué controla |
+| --- | --- | --- | --- |
+| `boot_splash/image` / `boot_splash/bg_color` | `project.godot` | `assets/textures/ui/splash/godot_splash.png` / #242424 | Splash del motor. Tiene que ser la misma imagen y el mismo fondo que la primera tarjeta de `BootSequence`; `tests/boot_sequence_smoke_test.gd` lo verifica contra el píxel de la esquina de la imagen. |
+| `GODOT_HOLD` / `GODOT_FADE` | `scripts/ui/boot_sequence.gd` | 1.1 / 0.3 s | Cuánto se sostiene el splash de Godot y su fundido a negro. |
+| `STUDIO_PAUSE` / `TYPE_SECONDS` / `TYPE_JITTER` / `STUDIO_HOLD` | ídem | 0.4 / 0.075 / ±0.035 / 1.1 s | Espera con el prompt solo, tiempo entre letras (con azar, como alguien tipeando) y sostenido con el nombre completo antes del corte. |
+| `CURSOR_BLINK` / `CUT_SECONDS` | ídem | 0.5 / 0.25 s | Parpadeo del `_` y negro entre la terminal y el menú (el monitor se apaga antes de prenderse). |
+| `STUDIO_FONT` / `STUDIO_FONT_SIZE` | ídem | `Withheld Data` / 64 | Fuente pixel de la terminal (`assets/fonts/boot/`, importada sin antialiasing para que los píxeles queden secos). |
+| `boot_key` / `boot_enter` / `desktop_boot` | `resources/audio/sfx_library.tres` | `ui_minimalist_2` −6 dB / `ui_modern_2` / sin sample | Tic por letra (con variación de tono), enter al terminar y encendido del monitor (hook sin sonido todavía). |
+| `POWER_ON_DELAY` / `POWER_ON_SECONDS` | `scripts/ui/crt_overlay.gd` | 0.15 / 0.9 s | Negro antes de que aparezca la línea y duración del encendido del tubo. |
+| `LAYER` | ídem | 200 | Por encima de `MenuStack` (128): el vidrio cubre también las ventanas abiertas sobre el escritorio. |
+| `scanline_strength` / `scanline_period_px` | `assets/shaders/crt_monitor.gdshader` | 0.10 / 3 px | Cuánto brillo se llevan las líneas de barrido y cada cuántos píxeles reales de pantalla se repiten. |
+| `aberration_px` | ídem | 0.7 px | Separación del rojo y el azul en el borde; en el centro es cero para que el texto siga nítido. |
+| `vignette_strength` / `vignette_start` / `corner_radius` | ídem | 0.25 / 0.45 / 0.03 | Oscurecimiento de los bordes, desde qué distancia al centro empieza, y esquinas redondeadas del tubo. |
+| `flicker_strength` / `band_strength` / `band_speed` / `band_height` / `noise_strength` | ídem | 0.012 / 0.03 / 0.05 / 0.25 / 0.015 | Parpadeo del brillo, banda clara que baja despacio y grano. Todo apenas insinuado: el menú se tiene que leer sin cansar la vista. Sin curvatura a propósito (correría el dibujo respecto del clic). |
+| `brightness` | ídem | 1.04 | Compensa lo que se llevan las líneas y la viñeta. |
+| `crt` | `user://settings.cfg` → `[screen]` | true | Filtro de monitor (Opciones → «Filtro de monitor»). Apagado, el rectángulo del shader se oculta y no se paga la copia del backbuffer; el escritorio aparece sin encendido. |

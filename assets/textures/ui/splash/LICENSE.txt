@@ -1,0 +1,10 @@
+godot_splash.png
+----------------
+Pantalla de arranque "Made with Godot" (logo pixel), tomada del pack
+Godot-SplashScreens de Kenney (https://github.com/KenneyNL/Godot-SplashScreens),
+archivo "Screen/Pixel logo/original-large-dark.png", reducida de 3840x2160 a
+1920x1080.
+
+- El logo de Godot es de Andrea Calabro, licencia CC-BY-4.0
+  (https://github.com/godotengine/godot/blob/master/LOGO_LICENSE.txt).
+- La composicion y los logos derivados del pack son de Kenney, CC0.

@@ -74,7 +74,8 @@ orgánica/digital para la piel del juego y otra de sistema para el escritorio.
 
 | ID | Evento o disparador | Prioridad | Espacio | Estado | Criterio inicial |
 | --- | --- | --- | --- | --- | --- |
-| `desktop_boot` | Entrada al menú principal | P1 | 2D | Pendiente | Firma breve de arranque; no una secuencia larga. |
+| `desktop_boot` | El monitor del menú principal se enciende | P1 | 2D | Hook conectado (`CrtOverlay.power_on()`), sin sample | Firma breve de arranque; no una secuencia larga. Zumbido de tubo al prenderse. |
+| `boot_key` / `boot_enter` | Letras y enter de la terminal del arranque (`BootSequence`) | P2 | 2D | Integrado (`ui_minimalist_2` a −6 dB / `ui_modern_2`) | Tic corto por letra con leve variación de tono; el enter cierra la línea. |
 | `desktop_icon_select` | Clic simple selecciona un icono | P1 | 2D | Pendiente | Click seco de escritorio. |
 | `desktop_icon_open` | Doble clic abre un icono | P0 | 2D | Pendiente | Dos clicks legibles más confirmación de apertura si corresponde. |
 | `desktop_window_open` | Aparece la ventana de `procedural` | P1 | 2D | Pendiente | Movimiento corto de sistema. |

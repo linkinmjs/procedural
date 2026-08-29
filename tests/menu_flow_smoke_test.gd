@@ -86,7 +86,7 @@ func _run() -> void:
 		return
 
 	play_button.pressed.emit()
-	await _wait_frames(8)
+	await _wait_for_level()
 	var level := current_scene as PlayableLevel
 	if level == null or level.level_data.is_empty():
 		_fail("Playing from the main menu should load the campaign level.")
@@ -219,6 +219,16 @@ func _find_button(node: Node, text: String) -> Button:
 		if found != null:
 			return found
 	return null
+
+
+## Entrar al nivel pasa por la precarga, que reparte las cargas por
+## presupuesto de frame: cuantos frames tarda depende del disco y de la cache
+## (entre 8 y 14 en la misma maquina). Se espera al nivel, con tope.
+func _wait_for_level() -> void:
+	for _frame in 60:
+		await _wait_frames(1)
+		if current_scene is PlayableLevel:
+			return
 
 
 func _wait_frames(count: int) -> void:

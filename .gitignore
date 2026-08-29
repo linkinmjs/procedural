@@ -12,10 +12,11 @@
 !/assets/_raw/.gdignore
 
 # Pack local de fuentes (~1200 archivos): solo se versionan las elegidas,
-# copiadas a assets/fonts/hud/. Los .gdignore dentro del pack le dicen a
-# Godot que tampoco las importe.
+# copiadas a assets/fonts/hud/ y assets/fonts/boot/. Los .gdignore dentro del
+# pack le dicen a Godot que tampoco las importe.
 /assets/fonts/*/
 !/assets/fonts/hud/
+!/assets/fonts/boot/
 
 # Referencias en PDF (libros): material local, no se versiona.
 /docs/pdfs/

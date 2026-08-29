@@ -56,7 +56,7 @@ las ventanas. Es un `Area3D`, no un muro: se puede atravesar, y eso duele.
 | Tamaño | ancho = lado de la sala − 0,4 m; alto = mín(altura de pared − 0,4, `maxBlockHeight`), nunca menos de 2 m |
 | Separación de la pared | 0,65 m |
 | Ventanas | se reparten al azar dentro del panel con separación mínima 2×1 m (menor que una ventana: **se superponen a propósito**, escalonadas 8 cm en profundidad) |
-| Cruzar el bloque | **15 de daño** por cada entrada al panel |
+| Cruzar el bloque | **40 de daño** (o el `crossingDamage` del nivel, 1–100) y el bloque **se descarga**: se apaga, suelta sus objetivos y desaparece — solo se cobra una vez |
 
 ### Movimiento `opposite`
 
@@ -241,7 +241,7 @@ Ejemplo (sala de 12 objetivos): multiplicador ×3 → techo de sala
 | Dato | Valor |
 |---|---|
 | Vida | 100 |
-| Daño por cruzar un bloque | 15 (6 cruces lo matan) |
+| Daño por cruzar un bloque | 40 por defecto (el tercero mata; `crossingDamage` 1–100 por nivel) |
 | Daño por ventanas | ninguno |
 | Glock: cargador / reserva máxima | 10 / 60 |
 | Glock: daño | 25 (irrelevante contra objetivos: todo cae de un tiro) |

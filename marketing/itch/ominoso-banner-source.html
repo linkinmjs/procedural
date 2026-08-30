@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Honk"; src: url("Honk.ttf") format("truetype"); }
+  @font-face { font-family: "Syne Mono"; src: url("SyneMono.ttf") format("truetype"); }
+  @font-palette-values --hud {
+    font-family: "Honk";
+    base-palette: 0;
+    override-colors: 2 #FFF6C2, 3 #FFE785, 4 #FFD147, 5 #FFAD33, 6 #FF6A3D, 7 #FF383D;
+  }
+  @font-palette-values --cyan {
+    font-family: "Honk";
+    base-palette: 0;
+    override-colors: 2 #EAFCFF, 3 #BDF3FF, 4 #6BE6FF, 5 #00E0FF, 6 #00A9CC, 7 #147594;
+  }
+  body[data-pal="hud"] h1 { font-palette: --hud; }
+  body[data-pal="cyan"] h1 { font-palette: --cyan; }
+  html, body { margin: 0; background: #000; }
+  body { width: 1920px; height: 400px; overflow: hidden; position: relative; }
+  .wrap {
+    position: absolute; inset: 0;
+    display: flex; align-items: baseline; justify-content: center;
+    gap: 28px;
+    padding-top: 70px;
+    box-sizing: border-box;
+  }
+  h1 {
+    margin: 0;
+    font-family: "Honk";
+    font-weight: 400;
+    font-size: 250px;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    font-variation-settings: "MORF" var(--morf, 15), "SHLN" var(--shln, 50);
+  }
+  .prompt {
+    font-family: "Syne Mono";
+    font-size: 72px;
+    color: #6BE6FF;
+  }
+  .scan {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.28) 3px 4px);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <span class="prompt">C:\&gt;</span>
+    <h1>Ominoso</h1>
+    <span class="prompt">_</span>
+  </div>
+  <div class="scan"></div>
+  <script>
+    const q = new URLSearchParams(location.search);
+    const r = document.documentElement.style;
+    if (q.has("morf")) r.setProperty("--morf", q.get("morf"));
+    if (q.has("shln")) r.setProperty("--shln", q.get("shln"));
+    if (q.get("scan") === "0") document.querySelector(".scan").remove();
+    if (q.has("pal")) document.body.dataset.pal = q.get("pal");
+  </script>
+</body>
+</html>

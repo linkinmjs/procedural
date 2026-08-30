@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Cybercrime"; src: url("file:///C:/Users/Mauri/Godot/Proyectos/procedural/assets/fonts/Computer%20(36)/Cybercrime%202004.ttf"); }
+  @font-face { font-family: "DosDigital"; src: url("file:///C:/Users/Mauri/Godot/Proyectos/procedural/assets/fonts/Computer%20(36)/Distortion%20Dos%20Digital.otf"); }
+  @font-face { font-family: "Ninety7"; src: url("file:///C:/Users/Mauri/Godot/Proyectos/procedural/assets/fonts/Pixel%20(48)/Nineteen%20Ninety%20Seven.otf"); }
+  @font-face { font-family: "DeadCRT"; src: url("file:///C:/Users/Mauri/Godot/Proyectos/procedural/assets/fonts/Computer%20(36)/DEADCRT.ttf"); }
+  @font-face { font-family: "CQ Mono"; src: url("file:///C:/Users/Mauri/Godot/Proyectos/procedural/assets/fonts/hud/CQ%20Mono.otf"); }
+
+  html, body { margin: 0; background: #000; }
+  body { width: 100vw; height: 100vh; overflow: hidden; position: relative; }
+  .content { zoom: var(--zoom, 1); }
+
+  /* El tubo: fondo negro azulado con un brillo de fósforo en el centro. */
+  .tube {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 48%, rgba(20, 117, 148, .35), rgba(4, 6, 11, 0) 70%),
+      #04060B;
+  }
+  .content {
+    position: absolute; inset: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+  }
+  .stack { display: grid; gap: 14px; justify-items: center; }
+  .name {
+    margin: 0;
+    color: #DBF5FF;
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+    text-shadow:
+      -2px 0 rgba(255, 56, 61, .55),
+       2px 0 rgba(0, 224, 255, .6),
+       0 0 14px rgba(107, 230, 255, .8),
+       0 0 40px rgba(0, 224, 255, .35);
+  }
+  body[data-font="cybercrime"] .name { font-family: "Cybercrime"; font-size: 74px; letter-spacing: 0.02em; }
+  body[data-font="dos"]        .name { font-family: "DosDigital"; font-size: 72px; }
+  body[data-font="ninety7"]    .name { font-family: "Ninety7"; font-size: 50px; }
+  body[data-font="deadcrt"]    .name { font-family: "DeadCRT"; font-size: 36px; }
+
+  .prompt {
+    font-family: "CQ Mono", monospace;
+    font-size: 20px;
+    color: #6BE6FF;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 8px rgba(107, 230, 255, .7);
+  }
+  .prompt .dim { color: #A8D1E0; }
+  .prompt .cursor { color: #DBF5FF; }
+
+  /* Scanlines, malla RGB, viñeta y curvatura del vidrio. */
+  .scan {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.42) 0 1px, transparent 1px 3px);
+    mix-blend-mode: multiply;
+  }
+  .mask {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, rgba(255,0,0,.06) 0 1px, rgba(0,255,0,.06) 1px 2px, rgba(0,0,255,.06) 2px 3px);
+  }
+  .vignette {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 78% 74% at 50% 50%, transparent 55%, rgba(0,0,0,.55) 85%, #000 100%);
+  }
+  .glass {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.06), transparent 30%, transparent 70%, rgba(255,255,255,.03));
+    border-radius: 34px / 26px;
+    box-shadow: inset 0 0 0 6px #000, inset 0 0 60px rgba(0,0,0,.8);
+  }
+</style>
+</head>
+<body data-font="cybercrime">
+  <div class="tube"></div>
+  <div class="content">
+    <div class="stack">
+      <div class="prompt"><span class="dim">C:\&gt;</span> run</div>
+      <h1 class="name">Procedural.exe</h1>
+      <div class="prompt"><span class="cursor">_</span></div>
+    </div>
+  </div>
+  <div class="mask"></div>
+  <div class="scan"></div>
+  <div class="vignette"></div>
+  <div class="glass"></div>
+  <script>
+    const q = new URLSearchParams(location.search);
+    if (q.has("font")) document.body.dataset.font = q.get("font");
+    if (q.has("zoom")) document.documentElement.style.setProperty("--zoom", q.get("zoom"));
+  </script>
+</body>
+</html>

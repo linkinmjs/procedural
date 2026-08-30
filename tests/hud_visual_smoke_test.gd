@@ -15,6 +15,9 @@ func _ready() -> void:
 	controller.report_ammo_changed([7, 24])
 	controller.report_target_hit("blue ball")
 	controller.report_target_left("blue ball", 15.0)
+	# Una linea larga como las que escribe el nivel real: el panel tiene que
+	# envolverla dentro de su slot en vez de crecer fuera de la pantalla.
+	controller.add_log("CLAVE ROTA // FRONT // CAPA 1/1 // 5 OBJETIVOS PENDIENTES", "info")
 	# La entrada en cascada dura menos de un segundo: se espera a que los
 	# paneles asienten antes de medir posiciones y retratar.
 	await get_tree().create_timer(0.9).timeout

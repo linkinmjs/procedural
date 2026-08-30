@@ -327,6 +327,9 @@ func _on_log_added(message: String, event_kind: String) -> void:
 	line.theme_type_variation = &"HudLog"
 	line.text = "[%s] %s" % [Time.get_time_string_from_system(), message]
 	line.add_theme_color_override("font_color", color)
+	# Los mensajes largos envuelven dentro del slot; sin esto el ancho minimo
+	# de la linea empuja al panel fuera del borde derecho de la pantalla.
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	log_lines.add_child(line)
 	while log_lines.get_child_count() > MAX_LOG_LINES:

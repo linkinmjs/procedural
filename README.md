@@ -214,6 +214,10 @@ Vista del arranque y del monitor, en `.godot/boot-godot.png`, `.godot/boot-omino
 
 `Godot_v4.7-stable_win64_console.exe --path . res://tests/boot_visual_smoke_test.tscn`
 
+Vista del escritorio limpio (ventana cerrada, marca de agua de acceso anticipado sobre la barra), en `.godot/desktop-crt.png`; es la imagen de cabecera de la pagina de itch:
+
+`Godot_v4.7-stable_win64_console.exe --path . res://tests/desktop_visual_smoke_test.tscn`
+
 Prueba del flujo de menus:
 
 `Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tests/menu_flow_smoke_test.gd`

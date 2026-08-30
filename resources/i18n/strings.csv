@@ -265,3 +265,4 @@ SELECT_TIME_VALUE,{minutes}:{seconds},{minutes}:{seconds},{minutes}:{seconds}
 SELECT_OLD_FORMULA,*,*,*
 SELECT_ROW,{number}. {name},{number}. {name},{number}. {name}
 START_MY_COMPUTER,Mi PC,Meu PC,My PC
+DESKTOP_WATERMARK,Acceso anticipado,Acesso antecipado,Early access

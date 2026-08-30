@@ -31,6 +31,7 @@ const DESKTOP_FOLDER := preload("res://assets/textures/ui/xp/icons/large/folder.
 const DESKTOP_GEAR := preload("res://assets/textures/ui/xp/icons/large/gear.png")
 const DESKTOP_COMPUTER := preload("res://assets/textures/ui/xp/icons/large/computer.png")
 const DESKTOP_RECYCLE := preload("res://assets/textures/ui/xp/icons/large/recycle.png")
+const WATERMARK_FONT := preload("res://assets/fonts/tahoma.ttf")
 
 const DESKTOP_MARGIN := Vector2(18.0, 16.0)
 
@@ -43,6 +44,10 @@ var profile_header: ProfileHeader
 var level_chip: Label
 ## El vidrio del monitor, por encima de todo lo que se abra sobre el escritorio.
 var crt: CrtOverlay
+## El sello de acceso anticipado, abajo a la derecha como el "Evaluation copy"
+## de una copia de prueba de Windows: forma parte del escritorio, no de la
+## ventana, asi que sigue ahi con la ventana cerrada.
+var watermark: Label
 
 var _icons: VBoxContainer
 
@@ -64,6 +69,7 @@ func _ready() -> void:
 	_fill_window()
 	_build_taskbar()
 	_build_start_menu()
+	_build_watermark()
 	focus_default()
 	crt = CrtOverlay.create()
 	add_child(crt)
@@ -206,6 +212,31 @@ func _build_start_menu() -> void:
 	start_menu.add_shutdown(quit_game)
 	# El escritorio no pasa por MenuStack.open(): se cablea aca.
 	Sfx.wire_ui(self)
+
+
+## Texto blanco con sombra sobre el fondo, pegado a la esquina inferior derecha
+## por encima de la barra. No reacciona al mouse: es parte del fondo.
+func _build_watermark() -> void:
+	var anchor := MarginContainer.new()
+	anchor.set_anchors_preset(Control.PRESET_FULL_RECT)
+	anchor.add_theme_constant_override("margin_right", int(DESKTOP_MARGIN.x))
+	anchor.add_theme_constant_override("margin_bottom", int(Taskbar.HEIGHT + DESKTOP_MARGIN.y))
+	anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(anchor)
+
+	watermark = Label.new()
+	watermark.text = "%s.exe\n%s" % [GAME_NAME, tr("DESKTOP_WATERMARK")]
+	watermark.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	watermark.size_flags_horizontal = Control.SIZE_SHRINK_END
+	watermark.size_flags_vertical = Control.SIZE_SHRINK_END
+	watermark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	watermark.add_theme_font_override("font", WATERMARK_FONT)
+	watermark.add_theme_font_size_override("font_size", 13)
+	watermark.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
+	watermark.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.7))
+	watermark.add_theme_constant_override("shadow_offset_x", 1)
+	watermark.add_theme_constant_override("shadow_offset_y", 1)
+	anchor.add_child(watermark)
 
 
 func _on_start_toggled(pressed: bool) -> void:

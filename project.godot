@@ -15,7 +15,7 @@ run/main_scene="res://scenes/ui/boot_sequence.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 1)
 boot_splash/image="res://assets/textures/ui/splash/godot_splash.png"
-config/icon="res://icon.svg"
+config/icon="res://icon.png"
 
 [audio]
 
